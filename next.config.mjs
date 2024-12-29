@@ -13,8 +13,7 @@ const nextConfig = {
         pathname: '/maps/api/**',
       }
     ],
-  },
-	output: 'random-sampo',
+  }
 }
 
 export default nextConfig;

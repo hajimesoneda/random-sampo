@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Station } from '@/types/station'
-import { Clock, Users, Train, MapPin } from 'lucide-react'
+import { Train, MapPin } from 'lucide-react'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { SpotCard } from '@/components/spot-card'
@@ -77,32 +77,13 @@ export default function Home() {
                   
                   <Map center={{ lat: station.lat, lng: station.lng }} />
 
-                  {(station.passengers !== null || station.firstDeparture !== null) ? (
-                    <div className="bg-muted p-4 rounded-lg space-y-2">
-                      <h3 className="font-semibold mb-2">駅情報</h3>
-                      <div className="flex items-center gap-2">
-                        <Train className="w-4 h-4" />
-                        <span>路線: {station.lines.join('、')}</span>
-                      </div>
-                      {station.passengers !== null && (
-                        <div className="flex items-center gap-2">
-                          <Users className="w-4 h-4" />
-                          <span>1日の乗降者数: 約{station.passengers.toLocaleString()}人</span>
-                        </div>
-                      )}
-                      {station.firstDeparture !== null && (
-                        <div className="flex items-center gap-2">
-                          <Clock className="w-4 h-4" />
-                          <span>始発: {station.firstDeparture}</span>
-                        </div>
-                      )}
+                  <div className="bg-muted p-4 rounded-lg space-y-2">
+                    <h3 className="font-semibold mb-2">駅情報</h3>
+                    <div className="flex items-center gap-2">
+                      <Train className="w-4 h-4" />
+                      <span>路線: {station.lines.join('、')}</span>
                     </div>
-                  ) : (
-                    <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded-lg" role="alert">
-                      <p className="font-bold">注意</p>
-                      <p>この駅の詳細情報は現在利用できません。</p>
-                    </div>
-                  )}
+                  </div>
 
                   <div className="space-y-4">
                     <h3 className="font-semibold flex items-center gap-2">
