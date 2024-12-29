@@ -1,0 +1,239 @@
+[
+    {
+        "id": "代々木上原",
+        "name": "代々木上原",
+        "lines": [
+            "代々木上原"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.66849,
+        "lng": 139.67877
+    },
+    {
+        "id": "代々木公園",
+        "name": "代々木公園",
+        "lines": [
+            "代々木公園"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.66926,
+        "lng": 139.68868
+    },
+    {
+        "id": "明治神宮前",
+        "name": "明治神宮前",
+        "lines": [
+            "明治神宮前"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.66949,
+        "lng": 139.70307
+    },
+    {
+        "id": "表参道",
+        "name": "表参道",
+        "lines": [
+            "表参道"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.66606,
+        "lng": 139.7105
+    },
+    {
+        "id": "乃木坂",
+        "name": "乃木坂",
+        "lines": [
+            "乃木坂"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.6673,
+        "lng": 139.72701
+    },
+    {
+        "id": "赤坂",
+        "name": "赤坂",
+        "lines": [
+            "赤坂"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.67267,
+        "lng": 139.73711
+    },
+    {
+        "id": "国会議事堂前",
+        "name": "国会議事堂前",
+        "lines": [
+            "国会議事堂前"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.67386,
+        "lng": 139.74458
+    },
+    {
+        "id": "霞ヶ関",
+        "name": "霞ヶ関",
+        "lines": [
+            "霞ヶ関"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.67223,
+        "lng": 139.7526
+    },
+    {
+        "id": "日比谷",
+        "name": "日比谷",
+        "lines": [
+            "日比谷"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.67469,
+        "lng": 139.7595
+    },
+    {
+        "id": "二重橋前",
+        "name": "二重橋前",
+        "lines": [
+            "二重橋前"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.68145,
+        "lng": 139.7621
+    },
+    {
+        "id": "大手町",
+        "name": "大手町",
+        "lines": [
+            "大手町"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.68613,
+        "lng": 139.76355
+    },
+    {
+        "id": "新御茶ノ水",
+        "name": "新御茶ノ水",
+        "lines": [
+            "新御茶ノ水"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.69759,
+        "lng": 139.76576
+    },
+    {
+        "id": "湯島",
+        "name": "湯島",
+        "lines": [
+            "湯島"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.70779,
+        "lng": 139.77002
+    },
+    {
+        "id": "根津",
+        "name": "根津",
+        "lines": [
+            "根津"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.7179,
+        "lng": 139.76517
+    },
+    {
+        "id": "千駄木",
+        "name": "千駄木",
+        "lines": [
+            "千駄木"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.7266,
+        "lng": 139.76356
+    },
+    {
+        "id": "西日暮里",
+        "name": "西日暮里",
+        "lines": [
+            "西日暮里"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.73281,
+        "lng": 139.76785
+    },
+    {
+        "id": "町屋",
+        "name": "町屋",
+        "lines": [
+            "町屋"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.74118,
+        "lng": 139.77946
+    },
+    {
+        "id": "北千住",
+        "name": "北千住",
+        "lines": [
+            "北千住"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.75002,
+        "lng": 139.8046
+    },
+    {
+        "id": "綾瀬",
+        "name": "綾瀬",
+        "lines": [
+            "綾瀬"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.76241,
+        "lng": 139.82614
+    },
+    {
+        "id": "北綾瀬",
+        "name": "北綾瀬",
+        "lines": [
+            "北綾瀬"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.77725,
+        "lng": 139.83211
+    },
+    {
+        "id": "千代田線",
+        "name": "千代田線",
+        "lines": [
+            "千代田線"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": [
+            139.80413,
+            35.74816
+        ],
+        "lng": [
+            139.80421,
+            35.74838
+        ]
+    }
+]
