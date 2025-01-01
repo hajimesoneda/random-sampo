@@ -9,6 +9,7 @@ import { Train, MapPin } from 'lucide-react'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { SpotCard } from '@/components/spot-card'
+import { VisitedStations } from '@/components/visited-stations'
 
 const Map = dynamic(() => import('@/components/map'), { 
   ssr: false,
@@ -99,7 +100,7 @@ export default function Home() {
 
                   <div className="flex gap-2">
                     <Button asChild className="flex-1">
-                      <Link href={`/visit/${station.id}`}>
+                      <Link href={`/visit/${encodeURIComponent(station.name)}`}>
                         行ってみた！
                       </Link>
                     </Button>
@@ -114,7 +115,7 @@ export default function Home() {
         </TabsContent>
 
         <TabsContent value="visited">
-          <p className="text-center text-muted-foreground">訪問済みの駅がここに表示されます</p>
+          <VisitedStations />
         </TabsContent>
 
         <TabsContent value="favorites">
