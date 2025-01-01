@@ -3,7 +3,7 @@
         "id": "中野",
         "name": "中野",
         "lines": [
-            "中野"
+            "東西線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -14,7 +14,7 @@
         "id": "落合",
         "name": "落合",
         "lines": [
-            "落合"
+            "東西線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -25,7 +25,7 @@
         "id": "高田馬場",
         "name": "高田馬場",
         "lines": [
-            "高田馬場"
+            "東西線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -36,7 +36,7 @@
         "id": "早稲田",
         "name": "早稲田",
         "lines": [
-            "早稲田"
+            "東西線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -47,7 +47,7 @@
         "id": "神楽坂",
         "name": "神楽坂",
         "lines": [
-            "神楽坂"
+            "東西線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -58,7 +58,7 @@
         "id": "飯田橋",
         "name": "飯田橋",
         "lines": [
-            "飯田橋"
+            "東西線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -69,7 +69,7 @@
         "id": "九段下",
         "name": "九段下",
         "lines": [
-            "九段下"
+            "東西線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -80,7 +80,7 @@
         "id": "竹橋",
         "name": "竹橋",
         "lines": [
-            "竹橋"
+            "東西線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -91,7 +91,7 @@
         "id": "大手町",
         "name": "大手町",
         "lines": [
-            "大手町"
+            "東西線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -102,7 +102,7 @@
         "id": "日本橋",
         "name": "日本橋",
         "lines": [
-            "日本橋"
+            "東西線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -113,7 +113,7 @@
         "id": "茅場町",
         "name": "茅場町",
         "lines": [
-            "茅場町"
+            "東西線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -124,7 +124,7 @@
         "id": "門前仲町",
         "name": "門前仲町",
         "lines": [
-            "門前仲町"
+            "東西線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -135,7 +135,7 @@
         "id": "木場",
         "name": "木場",
         "lines": [
-            "木場"
+            "東西線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -146,7 +146,7 @@
         "id": "東陽町",
         "name": "東陽町",
         "lines": [
-            "東陽町"
+            "東西線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -157,7 +157,7 @@
         "id": "南砂町",
         "name": "南砂町",
         "lines": [
-            "南砂町"
+            "東西線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -168,7 +168,7 @@
         "id": "西葛西",
         "name": "西葛西",
         "lines": [
-            "西葛西"
+            "東西線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -179,7 +179,7 @@
         "id": "葛西",
         "name": "葛西",
         "lines": [
-            "葛西"
+            "東西線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -190,7 +190,7 @@
         "id": "浦安",
         "name": "浦安",
         "lines": [
-            "浦安"
+            "東西線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -201,7 +201,7 @@
         "id": "南行徳",
         "name": "南行徳",
         "lines": [
-            "南行徳"
+            "東西線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -212,7 +212,7 @@
         "id": "行徳",
         "name": "行徳",
         "lines": [
-            "行徳"
+            "東西線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -223,7 +223,7 @@
         "id": "妙典",
         "name": "妙典",
         "lines": [
-            "妙典"
+            "東西線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -234,7 +234,7 @@
         "id": "原木中山",
         "name": "原木中山",
         "lines": [
-            "原木中山"
+            "東西線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -245,28 +245,11 @@
         "id": "西船橋",
         "name": "西船橋",
         "lines": [
-            "西船橋"
+            "東西線"
         ],
         "passengers": null,
         "firstDeparture": null,
         "lat": 35.70671,
         "lng": 139.95979
-    },
-    {
-        "id": "東西線",
-        "name": "東西線",
-        "lines": [
-            "東西線"
-        ],
-        "passengers": null,
-        "firstDeparture": null,
-        "lat": [
-            139.95648,
-            35.70852
-        ],
-        "lng": [
-            139.95788,
-            35.70782
-        ]
     }
 ]

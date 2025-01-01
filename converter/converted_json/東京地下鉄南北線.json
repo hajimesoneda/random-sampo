@@ -3,7 +3,7 @@
         "id": "目黒",
         "name": "目黒",
         "lines": [
-            "目黒"
+            "南北線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -14,7 +14,7 @@
         "id": "白金台",
         "name": "白金台",
         "lines": [
-            "白金台"
+            "南北線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -25,7 +25,7 @@
         "id": "白金高輪",
         "name": "白金高輪",
         "lines": [
-            "白金高輪"
+            "南北線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -36,7 +36,7 @@
         "id": "麻布十番",
         "name": "麻布十番",
         "lines": [
-            "麻布十番"
+            "南北線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -47,7 +47,7 @@
         "id": "六本木一丁目",
         "name": "六本木一丁目",
         "lines": [
-            "六本木一丁目"
+            "南北線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -58,7 +58,7 @@
         "id": "溜池山王",
         "name": "溜池山王",
         "lines": [
-            "溜池山王"
+            "南北線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -69,7 +69,7 @@
         "id": "永田町",
         "name": "永田町",
         "lines": [
-            "永田町"
+            "南北線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -80,7 +80,7 @@
         "id": "四ツ谷",
         "name": "四ツ谷",
         "lines": [
-            "四ツ谷"
+            "南北線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -91,7 +91,7 @@
         "id": "市ヶ谷",
         "name": "市ヶ谷",
         "lines": [
-            "市ヶ谷"
+            "南北線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -102,7 +102,7 @@
         "id": "飯田橋",
         "name": "飯田橋",
         "lines": [
-            "飯田橋"
+            "南北線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -113,7 +113,7 @@
         "id": "後楽園",
         "name": "後楽園",
         "lines": [
-            "後楽園"
+            "南北線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -124,7 +124,7 @@
         "id": "東大前",
         "name": "東大前",
         "lines": [
-            "東大前"
+            "南北線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -135,7 +135,7 @@
         "id": "本駒込",
         "name": "本駒込",
         "lines": [
-            "本駒込"
+            "南北線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -146,7 +146,7 @@
         "id": "駒込",
         "name": "駒込",
         "lines": [
-            "駒込"
+            "南北線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -157,7 +157,7 @@
         "id": "西ヶ原",
         "name": "西ヶ原",
         "lines": [
-            "西ヶ原"
+            "南北線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -168,7 +168,7 @@
         "id": "王子",
         "name": "王子",
         "lines": [
-            "王子"
+            "南北線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -179,7 +179,7 @@
         "id": "王子神谷",
         "name": "王子神谷",
         "lines": [
-            "王子神谷"
+            "南北線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -190,7 +190,7 @@
         "id": "志茂",
         "name": "志茂",
         "lines": [
-            "志茂"
+            "南北線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -201,28 +201,11 @@
         "id": "赤羽岩淵",
         "name": "赤羽岩淵",
         "lines": [
-            "赤羽岩淵"
+            "南北線"
         ],
         "passengers": null,
         "firstDeparture": null,
         "lat": 35.7831,
         "lng": 139.72346
-    },
-    {
-        "id": "南北線",
-        "name": "南北線",
-        "lines": [
-            "南北線"
-        ],
-        "passengers": null,
-        "firstDeparture": null,
-        "lat": [
-            139.7353,
-            35.76654
-        ],
-        "lng": [
-            139.73533,
-            35.76641
-        ]
     }
 ]

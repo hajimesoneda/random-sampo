@@ -3,7 +3,7 @@
         "id": "渋谷",
         "name": "渋谷",
         "lines": [
-            "渋谷"
+            "半蔵門線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -14,7 +14,7 @@
         "id": "表参道",
         "name": "表参道",
         "lines": [
-            "表参道"
+            "半蔵門線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -25,7 +25,7 @@
         "id": "青山一丁目",
         "name": "青山一丁目",
         "lines": [
-            "青山一丁目"
+            "半蔵門線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -36,7 +36,7 @@
         "id": "永田町",
         "name": "永田町",
         "lines": [
-            "永田町"
+            "半蔵門線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -47,7 +47,7 @@
         "id": "半蔵門",
         "name": "半蔵門",
         "lines": [
-            "半蔵門"
+            "半蔵門線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -58,7 +58,7 @@
         "id": "九段下",
         "name": "九段下",
         "lines": [
-            "九段下"
+            "半蔵門線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -69,7 +69,7 @@
         "id": "神保町",
         "name": "神保町",
         "lines": [
-            "神保町"
+            "半蔵門線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -80,7 +80,7 @@
         "id": "大手町",
         "name": "大手町",
         "lines": [
-            "大手町"
+            "半蔵門線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -91,7 +91,7 @@
         "id": "三越前",
         "name": "三越前",
         "lines": [
-            "三越前"
+            "半蔵門線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -102,7 +102,7 @@
         "id": "水天宮前",
         "name": "水天宮前",
         "lines": [
-            "水天宮前"
+            "半蔵門線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -113,7 +113,7 @@
         "id": "清澄白河",
         "name": "清澄白河",
         "lines": [
-            "清澄白河"
+            "半蔵門線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -124,7 +124,7 @@
         "id": "住吉",
         "name": "住吉",
         "lines": [
-            "住吉"
+            "半蔵門線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -135,7 +135,7 @@
         "id": "錦糸町",
         "name": "錦糸町",
         "lines": [
-            "錦糸町"
+            "半蔵門線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -146,28 +146,11 @@
         "id": "押上",
         "name": "押上",
         "lines": [
-            "押上"
+            "半蔵門線"
         ],
         "passengers": null,
         "firstDeparture": null,
         "lat": 35.70668,
         "lng": 139.81415
-    },
-    {
-        "id": "半蔵門線",
-        "name": "半蔵門線",
-        "lines": [
-            "半蔵門線"
-        ],
-        "passengers": null,
-        "firstDeparture": null,
-        "lat": [
-            139.79793,
-            35.68202
-        ],
-        "lng": [
-            139.79827,
-            35.68204
-        ]
     }
 ]

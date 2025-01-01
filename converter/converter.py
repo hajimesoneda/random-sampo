@@ -29,8 +29,13 @@ for geojson_file in geojson_files:
 
         # Extract relevant fields
         station_name = properties.get("name", "不明な駅")
-        line_name = properties.get("name", "").split("/")[-1]  # Simplified line extraction
+        uri = properties.get("uri", "")
+        line_name = uri.split("/")[-2] if uri else "不明な路線"  # Extract route name from URI
         coordinates = geometry.get("coordinates", [])
+
+        # Skip entries where line_name is "東京地下鉄"
+        if line_name == "東京地下鉄":
+            continue
 
         # If coordinates are valid, assign lat/lng
         if coordinates and isinstance(coordinates[0], list):

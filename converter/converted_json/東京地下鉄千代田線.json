@@ -3,7 +3,7 @@
         "id": "代々木上原",
         "name": "代々木上原",
         "lines": [
-            "代々木上原"
+            "千代田線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -14,7 +14,7 @@
         "id": "代々木公園",
         "name": "代々木公園",
         "lines": [
-            "代々木公園"
+            "千代田線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -25,7 +25,7 @@
         "id": "明治神宮前",
         "name": "明治神宮前",
         "lines": [
-            "明治神宮前"
+            "千代田線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -36,7 +36,7 @@
         "id": "表参道",
         "name": "表参道",
         "lines": [
-            "表参道"
+            "千代田線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -47,7 +47,7 @@
         "id": "乃木坂",
         "name": "乃木坂",
         "lines": [
-            "乃木坂"
+            "千代田線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -58,7 +58,7 @@
         "id": "赤坂",
         "name": "赤坂",
         "lines": [
-            "赤坂"
+            "千代田線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -69,7 +69,7 @@
         "id": "国会議事堂前",
         "name": "国会議事堂前",
         "lines": [
-            "国会議事堂前"
+            "千代田線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -80,7 +80,7 @@
         "id": "霞ヶ関",
         "name": "霞ヶ関",
         "lines": [
-            "霞ヶ関"
+            "千代田線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -91,7 +91,7 @@
         "id": "日比谷",
         "name": "日比谷",
         "lines": [
-            "日比谷"
+            "千代田線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -102,7 +102,7 @@
         "id": "二重橋前",
         "name": "二重橋前",
         "lines": [
-            "二重橋前"
+            "千代田線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -113,7 +113,7 @@
         "id": "大手町",
         "name": "大手町",
         "lines": [
-            "大手町"
+            "千代田線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -124,7 +124,7 @@
         "id": "新御茶ノ水",
         "name": "新御茶ノ水",
         "lines": [
-            "新御茶ノ水"
+            "千代田線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -135,7 +135,7 @@
         "id": "湯島",
         "name": "湯島",
         "lines": [
-            "湯島"
+            "千代田線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -146,7 +146,7 @@
         "id": "根津",
         "name": "根津",
         "lines": [
-            "根津"
+            "千代田線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -157,7 +157,7 @@
         "id": "千駄木",
         "name": "千駄木",
         "lines": [
-            "千駄木"
+            "千代田線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -168,7 +168,7 @@
         "id": "西日暮里",
         "name": "西日暮里",
         "lines": [
-            "西日暮里"
+            "千代田線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -179,7 +179,7 @@
         "id": "町屋",
         "name": "町屋",
         "lines": [
-            "町屋"
+            "千代田線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -190,7 +190,7 @@
         "id": "北千住",
         "name": "北千住",
         "lines": [
-            "北千住"
+            "千代田線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -201,7 +201,7 @@
         "id": "綾瀬",
         "name": "綾瀬",
         "lines": [
-            "綾瀬"
+            "千代田線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -212,28 +212,11 @@
         "id": "北綾瀬",
         "name": "北綾瀬",
         "lines": [
-            "北綾瀬"
+            "千代田線"
         ],
         "passengers": null,
         "firstDeparture": null,
         "lat": 35.77725,
         "lng": 139.83211
-    },
-    {
-        "id": "千代田線",
-        "name": "千代田線",
-        "lines": [
-            "千代田線"
-        ],
-        "passengers": null,
-        "firstDeparture": null,
-        "lat": [
-            139.80413,
-            35.74816
-        ],
-        "lng": [
-            139.80421,
-            35.74838
-        ]
     }
 ]
