@@ -3,7 +3,7 @@
         "id": "北千住",
         "name": "北千住",
         "lines": [
-            "北千住"
+            "日比谷線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -14,7 +14,7 @@
         "id": "南千住",
         "name": "南千住",
         "lines": [
-            "南千住"
+            "日比谷線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -25,7 +25,7 @@
         "id": "三ノ輪",
         "name": "三ノ輪",
         "lines": [
-            "三ノ輪"
+            "日比谷線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -36,7 +36,7 @@
         "id": "入谷",
         "name": "入谷",
         "lines": [
-            "入谷"
+            "日比谷線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -47,7 +47,7 @@
         "id": "上野",
         "name": "上野",
         "lines": [
-            "上野"
+            "日比谷線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -58,7 +58,7 @@
         "id": "仲御徒町",
         "name": "仲御徒町",
         "lines": [
-            "仲御徒町"
+            "日比谷線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -69,7 +69,7 @@
         "id": "秋葉原",
         "name": "秋葉原",
         "lines": [
-            "秋葉原"
+            "日比谷線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -80,7 +80,7 @@
         "id": "小伝馬町",
         "name": "小伝馬町",
         "lines": [
-            "小伝馬町"
+            "日比谷線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -91,7 +91,7 @@
         "id": "人形町",
         "name": "人形町",
         "lines": [
-            "人形町"
+            "日比谷線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -102,7 +102,7 @@
         "id": "茅場町",
         "name": "茅場町",
         "lines": [
-            "茅場町"
+            "日比谷線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -113,7 +113,7 @@
         "id": "八丁堀",
         "name": "八丁堀",
         "lines": [
-            "八丁堀"
+            "日比谷線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -124,7 +124,7 @@
         "id": "築地",
         "name": "築地",
         "lines": [
-            "築地"
+            "日比谷線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -135,7 +135,7 @@
         "id": "東銀座",
         "name": "東銀座",
         "lines": [
-            "東銀座"
+            "日比谷線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -146,7 +146,7 @@
         "id": "銀座",
         "name": "銀座",
         "lines": [
-            "銀座"
+            "日比谷線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -157,7 +157,7 @@
         "id": "日比谷",
         "name": "日比谷",
         "lines": [
-            "日比谷"
+            "日比谷線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -168,7 +168,7 @@
         "id": "霞ヶ関",
         "name": "霞ヶ関",
         "lines": [
-            "霞ヶ関"
+            "日比谷線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -179,7 +179,7 @@
         "id": "神谷町",
         "name": "神谷町",
         "lines": [
-            "神谷町"
+            "日比谷線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -190,7 +190,7 @@
         "id": "虎ノ門ヒルズ",
         "name": "虎ノ門ヒルズ",
         "lines": [
-            "虎ノ門ヒルズ"
+            "日比谷線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -201,7 +201,7 @@
         "id": "六本木",
         "name": "六本木",
         "lines": [
-            "六本木"
+            "日比谷線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -212,7 +212,7 @@
         "id": "広尾",
         "name": "広尾",
         "lines": [
-            "広尾"
+            "日比谷線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -223,7 +223,7 @@
         "id": "恵比寿",
         "name": "恵比寿",
         "lines": [
-            "恵比寿"
+            "日比谷線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -234,28 +234,11 @@
         "id": "中目黒",
         "name": "中目黒",
         "lines": [
-            "中目黒"
+            "日比谷線"
         ],
         "passengers": null,
         "firstDeparture": null,
         "lat": 35.64352,
         "lng": 139.69815
-    },
-    {
-        "id": "日比谷線",
-        "name": "日比谷線",
-        "lines": [
-            "日比谷線"
-        ],
-        "passengers": null,
-        "firstDeparture": null,
-        "lat": [
-            139.76428,
-            35.6718
-        ],
-        "lng": [
-            139.76464,
-            35.67155
-        ]
     }
 ]

@@ -3,7 +3,7 @@
         "id": "浅草",
         "name": "浅草",
         "lines": [
-            "浅草"
+            "銀座線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -14,7 +14,7 @@
         "id": "田原町",
         "name": "田原町",
         "lines": [
-            "田原町"
+            "銀座線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -25,7 +25,7 @@
         "id": "稲荷町",
         "name": "稲荷町",
         "lines": [
-            "稲荷町"
+            "銀座線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -36,7 +36,7 @@
         "id": "上野",
         "name": "上野",
         "lines": [
-            "上野"
+            "銀座線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -47,7 +47,7 @@
         "id": "上野広小路",
         "name": "上野広小路",
         "lines": [
-            "上野広小路"
+            "銀座線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -58,7 +58,7 @@
         "id": "末広町",
         "name": "末広町",
         "lines": [
-            "末広町"
+            "銀座線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -69,7 +69,7 @@
         "id": "神田",
         "name": "神田",
         "lines": [
-            "神田"
+            "銀座線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -80,7 +80,7 @@
         "id": "三越前",
         "name": "三越前",
         "lines": [
-            "三越前"
+            "銀座線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -91,7 +91,7 @@
         "id": "日本橋",
         "name": "日本橋",
         "lines": [
-            "日本橋"
+            "銀座線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -102,7 +102,7 @@
         "id": "京橋",
         "name": "京橋",
         "lines": [
-            "京橋"
+            "銀座線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -113,7 +113,7 @@
         "id": "銀座",
         "name": "銀座",
         "lines": [
-            "銀座"
+            "銀座線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -124,7 +124,7 @@
         "id": "新橋",
         "name": "新橋",
         "lines": [
-            "新橋"
+            "銀座線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -135,7 +135,7 @@
         "id": "虎ノ門",
         "name": "虎ノ門",
         "lines": [
-            "虎ノ門"
+            "銀座線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -146,7 +146,7 @@
         "id": "溜池山王",
         "name": "溜池山王",
         "lines": [
-            "溜池山王"
+            "銀座線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -157,7 +157,7 @@
         "id": "赤坂見附",
         "name": "赤坂見附",
         "lines": [
-            "赤坂見附"
+            "銀座線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -168,7 +168,7 @@
         "id": "青山一丁目",
         "name": "青山一丁目",
         "lines": [
-            "青山一丁目"
+            "銀座線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -179,7 +179,7 @@
         "id": "外苑前",
         "name": "外苑前",
         "lines": [
-            "外苑前"
+            "銀座線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -190,7 +190,7 @@
         "id": "表参道",
         "name": "表参道",
         "lines": [
-            "表参道"
+            "銀座線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -201,28 +201,11 @@
         "id": "渋谷",
         "name": "渋谷",
         "lines": [
-            "渋谷"
+            "銀座線"
         ],
         "passengers": null,
         "firstDeparture": null,
         "lat": 35.658869,
         "lng": 139.701968
-    },
-    {
-        "id": "銀座線",
-        "name": "銀座線",
-        "lines": [
-            "銀座線"
-        ],
-        "passengers": null,
-        "firstDeparture": null,
-        "lat": [
-            139.77338,
-            35.68195
-        ],
-        "lng": [
-            139.77313,
-            35.68156
-        ]
     }
 ]

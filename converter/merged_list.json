@@ -3,7 +3,7 @@
         "id": "三ノ輪",
         "name": "三ノ輪",
         "lines": [
-            "三ノ輪"
+            "日比谷線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -14,7 +14,8 @@
         "id": "三越前",
         "name": "三越前",
         "lines": [
-            "三越前"
+            "銀座線",
+            "半蔵門線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -25,7 +26,8 @@
         "id": "上野",
         "name": "上野",
         "lines": [
-            "上野"
+            "銀座線",
+            "日比谷線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -36,7 +38,7 @@
         "id": "上野広小路",
         "name": "上野広小路",
         "lines": [
-            "上野広小路"
+            "銀座線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -47,7 +49,7 @@
         "id": "中目黒",
         "name": "中目黒",
         "lines": [
-            "中目黒"
+            "日比谷線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -58,7 +60,7 @@
         "id": "中野",
         "name": "中野",
         "lines": [
-            "中野"
+            "東西線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -69,7 +71,8 @@
         "id": "中野坂上",
         "name": "中野坂上",
         "lines": [
-            "中野坂上"
+            "丸ノ内線",
+            "丸ノ内線分岐線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -80,7 +83,7 @@
         "id": "中野富士見町",
         "name": "中野富士見町",
         "lines": [
-            "中野富士見町"
+            "丸ノ内線分岐線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -91,7 +94,7 @@
         "id": "中野新橋",
         "name": "中野新橋",
         "lines": [
-            "中野新橋"
+            "丸ノ内線分岐線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -99,44 +102,10 @@
         "lng": 139.67448
     },
     {
-        "id": "丸ノ内線",
-        "name": "丸ノ内線",
-        "lines": [
-            "丸ノ内線"
-        ],
-        "passengers": null,
-        "firstDeparture": null,
-        "lat": [
-            139.7646,
-            35.68114
-        ],
-        "lng": [
-            139.765,
-            35.68273
-        ]
-    },
-    {
-        "id": "丸ノ内線分岐線",
-        "name": "丸ノ内線分岐線",
-        "lines": [
-            "丸ノ内線分岐線"
-        ],
-        "passengers": null,
-        "firstDeparture": null,
-        "lat": [
-            139.67994,
-            35.69736
-        ],
-        "lng": [
-            139.68157,
-            35.69716
-        ]
-    },
-    {
         "id": "乃木坂",
         "name": "乃木坂",
         "lines": [
-            "乃木坂"
+            "千代田線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -147,7 +116,8 @@
         "id": "九段下",
         "name": "九段下",
         "lines": [
-            "九段下"
+            "東西線",
+            "半蔵門線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -158,7 +128,7 @@
         "id": "二重橋前",
         "name": "二重橋前",
         "lines": [
-            "二重橋前"
+            "千代田線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -169,7 +139,7 @@
         "id": "京橋",
         "name": "京橋",
         "lines": [
-            "京橋"
+            "銀座線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -180,7 +150,7 @@
         "id": "人形町",
         "name": "人形町",
         "lines": [
-            "人形町"
+            "日比谷線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -191,7 +161,7 @@
         "id": "代々木上原",
         "name": "代々木上原",
         "lines": [
-            "代々木上原"
+            "千代田線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -202,7 +172,7 @@
         "id": "代々木公園",
         "name": "代々木公園",
         "lines": [
-            "代々木公園"
+            "千代田線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -213,7 +183,7 @@
         "id": "仲御徒町",
         "name": "仲御徒町",
         "lines": [
-            "仲御徒町"
+            "日比谷線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -224,7 +194,7 @@
         "id": "住吉",
         "name": "住吉",
         "lines": [
-            "住吉"
+            "半蔵門線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -235,7 +205,7 @@
         "id": "入谷",
         "name": "入谷",
         "lines": [
-            "入谷"
+            "日比谷線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -246,7 +216,7 @@
         "id": "八丁堀",
         "name": "八丁堀",
         "lines": [
-            "八丁堀"
+            "日比谷線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -257,7 +227,7 @@
         "id": "六本木",
         "name": "六本木",
         "lines": [
-            "六本木"
+            "日比谷線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -268,7 +238,7 @@
         "id": "六本木一丁目",
         "name": "六本木一丁目",
         "lines": [
-            "六本木一丁目"
+            "南北線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -276,27 +246,11 @@
         "lng": 139.73902
     },
     {
-        "id": "副都心線",
-        "name": "副都心線",
-        "lines": [
-            "副都心線"
-        ],
-        "passengers": null,
-        "firstDeparture": null,
-        "lat": [
-            139.70889,
-            35.73118
-        ],
-        "lng": [
-            139.70655,
-            35.73178
-        ]
-    },
-    {
         "id": "北千住",
         "name": "北千住",
         "lines": [
-            "北千住"
+            "千代田線",
+            "日比谷線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -307,7 +261,7 @@
         "id": "北参道",
         "name": "北参道",
         "lines": [
-            "北参道"
+            "副都心線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -318,7 +272,7 @@
         "id": "北綾瀬",
         "name": "北綾瀬",
         "lines": [
-            "北綾瀬"
+            "千代田線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -326,27 +280,11 @@
         "lng": 139.83211
     },
     {
-        "id": "千代田線",
-        "name": "千代田線",
-        "lines": [
-            "千代田線"
-        ],
-        "passengers": null,
-        "firstDeparture": null,
-        "lat": [
-            139.80413,
-            35.74816
-        ],
-        "lng": [
-            139.80421,
-            35.74838
-        ]
-    },
-    {
         "id": "千川",
         "name": "千川",
         "lines": [
-            "千川"
+            "有楽町線",
+            "副都心線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -357,7 +295,7 @@
         "id": "千駄木",
         "name": "千駄木",
         "lines": [
-            "千駄木"
+            "千代田線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -368,7 +306,7 @@
         "id": "半蔵門",
         "name": "半蔵門",
         "lines": [
-            "半蔵門"
+            "半蔵門線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -376,44 +314,10 @@
         "lng": 139.74158
     },
     {
-        "id": "半蔵門線",
-        "name": "半蔵門線",
-        "lines": [
-            "半蔵門線"
-        ],
-        "passengers": null,
-        "firstDeparture": null,
-        "lat": [
-            139.79793,
-            35.68202
-        ],
-        "lng": [
-            139.79827,
-            35.68204
-        ]
-    },
-    {
-        "id": "南北線",
-        "name": "南北線",
-        "lines": [
-            "南北線"
-        ],
-        "passengers": null,
-        "firstDeparture": null,
-        "lat": [
-            139.7353,
-            35.76654
-        ],
-        "lng": [
-            139.73533,
-            35.76641
-        ]
-    },
-    {
         "id": "南千住",
         "name": "南千住",
         "lines": [
-            "南千住"
+            "日比谷線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -424,7 +328,7 @@
         "id": "南砂町",
         "name": "南砂町",
         "lines": [
-            "南砂町"
+            "東西線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -435,7 +339,7 @@
         "id": "南行徳",
         "name": "南行徳",
         "lines": [
-            "南行徳"
+            "東西線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -446,7 +350,7 @@
         "id": "南阿佐ヶ谷",
         "name": "南阿佐ヶ谷",
         "lines": [
-            "南阿佐ヶ谷"
+            "丸ノ内線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -457,7 +361,7 @@
         "id": "原木中山",
         "name": "原木中山",
         "lines": [
-            "原木中山"
+            "東西線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -468,7 +372,7 @@
         "id": "和光市",
         "name": "和光市",
         "lines": [
-            "和光市"
+            "有楽町線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -479,7 +383,8 @@
         "id": "四ツ谷",
         "name": "四ツ谷",
         "lines": [
-            "四ツ谷"
+            "丸ノ内線",
+            "南北線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -490,7 +395,7 @@
         "id": "四谷三丁目",
         "name": "四谷三丁目",
         "lines": [
-            "四谷三丁目"
+            "丸ノ内線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -501,7 +406,8 @@
         "id": "国会議事堂前",
         "name": "国会議事堂前",
         "lines": [
-            "国会議事堂前"
+            "丸ノ内線",
+            "千代田線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -512,7 +418,7 @@
         "id": "地下鉄成増",
         "name": "地下鉄成増",
         "lines": [
-            "地下鉄成増"
+            "有楽町線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -523,7 +429,7 @@
         "id": "地下鉄赤塚",
         "name": "地下鉄赤塚",
         "lines": [
-            "地下鉄赤塚"
+            "有楽町線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -534,7 +440,7 @@
         "id": "外苑前",
         "name": "外苑前",
         "lines": [
-            "外苑前"
+            "銀座線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -545,7 +451,10 @@
         "id": "大手町",
         "name": "大手町",
         "lines": [
-            "大手町"
+            "丸ノ内線",
+            "東西線",
+            "半蔵門線",
+            "千代田線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -556,7 +465,7 @@
         "id": "妙典",
         "name": "妙典",
         "lines": [
-            "妙典"
+            "東西線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -567,7 +476,7 @@
         "id": "小伝馬町",
         "name": "小伝馬町",
         "lines": [
-            "小伝馬町"
+            "日比谷線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -578,7 +487,8 @@
         "id": "小竹向原",
         "name": "小竹向原",
         "lines": [
-            "小竹向原"
+            "有楽町線",
+            "副都心線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -589,7 +499,8 @@
         "id": "市ヶ谷",
         "name": "市ヶ谷",
         "lines": [
-            "市ヶ谷"
+            "有楽町線",
+            "南北線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -600,7 +511,7 @@
         "id": "平和台",
         "name": "平和台",
         "lines": [
-            "平和台"
+            "有楽町線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -611,7 +522,7 @@
         "id": "広尾",
         "name": "広尾",
         "lines": [
-            "広尾"
+            "日比谷線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -622,7 +533,8 @@
         "id": "後楽園",
         "name": "後楽園",
         "lines": [
-            "後楽園"
+            "丸ノ内線",
+            "南北線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -633,7 +545,7 @@
         "id": "御茶ノ水",
         "name": "御茶ノ水",
         "lines": [
-            "御茶ノ水"
+            "丸ノ内線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -644,7 +556,7 @@
         "id": "志茂",
         "name": "志茂",
         "lines": [
-            "志茂"
+            "南北線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -655,7 +567,7 @@
         "id": "恵比寿",
         "name": "恵比寿",
         "lines": [
-            "恵比寿"
+            "日比谷線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -666,7 +578,7 @@
         "id": "押上",
         "name": "押上",
         "lines": [
-            "押上"
+            "半蔵門線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -677,7 +589,7 @@
         "id": "新中野",
         "name": "新中野",
         "lines": [
-            "新中野"
+            "丸ノ内線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -688,7 +600,7 @@
         "id": "新大塚",
         "name": "新大塚",
         "lines": [
-            "新大塚"
+            "丸ノ内線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -699,7 +611,7 @@
         "id": "新宿",
         "name": "新宿",
         "lines": [
-            "新宿"
+            "丸ノ内線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -710,7 +622,8 @@
         "id": "新宿三丁目",
         "name": "新宿三丁目",
         "lines": [
-            "新宿三丁目"
+            "丸ノ内線",
+            "副都心線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -721,7 +634,7 @@
         "id": "新宿御苑前",
         "name": "新宿御苑前",
         "lines": [
-            "新宿御苑前"
+            "丸ノ内線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -732,7 +645,7 @@
         "id": "新富町",
         "name": "新富町",
         "lines": [
-            "新富町"
+            "有楽町線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -743,7 +656,7 @@
         "id": "新御茶ノ水",
         "name": "新御茶ノ水",
         "lines": [
-            "新御茶ノ水"
+            "千代田線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -754,7 +667,7 @@
         "id": "新木場",
         "name": "新木場",
         "lines": [
-            "新木場"
+            "有楽町線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -765,7 +678,7 @@
         "id": "新橋",
         "name": "新橋",
         "lines": [
-            "新橋"
+            "銀座線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -776,7 +689,7 @@
         "id": "新高円寺",
         "name": "新高円寺",
         "lines": [
-            "新高円寺"
+            "丸ノ内線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -787,7 +700,7 @@
         "id": "方南町",
         "name": "方南町",
         "lines": [
-            "方南町"
+            "丸ノ内線分岐線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -798,7 +711,8 @@
         "id": "日本橋",
         "name": "日本橋",
         "lines": [
-            "日本橋"
+            "東西線",
+            "銀座線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -809,7 +723,8 @@
         "id": "日比谷",
         "name": "日比谷",
         "lines": [
-            "日比谷"
+            "千代田線",
+            "日比谷線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -817,27 +732,10 @@
         "lng": 139.7595
     },
     {
-        "id": "日比谷線",
-        "name": "日比谷線",
-        "lines": [
-            "日比谷線"
-        ],
-        "passengers": null,
-        "firstDeparture": null,
-        "lat": [
-            139.76428,
-            35.6718
-        ],
-        "lng": [
-            139.76464,
-            35.67155
-        ]
-    },
-    {
         "id": "早稲田",
         "name": "早稲田",
         "lines": [
-            "早稲田"
+            "東西線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -848,7 +746,8 @@
         "id": "明治神宮前",
         "name": "明治神宮前",
         "lines": [
-            "明治神宮前"
+            "千代田線",
+            "副都心線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -859,7 +758,7 @@
         "id": "月島",
         "name": "月島",
         "lines": [
-            "月島"
+            "有楽町線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -870,7 +769,7 @@
         "id": "有楽町",
         "name": "有楽町",
         "lines": [
-            "有楽町"
+            "有楽町線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -878,27 +777,10 @@
         "lng": 139.76108
     },
     {
-        "id": "有楽町線",
-        "name": "有楽町線",
-        "lines": [
-            "有楽町線"
-        ],
-        "passengers": null,
-        "firstDeparture": null,
-        "lat": [
-            139.78383,
-            35.66526
-        ],
-        "lng": [
-            139.78386,
-            35.66522
-        ]
-    },
-    {
         "id": "木場",
         "name": "木場",
         "lines": [
-            "木場"
+            "東西線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -909,7 +791,7 @@
         "id": "末広町",
         "name": "末広町",
         "lines": [
-            "末広町"
+            "銀座線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -920,7 +802,7 @@
         "id": "本郷三丁目",
         "name": "本郷三丁目",
         "lines": [
-            "本郷三丁目"
+            "丸ノ内線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -931,7 +813,7 @@
         "id": "本駒込",
         "name": "本駒込",
         "lines": [
-            "本駒込"
+            "南北線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -942,7 +824,7 @@
         "id": "東京",
         "name": "東京",
         "lines": [
-            "東京"
+            "丸ノ内線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -953,7 +835,7 @@
         "id": "東大前",
         "name": "東大前",
         "lines": [
-            "東大前"
+            "南北線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -964,7 +846,7 @@
         "id": "東新宿",
         "name": "東新宿",
         "lines": [
-            "東新宿"
+            "副都心線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -975,7 +857,7 @@
         "id": "東池袋",
         "name": "東池袋",
         "lines": [
-            "東池袋"
+            "有楽町線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -983,27 +865,10 @@
         "lng": 139.71787
     },
     {
-        "id": "東西線",
-        "name": "東西線",
-        "lines": [
-            "東西線"
-        ],
-        "passengers": null,
-        "firstDeparture": null,
-        "lat": [
-            139.95648,
-            35.70852
-        ],
-        "lng": [
-            139.95788,
-            35.70782
-        ]
-    },
-    {
         "id": "東銀座",
         "name": "東銀座",
         "lines": [
-            "東銀座"
+            "日比谷線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -1014,7 +879,7 @@
         "id": "東陽町",
         "name": "東陽町",
         "lines": [
-            "東陽町"
+            "東西線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -1025,7 +890,7 @@
         "id": "東高円寺",
         "name": "東高円寺",
         "lines": [
-            "東高円寺"
+            "丸ノ内線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -1036,7 +901,7 @@
         "id": "根津",
         "name": "根津",
         "lines": [
-            "根津"
+            "千代田線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -1047,7 +912,7 @@
         "id": "桜田門",
         "name": "桜田門",
         "lines": [
-            "桜田門"
+            "有楽町線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -1058,7 +923,7 @@
         "id": "水天宮前",
         "name": "水天宮前",
         "lines": [
-            "水天宮前"
+            "半蔵門線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -1069,7 +934,7 @@
         "id": "氷川台",
         "name": "氷川台",
         "lines": [
-            "氷川台"
+            "有楽町線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -1080,7 +945,9 @@
         "id": "永田町",
         "name": "永田町",
         "lines": [
-            "永田町"
+            "有楽町線",
+            "南北線",
+            "半蔵門線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -1091,7 +958,7 @@
         "id": "江戸川橋",
         "name": "江戸川橋",
         "lines": [
-            "江戸川橋"
+            "有楽町線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -1102,7 +969,9 @@
         "id": "池袋",
         "name": "池袋",
         "lines": [
-            "池袋"
+            "丸ノ内線",
+            "有楽町線",
+            "副都心線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -1113,7 +982,7 @@
         "id": "浅草",
         "name": "浅草",
         "lines": [
-            "浅草"
+            "銀座線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -1124,7 +993,7 @@
         "id": "浦安",
         "name": "浦安",
         "lines": [
-            "浦安"
+            "東西線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -1135,7 +1004,7 @@
         "id": "淡路町",
         "name": "淡路町",
         "lines": [
-            "淡路町"
+            "丸ノ内線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -1146,7 +1015,7 @@
         "id": "清澄白河",
         "name": "清澄白河",
         "lines": [
-            "清澄白河"
+            "半蔵門線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -1157,7 +1026,9 @@
         "id": "渋谷",
         "name": "渋谷",
         "lines": [
-            "渋谷"
+            "銀座線",
+            "副都心線",
+            "半蔵門線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -1168,7 +1039,7 @@
         "id": "湯島",
         "name": "湯島",
         "lines": [
-            "湯島"
+            "千代田線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -1179,7 +1050,8 @@
         "id": "溜池山王",
         "name": "溜池山王",
         "lines": [
-            "溜池山王"
+            "銀座線",
+            "南北線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -1190,7 +1062,7 @@
         "id": "王子",
         "name": "王子",
         "lines": [
-            "王子"
+            "南北線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -1201,7 +1073,7 @@
         "id": "王子神谷",
         "name": "王子神谷",
         "lines": [
-            "王子神谷"
+            "南北線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -1212,7 +1084,7 @@
         "id": "田原町",
         "name": "田原町",
         "lines": [
-            "田原町"
+            "銀座線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -1223,7 +1095,7 @@
         "id": "町屋",
         "name": "町屋",
         "lines": [
-            "町屋"
+            "千代田線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -1234,7 +1106,7 @@
         "id": "白金台",
         "name": "白金台",
         "lines": [
-            "白金台"
+            "南北線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -1245,7 +1117,7 @@
         "id": "白金高輪",
         "name": "白金高輪",
         "lines": [
-            "白金高輪"
+            "南北線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -1256,7 +1128,7 @@
         "id": "目黒",
         "name": "目黒",
         "lines": [
-            "目黒"
+            "南北線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -1267,7 +1139,7 @@
         "id": "神保町",
         "name": "神保町",
         "lines": [
-            "神保町"
+            "半蔵門線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -1278,7 +1150,7 @@
         "id": "神楽坂",
         "name": "神楽坂",
         "lines": [
-            "神楽坂"
+            "東西線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -1289,7 +1161,7 @@
         "id": "神田",
         "name": "神田",
         "lines": [
-            "神田"
+            "銀座線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -1300,7 +1172,7 @@
         "id": "神谷町",
         "name": "神谷町",
         "lines": [
-            "神谷町"
+            "日比谷線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -1311,7 +1183,7 @@
         "id": "秋葉原",
         "name": "秋葉原",
         "lines": [
-            "秋葉原"
+            "日比谷線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -1322,7 +1194,7 @@
         "id": "稲荷町",
         "name": "稲荷町",
         "lines": [
-            "稲荷町"
+            "銀座線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -1333,7 +1205,7 @@
         "id": "竹橋",
         "name": "竹橋",
         "lines": [
-            "竹橋"
+            "東西線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -1344,7 +1216,7 @@
         "id": "築地",
         "name": "築地",
         "lines": [
-            "築地"
+            "日比谷線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -1355,7 +1227,7 @@
         "id": "綾瀬",
         "name": "綾瀬",
         "lines": [
-            "綾瀬"
+            "千代田線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -1366,7 +1238,8 @@
         "id": "茅場町",
         "name": "茅場町",
         "lines": [
-            "茅場町"
+            "東西線",
+            "日比谷線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -1377,7 +1250,7 @@
         "id": "茗荷谷",
         "name": "茗荷谷",
         "lines": [
-            "茗荷谷"
+            "丸ノ内線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -1388,7 +1261,7 @@
         "id": "荻窪",
         "name": "荻窪",
         "lines": [
-            "荻窪"
+            "丸ノ内線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -1399,7 +1272,7 @@
         "id": "落合",
         "name": "落合",
         "lines": [
-            "落合"
+            "東西線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -1410,7 +1283,7 @@
         "id": "葛西",
         "name": "葛西",
         "lines": [
-            "葛西"
+            "東西線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -1421,7 +1294,7 @@
         "id": "虎ノ門",
         "name": "虎ノ門",
         "lines": [
-            "虎ノ門"
+            "銀座線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -1432,7 +1305,7 @@
         "id": "虎ノ門ヒルズ",
         "name": "虎ノ門ヒルズ",
         "lines": [
-            "虎ノ門ヒルズ"
+            "日比谷線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -1443,7 +1316,7 @@
         "id": "行徳",
         "name": "行徳",
         "lines": [
-            "行徳"
+            "東西線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -1454,7 +1327,9 @@
         "id": "表参道",
         "name": "表参道",
         "lines": [
-            "表参道"
+            "銀座線",
+            "半蔵門線",
+            "千代田線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -1465,7 +1340,7 @@
         "id": "西ヶ原",
         "name": "西ヶ原",
         "lines": [
-            "西ヶ原"
+            "南北線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -1476,7 +1351,7 @@
         "id": "西新宿",
         "name": "西新宿",
         "lines": [
-            "西新宿"
+            "丸ノ内線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -1487,7 +1362,7 @@
         "id": "西日暮里",
         "name": "西日暮里",
         "lines": [
-            "西日暮里"
+            "千代田線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -1498,7 +1373,7 @@
         "id": "西早稲田",
         "name": "西早稲田",
         "lines": [
-            "西早稲田"
+            "副都心線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -1509,7 +1384,7 @@
         "id": "西船橋",
         "name": "西船橋",
         "lines": [
-            "西船橋"
+            "東西線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -1520,7 +1395,7 @@
         "id": "西葛西",
         "name": "西葛西",
         "lines": [
-            "西葛西"
+            "東西線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -1531,7 +1406,8 @@
         "id": "要町",
         "name": "要町",
         "lines": [
-            "要町"
+            "有楽町線",
+            "副都心線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -1542,7 +1418,7 @@
         "id": "護国寺",
         "name": "護国寺",
         "lines": [
-            "護国寺"
+            "有楽町線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -1553,7 +1429,7 @@
         "id": "豊洲",
         "name": "豊洲",
         "lines": [
-            "豊洲"
+            "有楽町線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -1564,7 +1440,7 @@
         "id": "赤坂",
         "name": "赤坂",
         "lines": [
-            "赤坂"
+            "千代田線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -1575,7 +1451,8 @@
         "id": "赤坂見附",
         "name": "赤坂見附",
         "lines": [
-            "赤坂見附"
+            "丸ノ内線",
+            "銀座線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -1586,7 +1463,7 @@
         "id": "赤羽岩淵",
         "name": "赤羽岩淵",
         "lines": [
-            "赤羽岩淵"
+            "南北線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -1597,7 +1474,7 @@
         "id": "辰巳",
         "name": "辰巳",
         "lines": [
-            "辰巳"
+            "有楽町線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -1608,7 +1485,9 @@
         "id": "銀座",
         "name": "銀座",
         "lines": [
-            "銀座"
+            "丸ノ内線",
+            "銀座線",
+            "日比谷線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -1619,7 +1498,7 @@
         "id": "銀座一丁目",
         "name": "銀座一丁目",
         "lines": [
-            "銀座一丁目"
+            "有楽町線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -1627,27 +1506,10 @@
         "lng": 139.76591
     },
     {
-        "id": "銀座線",
-        "name": "銀座線",
-        "lines": [
-            "銀座線"
-        ],
-        "passengers": null,
-        "firstDeparture": null,
-        "lat": [
-            139.77338,
-            35.68195
-        ],
-        "lng": [
-            139.77313,
-            35.68156
-        ]
-    },
-    {
         "id": "錦糸町",
         "name": "錦糸町",
         "lines": [
-            "錦糸町"
+            "半蔵門線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -1658,7 +1520,7 @@
         "id": "門前仲町",
         "name": "門前仲町",
         "lines": [
-            "門前仲町"
+            "東西線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -1669,7 +1531,7 @@
         "id": "雑司が谷",
         "name": "雑司が谷",
         "lines": [
-            "雑司が谷"
+            "副都心線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -1680,7 +1542,9 @@
         "id": "霞ヶ関",
         "name": "霞ヶ関",
         "lines": [
-            "霞ヶ関"
+            "丸ノ内線",
+            "千代田線",
+            "日比谷線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -1691,7 +1555,8 @@
         "id": "青山一丁目",
         "name": "青山一丁目",
         "lines": [
-            "青山一丁目"
+            "銀座線",
+            "半蔵門線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -1702,7 +1567,9 @@
         "id": "飯田橋",
         "name": "飯田橋",
         "lines": [
-            "飯田橋"
+            "有楽町線",
+            "東西線",
+            "南北線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -1713,7 +1580,7 @@
         "id": "駒込",
         "name": "駒込",
         "lines": [
-            "駒込"
+            "南北線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -1724,7 +1591,7 @@
         "id": "高田馬場",
         "name": "高田馬場",
         "lines": [
-            "高田馬場"
+            "東西線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -1735,7 +1602,7 @@
         "id": "麹町",
         "name": "麹町",
         "lines": [
-            "麹町"
+            "有楽町線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -1746,7 +1613,7 @@
         "id": "麻布十番",
         "name": "麻布十番",
         "lines": [
-            "麻布十番"
+            "南北線"
         ],
         "passengers": null,
         "firstDeparture": null,

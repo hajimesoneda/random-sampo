@@ -3,7 +3,7 @@
         "id": "小竹向原",
         "name": "小竹向原",
         "lines": [
-            "小竹向原"
+            "副都心線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -14,7 +14,7 @@
         "id": "千川",
         "name": "千川",
         "lines": [
-            "千川"
+            "副都心線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -25,7 +25,7 @@
         "id": "要町",
         "name": "要町",
         "lines": [
-            "要町"
+            "副都心線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -36,7 +36,7 @@
         "id": "池袋",
         "name": "池袋",
         "lines": [
-            "池袋"
+            "副都心線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -47,7 +47,7 @@
         "id": "雑司が谷",
         "name": "雑司が谷",
         "lines": [
-            "雑司が谷"
+            "副都心線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -58,7 +58,7 @@
         "id": "西早稲田",
         "name": "西早稲田",
         "lines": [
-            "西早稲田"
+            "副都心線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -69,7 +69,7 @@
         "id": "東新宿",
         "name": "東新宿",
         "lines": [
-            "東新宿"
+            "副都心線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -80,7 +80,7 @@
         "id": "新宿三丁目",
         "name": "新宿三丁目",
         "lines": [
-            "新宿三丁目"
+            "副都心線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -91,7 +91,7 @@
         "id": "北参道",
         "name": "北参道",
         "lines": [
-            "北参道"
+            "副都心線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -102,7 +102,7 @@
         "id": "明治神宮前",
         "name": "明治神宮前",
         "lines": [
-            "明治神宮前"
+            "副都心線"
         ],
         "passengers": null,
         "firstDeparture": null,
@@ -113,28 +113,11 @@
         "id": "渋谷",
         "name": "渋谷",
         "lines": [
-            "渋谷"
+            "副都心線"
         ],
         "passengers": null,
         "firstDeparture": null,
         "lat": 35.659955,
         "lng": 139.702303
-    },
-    {
-        "id": "副都心線",
-        "name": "副都心線",
-        "lines": [
-            "副都心線"
-        ],
-        "passengers": null,
-        "firstDeparture": null,
-        "lat": [
-            139.70889,
-            35.73118
-        ],
-        "lng": [
-            139.70655,
-            35.73178
-        ]
     }
 ]
