@@ -32,9 +32,14 @@ export async function GET() {
     const cafes = await getNearbyPlaces(randomStation.lat, randomStation.lng, 'cafe', 1)
     const restaurants = await getNearbyPlaces(randomStation.lat, randomStation.lng, 'restaurant', 1)
 
-    const spots = [...touristSpots, ...cafes, ...restaurants]
+    // スポットをシャッフルして重複を避ける
+    const allSpots = [...touristSpots, ...cafes, ...restaurants]
+    const shuffledSpots = allSpots.sort(() => Math.random() - 0.5)
+    const uniqueSpots = Array.from(new Set(shuffledSpots.map(s => s.name)))
+      .map(name => shuffledSpots.find(s => s.name === name))
+      .slice(0, 4)
 
-    return NextResponse.json({ ...randomStation, spots })
+    return NextResponse.json({ ...randomStation, spots: uniqueSpots })
   } catch (error) {
     console.error('ランダム駅の取得エラー:', error)
     return NextResponse.json({ error: 'ランダム駅の取得に失敗しました' }, { status: 500 })

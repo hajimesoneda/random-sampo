@@ -13,10 +13,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, CalendarIcon } from 'lucide-react'
 import { saveVisit } from '@/app/actions'
+import { Calendar } from "@/components/ui/calendar"
 
 const weatherOptions = [
+  { value: "unknown", label: "不明" },
   { value: "☀️ 晴れ", label: "☀️ 晴れ" },
   { value: "☁️ 曇り", label: "☁️ 曇り" },
   { value: "🌧️ 雨", label: "🌧️ 雨" },
@@ -25,9 +27,11 @@ const weatherOptions = [
 
 export default function VisitPage({ params }: { params: { id: string } }) {
   const router = useRouter()
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0])
-  const [weather, setWeather] = useState<typeof weatherOptions[number]['value']>("☀️ 晴れ")
+  const [dateOption, setDateOption] = useState<"unknown" | "known">("unknown")
+  const [date, setDate] = useState<string>(new Date().toISOString().split('T')[0])
+  const [weather, setWeather] = useState<typeof weatherOptions[number]['value']>("unknown")
   const [memo, setMemo] = useState('')
+  const [showDatePicker, setShowDatePicker] = useState(false)
 
   const handleSubmit = async () => {
     await saveVisit({
@@ -37,6 +41,11 @@ export default function VisitPage({ params }: { params: { id: string } }) {
       memo
     })
     router.push('/')
+  }
+
+  const getMaxDate = () => {
+    const today = new Date()
+    return today.toISOString().split('T')[0]
   }
 
   return (
@@ -58,17 +67,53 @@ export default function VisitPage({ params }: { params: { id: string } }) {
         <CardContent className="p-6 space-y-6">
           <div className="space-y-2">
             <label className="text-sm font-medium">訪問日</label>
-            <Input
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-            />
+            <div className="relative">
+              <Input
+                type="text"
+                value={date === "unknown" ? "不明" : date}
+                readOnly
+                className="w-full cursor-pointer"
+                onClick={() => setShowDatePicker(true)}
+              />
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                <CalendarIcon className="h-5 w-5 text-gray-400" />
+              </div>
+            </div>
+            {showDatePicker && (
+              <div className="absolute z-10 mt-1 bg-white shadow-lg rounded-md">
+                <Calendar
+                  mode="single"
+                  selected={date === "unknown" ? undefined : new Date(date)}
+                  onSelect={(newDate) => {
+                    if (newDate) {
+                      setDate(newDate.toISOString().split('T')[0])
+                    } else {
+                      setDate("unknown")
+                    }
+                    setShowDatePicker(false)
+                  }}
+                  initialFocus
+                />
+                <div className="p-2 border-t">
+                  <Button
+                    variant="ghost"
+                    className="w-full"
+                    onClick={() => {
+                      setDate("unknown")
+                      setShowDatePicker(false)
+                    }}
+                  >
+                    不明
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="space-y-2">
             <label className="text-sm font-medium">天気</label>
             <Select value={weather} onValueChange={setWeather}>
-              <SelectTrigger>
+              <SelectTrigger className="w-full">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
