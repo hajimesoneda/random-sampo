@@ -1,0 +1,272 @@
+[
+    {
+        "id": "中野",
+        "name": "中野",
+        "lines": [
+            "中野"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.70579,
+        "lng": 139.66688
+    },
+    {
+        "id": "落合",
+        "name": "落合",
+        "lines": [
+            "落合"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.7109,
+        "lng": 139.68706
+    },
+    {
+        "id": "高田馬場",
+        "name": "高田馬場",
+        "lines": [
+            "高田馬場"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.7128,
+        "lng": 139.70603
+    },
+    {
+        "id": "早稲田",
+        "name": "早稲田",
+        "lines": [
+            "早稲田"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.70558,
+        "lng": 139.72333
+    },
+    {
+        "id": "神楽坂",
+        "name": "神楽坂",
+        "lines": [
+            "神楽坂"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.70367,
+        "lng": 139.73566
+    },
+    {
+        "id": "飯田橋",
+        "name": "飯田橋",
+        "lines": [
+            "飯田橋"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.70182,
+        "lng": 139.74579
+    },
+    {
+        "id": "九段下",
+        "name": "九段下",
+        "lines": [
+            "九段下"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.69698,
+        "lng": 139.75101
+    },
+    {
+        "id": "竹橋",
+        "name": "竹橋",
+        "lines": [
+            "竹橋"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.69028,
+        "lng": 139.75852
+    },
+    {
+        "id": "大手町",
+        "name": "大手町",
+        "lines": [
+            "大手町"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.68498,
+        "lng": 139.76473
+    },
+    {
+        "id": "日本橋",
+        "name": "日本橋",
+        "lines": [
+            "日本橋"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.68277,
+        "lng": 139.77309
+    },
+    {
+        "id": "茅場町",
+        "name": "茅場町",
+        "lines": [
+            "茅場町"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.68061,
+        "lng": 139.77858
+    },
+    {
+        "id": "門前仲町",
+        "name": "門前仲町",
+        "lines": [
+            "門前仲町"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.67146,
+        "lng": 139.7971
+    },
+    {
+        "id": "木場",
+        "name": "木場",
+        "lines": [
+            "木場"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.66938,
+        "lng": 139.80591
+    },
+    {
+        "id": "東陽町",
+        "name": "東陽町",
+        "lines": [
+            "東陽町"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.66966,
+        "lng": 139.81892
+    },
+    {
+        "id": "南砂町",
+        "name": "南砂町",
+        "lines": [
+            "南砂町"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.66881,
+        "lng": 139.83048
+    },
+    {
+        "id": "西葛西",
+        "name": "西葛西",
+        "lines": [
+            "西葛西"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.66471,
+        "lng": 139.85786
+    },
+    {
+        "id": "葛西",
+        "name": "葛西",
+        "lines": [
+            "葛西"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.66354,
+        "lng": 139.87396
+    },
+    {
+        "id": "浦安",
+        "name": "浦安",
+        "lines": [
+            "浦安"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.66642,
+        "lng": 139.89427
+    },
+    {
+        "id": "南行徳",
+        "name": "南行徳",
+        "lines": [
+            "南行徳"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.67339,
+        "lng": 139.90306
+    },
+    {
+        "id": "行徳",
+        "name": "行徳",
+        "lines": [
+            "行徳"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.68194,
+        "lng": 139.91336
+    },
+    {
+        "id": "妙典",
+        "name": "妙典",
+        "lines": [
+            "妙典"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.69029,
+        "lng": 139.92343
+    },
+    {
+        "id": "原木中山",
+        "name": "原木中山",
+        "lines": [
+            "原木中山"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.70264,
+        "lng": 139.94123
+    },
+    {
+        "id": "西船橋",
+        "name": "西船橋",
+        "lines": [
+            "西船橋"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.70671,
+        "lng": 139.95979
+    },
+    {
+        "id": "東西線",
+        "name": "東西線",
+        "lines": [
+            "東西線"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": [
+            139.95648,
+            35.70852
+        ],
+        "lng": [
+            139.95788,
+            35.70782
+        ]
+    }
+]

@@ -1,0 +1,261 @@
+[
+    {
+        "id": "北千住",
+        "name": "北千住",
+        "lines": [
+            "北千住"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.74855,
+        "lng": 139.80518
+    },
+    {
+        "id": "南千住",
+        "name": "南千住",
+        "lines": [
+            "南千住"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.73288,
+        "lng": 139.79924
+    },
+    {
+        "id": "三ノ輪",
+        "name": "三ノ輪",
+        "lines": [
+            "三ノ輪"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.7299,
+        "lng": 139.79182
+    },
+    {
+        "id": "入谷",
+        "name": "入谷",
+        "lines": [
+            "入谷"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.72131,
+        "lng": 139.78504
+    },
+    {
+        "id": "上野",
+        "name": "上野",
+        "lines": [
+            "上野"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.71199,
+        "lng": 139.77764
+    },
+    {
+        "id": "仲御徒町",
+        "name": "仲御徒町",
+        "lines": [
+            "仲御徒町"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.7074,
+        "lng": 139.77626
+    },
+    {
+        "id": "秋葉原",
+        "name": "秋葉原",
+        "lines": [
+            "秋葉原"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.69719,
+        "lng": 139.7755
+    },
+    {
+        "id": "小伝馬町",
+        "name": "小伝馬町",
+        "lines": [
+            "小伝馬町"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.69112,
+        "lng": 139.77817
+    },
+    {
+        "id": "人形町",
+        "name": "人形町",
+        "lines": [
+            "人形町"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.6869,
+        "lng": 139.78179
+    },
+    {
+        "id": "茅場町",
+        "name": "茅場町",
+        "lines": [
+            "茅場町"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.67976,
+        "lng": 139.78005
+    },
+    {
+        "id": "八丁堀",
+        "name": "八丁堀",
+        "lines": [
+            "八丁堀"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.67606,
+        "lng": 139.77775
+    },
+    {
+        "id": "築地",
+        "name": "築地",
+        "lines": [
+            "築地"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.66854,
+        "lng": 139.77326
+    },
+    {
+        "id": "東銀座",
+        "name": "東銀座",
+        "lines": [
+            "東銀座"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.66977,
+        "lng": 139.76691
+    },
+    {
+        "id": "銀座",
+        "name": "銀座",
+        "lines": [
+            "銀座"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.67155,
+        "lng": 139.76464
+    },
+    {
+        "id": "日比谷",
+        "name": "日比谷",
+        "lines": [
+            "日比谷"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.67476,
+        "lng": 139.75989
+    },
+    {
+        "id": "霞ヶ関",
+        "name": "霞ヶ関",
+        "lines": [
+            "霞ヶ関"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.67452,
+        "lng": 139.75144
+    },
+    {
+        "id": "神谷町",
+        "name": "神谷町",
+        "lines": [
+            "神谷町"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.66206,
+        "lng": 139.74419
+    },
+    {
+        "id": "虎ノ門ヒルズ",
+        "name": "虎ノ門ヒルズ",
+        "lines": [
+            "虎ノ門ヒルズ"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.66785,
+        "lng": 139.748
+    },
+    {
+        "id": "六本木",
+        "name": "六本木",
+        "lines": [
+            "六本木"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.66235,
+        "lng": 139.73025
+    },
+    {
+        "id": "広尾",
+        "name": "広尾",
+        "lines": [
+            "広尾"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.6506,
+        "lng": 139.72226
+    },
+    {
+        "id": "恵比寿",
+        "name": "恵比寿",
+        "lines": [
+            "恵比寿"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.64646,
+        "lng": 139.70808
+    },
+    {
+        "id": "中目黒",
+        "name": "中目黒",
+        "lines": [
+            "中目黒"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.64352,
+        "lng": 139.69815
+    },
+    {
+        "id": "日比谷線",
+        "name": "日比谷線",
+        "lines": [
+            "日比谷線"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": [
+            139.76428,
+            35.6718
+        ],
+        "lng": [
+            139.76464,
+            35.67155
+        ]
+    }
+]

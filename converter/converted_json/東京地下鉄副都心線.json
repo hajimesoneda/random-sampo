@@ -1,0 +1,140 @@
+[
+    {
+        "id": "小竹向原",
+        "name": "小竹向原",
+        "lines": [
+            "小竹向原"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.74388,
+        "lng": 139.6785
+    },
+    {
+        "id": "千川",
+        "name": "千川",
+        "lines": [
+            "千川"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.73884,
+        "lng": 139.68851
+    },
+    {
+        "id": "要町",
+        "name": "要町",
+        "lines": [
+            "要町"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.73342,
+        "lng": 139.69736
+    },
+    {
+        "id": "池袋",
+        "name": "池袋",
+        "lines": [
+            "池袋"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.73178,
+        "lng": 139.70655
+    },
+    {
+        "id": "雑司が谷",
+        "name": "雑司が谷",
+        "lines": [
+            "雑司が谷"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.72139,
+        "lng": 139.71558
+    },
+    {
+        "id": "西早稲田",
+        "name": "西早稲田",
+        "lines": [
+            "西早稲田"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.70892,
+        "lng": 139.70933
+    },
+    {
+        "id": "東新宿",
+        "name": "東新宿",
+        "lines": [
+            "東新宿"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.70187,
+        "lng": 139.70823
+    },
+    {
+        "id": "新宿三丁目",
+        "name": "新宿三丁目",
+        "lines": [
+            "新宿三丁目"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.6939,
+        "lng": 139.70673
+    },
+    {
+        "id": "北参道",
+        "name": "北参道",
+        "lines": [
+            "北参道"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.67947,
+        "lng": 139.70473
+    },
+    {
+        "id": "明治神宮前",
+        "name": "明治神宮前",
+        "lines": [
+            "明治神宮前"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.66907,
+        "lng": 139.70588
+    },
+    {
+        "id": "渋谷",
+        "name": "渋谷",
+        "lines": [
+            "渋谷"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.659955,
+        "lng": 139.702303
+    },
+    {
+        "id": "副都心線",
+        "name": "副都心線",
+        "lines": [
+            "副都心線"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": [
+            139.70889,
+            35.73118
+        ],
+        "lng": [
+            139.70655,
+            35.73178
+        ]
+    }
+]

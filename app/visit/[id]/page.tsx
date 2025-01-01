@@ -31,7 +31,7 @@ export default function VisitPage({ params }: { params: { id: string } }) {
 
   const handleSubmit = async () => {
     await saveVisit({
-      stationId: params.id,
+      stationId: decodeURIComponent(params.id),
       date,
       weather,
       memo
@@ -51,7 +51,7 @@ export default function VisitPage({ params }: { params: { id: string } }) {
       </Button>
 
       <h1 className="text-2xl font-bold mb-4">
-        {params.id}駅に行ってみた！
+        {decodeURIComponent(params.id)}駅に行ってみた！
       </h1>
 
       <Card>

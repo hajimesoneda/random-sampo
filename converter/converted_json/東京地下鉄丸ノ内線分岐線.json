@@ -1,0 +1,63 @@
+[
+    {
+        "id": "中野坂上",
+        "name": "中野坂上",
+        "lines": [
+            "中野坂上"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.69701,
+        "lng": 139.68284
+    },
+    {
+        "id": "中野新橋",
+        "name": "中野新橋",
+        "lines": [
+            "中野新橋"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.69207,
+        "lng": 139.67448
+    },
+    {
+        "id": "中野富士見町",
+        "name": "中野富士見町",
+        "lines": [
+            "中野富士見町"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.69089,
+        "lng": 139.6689
+    },
+    {
+        "id": "方南町",
+        "name": "方南町",
+        "lines": [
+            "方南町"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": 35.68367,
+        "lng": 139.65867
+    },
+    {
+        "id": "丸ノ内線分岐線",
+        "name": "丸ノ内線分岐線",
+        "lines": [
+            "丸ノ内線分岐線"
+        ],
+        "passengers": null,
+        "firstDeparture": null,
+        "lat": [
+            139.67994,
+            35.69736
+        ],
+        "lng": [
+            139.68157,
+            35.69716
+        ]
+    }
+]
