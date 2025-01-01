@@ -2,28 +2,49 @@
 
 import { useEffect, useState } from 'react'
 import { Card, CardContent } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
 import { Train, CalendarDays, Cloud } from 'lucide-react'
-import { getVisitedStations } from '@/app/actions'
+import { getVisitedStations, resetVisitedStations } from '@/app/actions'
 import { VisitInfo } from '@/types/station'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 export function VisitedStations() {
   const [visits, setVisits] = useState<VisitInfo[]>([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    const loadVisits = async () => {
-      try {
-        const visitedStations = await getVisitedStations()
-        setVisits(visitedStations)
-      } catch (error) {
-        console.error('訪問履歴の取得に失敗しました:', error)
-      } finally {
-        setLoading(false)
-      }
+  const loadVisits = async () => {
+    try {
+      const visitedStations = await getVisitedStations()
+      setVisits(visitedStations)
+    } catch (error) {
+      console.error('訪問履歴の取得に失敗しました:', error)
+    } finally {
+      setLoading(false)
     }
+  }
 
+  useEffect(() => {
     loadVisits()
   }, [])
+
+  const handleReset = async () => {
+    try {
+      await resetVisitedStations()
+      setVisits([])
+    } catch (error) {
+      console.error('訪問履歴のリセットに失敗しました:', error)
+    }
+  }
 
   if (loading) {
     return (
@@ -37,45 +58,64 @@ export function VisitedStations() {
     )
   }
 
-  if (visits.length === 0) {
-    return (
-      <div className="text-center py-8 text-muted-foreground">
-        まだ訪問した駅がありません
-      </div>
-    )
-  }
-
   return (
     <div className="space-y-4">
-      {visits.map((visit, index) => (
-        <Card key={`${visit.stationId}-${index}`}>
-          <CardContent className="p-4">
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <Train className="w-4 h-4" />
-                <h3 className="font-semibold">{decodeURIComponent(visit.stationId)}駅</h3>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-2 text-sm text-muted-foreground">
-                <div className="flex items-center gap-2">
-                  <CalendarDays className="w-4 h-4" />
-                  <span>{visit.date}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Cloud className="w-4 h-4" />
-                  <span>{visit.weather}</span>
-                </div>
-              </div>
+      {visits.length === 0 ? (
+        <div className="text-center py-8 text-muted-foreground">
+          まだ訪問した駅がありません
+        </div>
+      ) : (
+        <>
+          {visits.map((visit, index) => (
+            <Card key={`${visit.stationId}-${index}`}>
+              <CardContent className="p-4">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Train className="w-4 h-4" />
+                    <h3 className="font-semibold">{decodeURIComponent(visit.stationId)}駅</h3>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-2 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-2">
+                      <CalendarDays className="w-4 h-4" />
+                      <span>{visit.date === 'unknown' ? '不明' : visit.date}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Cloud className="w-4 h-4" />
+                      <span>{visit.weather === 'unknown' ? '不明' : visit.weather}</span>
+                    </div>
+                  </div>
 
-              {visit.memo && (
-                <div className="text-sm border-t pt-2 mt-2">
-                  {visit.memo}
+                  {visit.memo && (
+                    <div className="text-sm border-t pt-2 mt-2">
+                      {visit.memo}
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+              </CardContent>
+            </Card>
+          ))}
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" className="w-full mt-4">
+                訪問情報をリセット
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>訪問情報のリセット</AlertDialogTitle>
+                <AlertDialogDescription>
+                  すべての訪問情報が削除されます。この操作は取り消せません。本当にリセットしますか？
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>キャンセル</AlertDialogCancel>
+                <AlertDialogAction onClick={handleReset}>リセット</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </>
+      )}
     </div>
   )
 }

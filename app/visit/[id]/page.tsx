@@ -16,6 +16,7 @@ import {
 import { ArrowLeft, CalendarIcon } from 'lucide-react'
 import { saveVisit } from '@/app/actions'
 import { Calendar } from "@/components/ui/calendar"
+import { ja } from 'date-fns/locale';
 
 const weatherOptions = [
   { value: "unknown", label: "不明" },
@@ -93,6 +94,8 @@ export default function VisitPage({ params }: { params: { id: string } }) {
                     setShowDatePicker(false)
                   }}
                   initialFocus
+                  locale={ja}
+                  disabled={{ after: new Date() }}
                 />
                 <div className="p-2 border-t">
                   <Button

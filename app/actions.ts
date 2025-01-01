@@ -18,3 +18,8 @@ export async function getVisitedStations(): Promise<VisitInfo[]> {
   return JSON.parse(cookies().get('visits')?.value || '[]')
 }
 
+export async function resetVisitedStations() {
+  cookies().set('visited-stations', '[]')
+  cookies().set('visits', '[]')
+}
+
