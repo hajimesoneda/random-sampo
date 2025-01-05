@@ -4,13 +4,15 @@ import { useState, useEffect } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Station } from '@/types/station'
-import { Train, MapPin } from 'lucide-react'
+import { Station, FavoriteStation } from '@/types/station'
+import { Train, MapPin, Star } from 'lucide-react'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { SpotCard } from '@/components/spot-card'
 import { VisitedStations } from '@/components/visited-stations'
+import { FavoriteStations } from '@/components/favorite-stations'
 import { Skeleton } from "@/components/ui/skeleton"
+import { toggleFavoriteStation, getFavoriteStations } from '@/app/actions'
 
 const Map = dynamic(() => import('@/components/map'), { 
   ssr: false,
@@ -22,15 +24,20 @@ export default function Home() {
   const [loading, setLoading] = useState(true)
   const [initialLoad, setInitialLoad] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [favorites, setFavorites] = useState<FavoriteStation[]>([])
+  const [activeTab, setActiveTab] = useState("picker")
 
-  const pickStation = async (isInitialLoad = false) => {
+  const pickStation = async (isInitialLoad = false, stationId?: string) => {
     if (!isInitialLoad) {
       setLoading(true)
       setStation(null)
     }
     setError(null)
     try {
-      const response = await fetch('/api/random-station')
+      const url = stationId 
+        ? `/api/station/${encodeURIComponent(stationId)}` 
+        : '/api/random-station'
+      const response = await fetch(url)
       if (!response.ok) {
         const errorData = await response.json()
         throw new Error(errorData.error || '駅の取得に失敗しました')
@@ -48,15 +55,40 @@ export default function Home() {
     }
   }
 
+  const loadFavorites = async () => {
+    const favs = await getFavoriteStations()
+    setFavorites(favs)
+  }
+
+  const handleToggleFavorite = async () => {
+    if (station) {
+      const favoriteStation: FavoriteStation = {
+        id: station.id,
+        name: station.name,
+        lines: station.lines
+      }
+      const updatedFavorites = await toggleFavoriteStation(favoriteStation)
+      setFavorites(updatedFavorites)
+    }
+  }
+
+  const handleSelectFavorite = (selectedStation: FavoriteStation) => {
+    setActiveTab("picker")
+    pickStation(false, selectedStation.id)
+  }
+
   useEffect(() => {
     pickStation(true)
+    loadFavorites()
   }, [])
+
+  const isFavorite = station ? favorites.some(fav => fav.id === station.id) : false
 
   return (
     <main className="container max-w-md mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">ランダム駅ピッカー</h1>
       
-      <Tabs defaultValue="picker">
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="w-full mb-4">
           <TabsTrigger value="picker" className="flex-1">ピッカー</TabsTrigger>
           <TabsTrigger value="visited" className="flex-1">訪問済み</TabsTrigger>
@@ -69,10 +101,10 @@ export default function Home() {
             
             <Button 
               onClick={() => pickStation()} 
-              className="w-full"
+              className="w-full bg-blue-500 hover:bg-blue-600 text-white h-16 text-lg font-bold"
               disabled={loading || initialLoad}
             >
-              {loading || initialLoad ? '選択中...' : '選ぶ！'}
+              {loading || initialLoad ? '選択中...' : '駅のシャッフル！'}
             </Button>
 
             {error && (
@@ -127,13 +159,18 @@ export default function Home() {
                     </div>
 
                     <div className="flex gap-2">
-                      <Button asChild className="flex-1">
+                      <Button asChild className="flex-1 bg-blue-500 hover:bg-blue-600 text-white">
                         <Link href={`/visit/${encodeURIComponent(station.name)}`}>
                           行ってみた！
                         </Link>
                       </Button>
-                      <Button variant="outline" className="flex-1">
-                        お気に入り
+                      <Button 
+                        variant={isFavorite ? "default" : "outline"} 
+                        className="flex-1"
+                        onClick={handleToggleFavorite}
+                      >
+                        <Star className={`w-4 h-4 mr-2 ${isFavorite ? "fill-current" : ""}`} />
+                        {isFavorite ? "お気に入り解除" : "お気に入り"}
                       </Button>
                     </div>
                   </>
@@ -148,7 +185,11 @@ export default function Home() {
         </TabsContent>
 
         <TabsContent value="favorites">
-          <p className="text-center text-muted-foreground">お気に入りの駅がここに表示されます</p>
+          <FavoriteStations 
+            favorites={favorites} 
+            onUpdate={setFavorites} 
+            onSelectStation={handleSelectFavorite}
+          />
         </TabsContent>
       </Tabs>
     </main>
