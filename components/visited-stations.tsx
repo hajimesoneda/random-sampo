@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Train, CalendarDays, Cloud } from 'lucide-react'
+import { Train, Cloud } from 'lucide-react'
 import { getVisitedStations, resetVisitedStations } from '@/app/actions'
 import { VisitInfo } from '@/types/station'
 import Link from 'next/link'

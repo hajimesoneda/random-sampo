@@ -33,7 +33,7 @@ export const getPlaceInfo = cache(async (query: string): Promise<PlaceInfo> => {
     const place = searchData.results[0]
 
     // 写真のURLを生成（最大3枚）
-    const photos = (place.photos || []).slice(0, 3).map((photo: any) => ({
+    const photos = (place.photos || []).slice(0, 3).map((photo: { photo_reference: string, html_attributions?: string[] }) => ({
       url: `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${
         photo.photo_reference
       }&key=${process.env.GOOGLE_PLACES_API_KEY}`,

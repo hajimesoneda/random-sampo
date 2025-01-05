@@ -18,18 +18,20 @@ import { saveVisit, getVisitedStations } from '@/app/actions'
 import { Calendar } from "@/components/ui/calendar"
 import { ja } from 'date-fns/locale';
 
-const weatherOptions = [
-  { value: "unknown", label: "不明" },
-  { value: "☀️ 晴れ", label: "☀️ 晴れ" },
-  { value: "☁️ 曇り", label: "☁️ 曇り" },
-  { value: "🌧️ 雨", label: "🌧️ 雨" },
-  { value: "❄️ 雪", label: "❄️ 雪" },
-] as const
+type WeatherOption = "unknown" | "☀️ 晴れ" | "☁️ 曇り" | "🌧️ 雨" | "❄️ 雪";
+
+const weatherOptions: WeatherOption[] = [
+  "unknown",
+  "☀️ 晴れ",
+  "☁️ 曇り",
+  "🌧️ 雨",
+  "❄️ 雪"
+];
 
 export default function VisitPage({ params }: { params: { id: string } }) {
   const router = useRouter()
   const [date, setDate] = useState<string>("unknown")
-  const [weather, setWeather] = useState<typeof weatherOptions[number]['value']>("unknown")
+  const [weather, setWeather] = useState<WeatherOption>("unknown")
   const [memo, setMemo] = useState('')
   const [showDatePicker, setShowDatePicker] = useState(false)
   const [stationName, setStationName] = useState('')
@@ -46,7 +48,7 @@ export default function VisitPage({ params }: { params: { id: string } }) {
       if (existingVisit) {
         console.log('Setting existing visit data');
         setDate(existingVisit.date);
-        setWeather(existingVisit.weather);
+        setWeather(existingVisit.weather as WeatherOption);
         setMemo(existingVisit.memo);
         setStationName(existingVisit.name);
         setStationLines(existingVisit.lines);
@@ -151,14 +153,14 @@ export default function VisitPage({ params }: { params: { id: string } }) {
 
           <div className="space-y-2">
             <label className="text-sm font-medium">天気</label>
-            <Select value={weather} onValueChange={setWeather}>
+            <Select value={weather} onValueChange={(value: WeatherOption) => setWeather(value)}>
               <SelectTrigger className="w-full">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 {weatherOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
+                  <SelectItem key={option} value={option}>
+                    {option === "unknown" ? "不明" : option}
                   </SelectItem>
                 ))}
               </SelectContent>

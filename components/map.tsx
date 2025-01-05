@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { loader } from '@/lib/google-maps-loader'
+import { getGoogleMapsLoader } from '@/lib/google-maps-loader'
 import { Spot } from '@/types/station'
 
 interface MapProps {
@@ -15,13 +15,22 @@ interface MapProps {
 export default function Map({ center, selectedSpot }: MapProps) {
   const mapRef = useRef<HTMLDivElement>(null)
   const [error, setError] = useState<string | null>(null)
+  const [walkingTime, setWalkingTime] = useState<string | null>(null)
 
   useEffect(() => {
     const initMap = async () => {
       try {
-        const google = await loader.load()
+        const loader = await getGoogleMapsLoader()
+        await loader.load()
+        
+        if (!window.google) {
+          throw new Error('Google Maps failed to load')
+        }
+
+        const { maps } = window.google
+
         if (mapRef.current) {
-          const mapOptions = {
+          const mapOptions: google.maps.MapOptions = {
             center,
             zoom: 15,
             mapTypeControl: false,
@@ -29,10 +38,10 @@ export default function Map({ center, selectedSpot }: MapProps) {
             fullscreenControl: false
           }
 
-          const map = new google.maps.Map(mapRef.current, mapOptions)
+          const map = new maps.Map(mapRef.current, mapOptions)
 
           // Station marker (red)
-          const stationMarker = new google.maps.Marker({
+          new maps.Marker({
             position: center,
             map,
             animation: google.maps.Animation.DROP,
@@ -41,35 +50,44 @@ export default function Map({ center, selectedSpot }: MapProps) {
 
           if (selectedSpot) {
             const spotPosition = { lat: selectedSpot.lat, lng: selectedSpot.lng }
-            const spotMarker = new google.maps.Marker({
+            const spotMarker = new maps.Marker({
               position: spotPosition,
               map,
               animation: google.maps.Animation.DROP,
               icon: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png'
             })
 
-            const infoWindow = new google.maps.InfoWindow({
+            const infoWindow = new maps.InfoWindow({
               content: `<div><strong>${selectedSpot.name}</strong><br>${selectedSpot.type}</div>`
             })
 
             infoWindow.open(map, spotMarker)
 
             // Draw route between station and selected spot
-            const directionsService = new google.maps.DirectionsService()
-            const directionsRenderer = new google.maps.DirectionsRenderer({
+            const directionsService = new maps.DirectionsService()
+            const directionsRenderer = new maps.DirectionsRenderer({
               map,
               suppressMarkers: true, // Don't show default markers
             })
 
-            const request = {
+            const request: google.maps.DirectionsRequest = {
               origin: center,
               destination: spotPosition,
               travelMode: google.maps.TravelMode.WALKING
             }
 
             directionsService.route(request, (result, status) => {
-              if (status === 'OK') {
+              if (status === google.maps.DirectionsStatus.OK && result) {
                 directionsRenderer.setDirections(result)
+
+                // Get walking time
+                const route = result.routes[0]
+                if (route && route.legs.length > 0) {
+                  const duration = route.legs[0].duration
+                  if (duration) {
+                    setWalkingTime(duration.text)
+                  }
+                }
 
                 // Adjust map bounds to show the entire route
                 const bounds = new google.maps.LatLngBounds()
@@ -81,6 +99,8 @@ export default function Map({ center, selectedSpot }: MapProps) {
                 setError(`ルートの取得に失敗しました: ${status}`)
               }
             })
+          } else {
+            setWalkingTime(null)
           }
         }
       } catch (error) {
@@ -96,20 +116,28 @@ export default function Map({ center, selectedSpot }: MapProps) {
     initMap()
   }, [center, selectedSpot])
 
-  if (error) {
-    return (
-      <div className="w-full h-[300px] rounded-lg bg-muted flex items-center justify-center text-muted-foreground">
-        <p className="text-red-500 text-center p-4">{error}</p>
-      </div>
-    )
-  }
-
   return (
-    <div 
-      ref={mapRef} 
-      className="w-full h-[300px] rounded-lg bg-muted flex items-center justify-center text-muted-foreground"
-    >
-      地図を読み込んでいます...
+    <div className="space-y-2">
+      <div 
+        ref={mapRef} 
+        className="w-full h-[300px] rounded-lg bg-muted flex items-center justify-center text-muted-foreground"
+      >
+        地図を読み込んでいます...
+      </div>
+      {error && (
+        <p className="text-red-500 text-center p-4">{error}</p>
+      )}
+      <div className="h-6 flex items-center justify-center">
+        {walkingTime ? (
+          <p className="text-sm text-muted-foreground">
+            徒歩所要時間: 約{walkingTime}
+          </p>
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            スポットを選択すると、ルートと所要時間が表示されます。
+          </p>
+        )}
+      </div>
     </div>
   )
 }
