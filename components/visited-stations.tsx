@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Train, CalendarDays, Cloud } from 'lucide-react'
 import { getVisitedStations, resetVisitedStations } from '@/app/actions'
 import { VisitInfo } from '@/types/station'
+import Link from 'next/link'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -67,23 +68,27 @@ export function VisitedStations() {
       ) : (
         <>
           {visits.map((visit, index) => (
-            <Card key={`${visit.stationId}-${index}`}>
+            <Card key={`${visit.stationId}-${index}`} className="hover:bg-gray-50">
               <CardContent className="p-4">
                 <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Train className="w-4 h-4" />
-                    <h3 className="font-semibold">{decodeURIComponent(visit.stationId)}駅</h3>
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-1">
+                      <Link href={`/visit/${encodeURIComponent(visit.stationId)}`} className="font-semibold hover:underline">
+                        {visit.name}駅
+                      </Link>
+                      <div className="flex items-center text-sm text-muted-foreground">
+                        <Train className="w-4 h-4 mr-1" />
+                        <span>{visit.lines && visit.lines.length > 0 ? visit.lines.join('、') : '路線情報なし'}</span>
+                      </div>
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      {visit.date === 'unknown' ? '日付不明' : visit.date}
+                    </div>
                   </div>
                   
-                  <div className="grid grid-cols-2 gap-2 text-sm text-muted-foreground">
-                    <div className="flex items-center gap-2">
-                      <CalendarDays className="w-4 h-4" />
-                      <span>{visit.date === 'unknown' ? '不明' : visit.date}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Cloud className="w-4 h-4" />
-                      <span>{visit.weather === 'unknown' ? '不明' : visit.weather}</span>
-                    </div>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Cloud className="w-4 h-4" />
+                    <span>{visit.weather === 'unknown' ? '天気不明' : visit.weather}</span>
                   </div>
 
                   {visit.memo && (

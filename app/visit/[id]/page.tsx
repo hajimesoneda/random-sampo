@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -14,9 +14,10 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { ArrowLeft, CalendarIcon } from 'lucide-react'
-import { saveVisit } from '@/app/actions'
+import { saveVisit, getVisitedStations } from '@/app/actions'
 import { Calendar } from "@/components/ui/calendar"
 import { ja } from 'date-fns/locale';
+import { VisitInfo } from '@/types/station'
 
 const weatherOptions = [
   { value: "unknown", label: "不明" },
@@ -28,15 +29,42 @@ const weatherOptions = [
 
 export default function VisitPage({ params }: { params: { id: string } }) {
   const router = useRouter()
-  const [dateOption, setDateOption] = useState<"unknown" | "known">("unknown")
-  const [date, setDate] = useState<string>(new Date().toISOString().split('T')[0])
+  const [date, setDate] = useState<string>("unknown")
   const [weather, setWeather] = useState<typeof weatherOptions[number]['value']>("unknown")
   const [memo, setMemo] = useState('')
   const [showDatePicker, setShowDatePicker] = useState(false)
+  const [stationName, setStationName] = useState('')
+  const [stationLines, setStationLines] = useState<string[]>([])
+
+  useEffect(() => {
+    const loadExistingVisit = async () => {
+      const visits = await getVisitedStations()
+      const existingVisit = visits.find(v => v.stationId === params.id)
+      if (existingVisit) {
+        setDate(existingVisit.date)
+        setWeather(existingVisit.weather)
+        setMemo(existingVisit.memo)
+        setStationName(existingVisit.name)
+        setStationLines(existingVisit.lines)
+      } else {
+        // 新規訪問の場合、駅情報を取得
+        const decodedId = decodeURIComponent(params.id)
+        const response = await fetch(`/api/station/${encodeURIComponent(decodedId)}`)
+        if (response.ok) {
+          const stationData = await response.json()
+          setStationName(stationData.name)
+          setStationLines(stationData.lines)
+        }
+      }
+    }
+    loadExistingVisit()
+  }, [params.id])
 
   const handleSubmit = async () => {
     await saveVisit({
       stationId: decodeURIComponent(params.id),
+      name: stationName,
+      lines: stationLines,
       date,
       weather,
       memo
@@ -61,7 +89,7 @@ export default function VisitPage({ params }: { params: { id: string } }) {
       </Button>
 
       <h1 className="text-2xl font-bold mb-4">
-        {decodeURIComponent(params.id)}駅に行ってみた！
+        {stationName}駅に行ってみた！
       </h1>
 
       <Card>

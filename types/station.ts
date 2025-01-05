@@ -16,6 +16,8 @@ export interface Spot {
 
 export interface VisitInfo {
   stationId: string
+  name: string
+  lines: string[]
   date: string | "unknown"
   weather: "unknown" | "☀️ 晴れ" | "☁️ 曇り" | "🌧️ 雨" | "❄️ 雪"
   memo: string
