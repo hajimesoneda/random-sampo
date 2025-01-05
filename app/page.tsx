@@ -114,7 +114,7 @@ export default function Home() {
           {loading ? (
             <Card>
               <CardContent className="p-4">
-                {/* Skeleton components removed */}
+                <div className="w-full h-[300px] bg-muted animate-pulse rounded-lg" />
               </CardContent>
             </Card>
           ) : station ? (
@@ -126,11 +126,6 @@ export default function Home() {
                   {station.lines.join('、')}
                 </p>
                 <Map center={{ lat: station.lat, lng: station.lng }} selectedSpot={selectedSpot} />
-                {!selectedSpot && (
-                  <p className="text-sm text-muted-foreground mb-2">
-                    スポットを選択すると、Google Mapでルートが表示されます。
-                  </p>
-                )}
                 <Button
                   variant="outline"
                   className="w-full mt-2"
@@ -148,9 +143,11 @@ export default function Home() {
                   Google Mapで開く
                 </Button>
                 <div className="mt-4 grid grid-cols-2 gap-4">
-                  {station.spots.map((spot) => (
+                  {station.spots?.map((spot) => (
                     <SpotCard key={spot.id} {...spot} onClick={() => setSelectedSpot(spot)} />
-                  ))}
+                  )) || (
+                    <p className="col-span-2 text-center text-muted-foreground">スポットが見つかりません</p>
+                  )}
                 </div>
                 <div className="mt-4 flex justify-between">
                   <Button onClick={() => pickStation()}>別の駅を選ぶ</Button>

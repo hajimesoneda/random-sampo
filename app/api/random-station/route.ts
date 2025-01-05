@@ -1,12 +1,24 @@
 import { NextResponse } from 'next/server'
-import { Station } from '@/types/station'
+import { Station, Spot } from '@/types/station'
 import stationsData from '@/data/tokyo-stations.json'
 
-async function getNearbyPlaces(lat: number, lng: number, type: string, limit: number) {
+interface PlaceResult {
+  place_id: string;
+  name: string;
+  photos?: { photo_reference: string }[];
+  geometry: {
+    location: {
+      lat: number;
+      lng: number;
+    };
+  };
+}
+
+async function getNearbyPlaces(lat: number, lng: number, type: string, limit: number): Promise<Spot[]> {
   const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=1000&type=${type}&language=ja&key=${process.env.GOOGLE_PLACES_API_KEY}`
   const response = await fetch(url)
   const data = await response.json()
-  return data.results.slice(0, limit).map((place: any) => ({
+  return data.results.slice(0, limit).map((place: PlaceResult) => ({
     id: place.place_id,
     name: place.name,
     type: type,
@@ -23,7 +35,13 @@ export async function GET() {
     }
 
     // ランダムに駅を選択
-    const randomStation = stationsData[Math.floor(Math.random() * stationsData.length)] as Station
+    const randomStationData = stationsData[Math.floor(Math.random() * stationsData.length)]
+    const randomStation: Station = {
+      ...randomStationData,
+      spots: [],  // Initialize with an empty array
+      passengers: randomStationData.passengers ?? undefined,  // Convert null to undefined if necessary
+      firstDeparture: randomStationData.firstDeparture ?? undefined  // Convert null to undefined if necessary
+    }
 
     if (!randomStation) {
       throw new Error('駅が見つかりません')
@@ -41,7 +59,9 @@ export async function GET() {
       .map(name => shuffledSpots.find(s => s.name === name))
       .slice(0, 4)
 
-    return NextResponse.json({ ...randomStation, spots: uniqueSpots })
+    randomStation.spots = uniqueSpots as Spot[]
+
+    return NextResponse.json(randomStation)
   } catch (error) {
     console.error('ランダム駅の取得エラー:', error)
     return NextResponse.json({ error: error instanceof Error ? error.message : 'ランダム駅の取得に失敗しました' }, { status: 500 })

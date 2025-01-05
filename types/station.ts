@@ -4,7 +4,9 @@ export interface Station {
   lines: string[]
   lat: number
   lng: number
-  spots: Spot[]
+  spots?: Spot[]
+  passengers?: number | null  // Allow null for passengers
+  firstDeparture?: string | null  // Allow null for firstDeparture
 }
 
 export interface Spot {
