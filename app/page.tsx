@@ -29,6 +29,7 @@ export default function Home() {
   const pickStation = async (stationId?: string) => {
     setLoading(true)
     setStation(null)
+    setSelectedSpot(null) // Reset selectedSpot when picking a new station
     setError(null)
     try {
       const url = stationId 
