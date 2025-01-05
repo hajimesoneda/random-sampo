@@ -17,7 +17,6 @@ import { ArrowLeft, CalendarIcon } from 'lucide-react'
 import { saveVisit, getVisitedStations } from '@/app/actions'
 import { Calendar } from "@/components/ui/calendar"
 import { ja } from 'date-fns/locale';
-import { VisitInfo } from '@/types/station'
 
 const weatherOptions = [
   { value: "unknown", label: "不明" },
@@ -85,11 +84,6 @@ export default function VisitPage({ params }: { params: { id: string } }) {
     await saveVisit(visitInfo);
     router.push('/');
   };
-
-  const getMaxDate = () => {
-    const today = new Date()
-    return today.toISOString().split('T')[0]
-  }
 
   return (
     <main className="container max-w-md mx-auto p-4">
