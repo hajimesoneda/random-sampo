@@ -12,6 +12,8 @@ export interface Spot {
   name: string
   type: "tourist_attraction" | "cafe" | "restaurant"
   photo: string | null
+  lat: number
+  lng: number
 }
 
 export interface VisitInfo {

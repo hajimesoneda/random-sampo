@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Station, FavoriteStation } from '@/types/station'
+import { Station, FavoriteStation, Spot } from '@/types/station'
 import { Train, Star } from 'lucide-react'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
@@ -24,6 +24,7 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null)
   const [favorites, setFavorites] = useState<FavoriteStation[]>([])
   const [activeTab, setActiveTab] = useState("picker")
+  const [selectedSpot, setSelectedSpot] = useState<Spot | null>(null)
 
   const pickStation = async (stationId?: string) => {
     setLoading(true)
@@ -123,21 +124,35 @@ export default function Home() {
                   <Train className="inline-block mr-1" size={16} />
                   {station.lines.join('、')}
                 </p>
-                <Map center={{ lat: station.lat, lng: station.lng }} />
+                <Map center={{ lat: station.lat, lng: station.lng }} selectedSpot={selectedSpot} />
+                {!selectedSpot && (
+                  <p className="text-sm text-muted-foreground mb-2">
+                    スポットを選択すると、Google Mapでルートが表示されます。
+                  </p>
+                )}
                 <Button
                   variant="outline"
                   className="w-full mt-2"
-                  onClick={() => window.open(`https://www.google.com/maps?q=${station.lat},${station.lng}`, '_blank')}
+                  onClick={() => {
+                    if (station && selectedSpot) {
+                      const origin = `${station.lat},${station.lng}`;
+                      const destination = `${selectedSpot.lat},${selectedSpot.lng}`;
+                      const url = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&travelmode=walking`;
+                      window.open(url, '_blank');
+                    } else {
+                      window.open(`https://www.google.com/maps?q=${station.lat},${station.lng}`, '_blank');
+                    }
+                  }}
                 >
                   Google Mapで開く
                 </Button>
                 <div className="mt-4 grid grid-cols-2 gap-4">
                   {station.spots.map((spot) => (
-                    <SpotCard key={spot.id} {...spot} />
+                    <SpotCard key={spot.id} {...spot} onClick={() => setSelectedSpot(spot)} />
                   ))}
                 </div>
                 <div className="mt-4 flex justify-between">
-                  <Button onClick={() => pickStation(false)}>別の駅を選ぶ</Button>
+                  <Button onClick={() => pickStation()}>別の駅を選ぶ</Button>
                   <Button variant="outline" onClick={handleToggleFavorite}>
                     {isFavorite ? (
                       <>
@@ -161,7 +176,7 @@ export default function Home() {
             <Card>
               <CardContent className="p-4 text-center">
                 <p>駅が選択されていません</p>
-                <Button onClick={() => pickStation(false)} className="mt-4">駅を選ぶ</Button>
+                <Button onClick={() => pickStation()} className="mt-4">駅を選ぶ</Button>
               </CardContent>
             </Card>
           )}

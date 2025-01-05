@@ -6,9 +6,10 @@ interface SpotCardProps {
   name: string
   type: string
   photo: string | null
+  onClick?: () => void
 }
 
-export function SpotCard({ name, type, photo }: SpotCardProps) {
+export function SpotCard({ name, type, photo, onClick }: SpotCardProps) {
   const getIcon = () => {
     switch (type) {
       case 'tourist_attraction':
@@ -36,7 +37,7 @@ export function SpotCard({ name, type, photo }: SpotCardProps) {
   }
 
   return (
-    <Card className="overflow-hidden">
+    <Card className="overflow-hidden cursor-pointer" onClick={onClick}>
       <CardContent className="p-0">
         <div className="relative aspect-[4/3]">
           {photo ? (
