@@ -3,15 +3,23 @@ import { Station } from '@/types/station'
 import stationsData from '@/data/tokyo-stations.json'
 
 async function getNearbyPlaces(lat: number, lng: number, type: string, limit: number) {
-  const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=1000&type=${type}&language=ja&key=${process.env.GOOGLE_PLACES_API_KEY}`
-  const response = await fetch(url)
-  const data = await response.json()
-  return data.results.slice(0, limit).map((place: any) => ({
-    id: place.place_id,
-    name: place.name,
-    type: type,
-    photo: place.photos ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${place.photos[0].photo_reference}&key=${process.env.GOOGLE_PLACES_API_KEY}` : null
-  }))
+  try {
+    const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=1000&type=${type}&language=ja&key=${process.env.GOOGLE_PLACES_API_KEY}`
+    const response = await fetch(url)
+    if (!response.ok) {
+      throw new Error(`Google Places API error: ${response.statusText}`)
+    }
+    const data = await response.json()
+    return data.results.slice(0, limit).map((place: any) => ({
+      id: place.place_id,
+      name: place.name,
+      type: type,
+      photo: place.photos ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${place.photos[0].photo_reference}&key=${process.env.GOOGLE_PLACES_API_KEY}` : null
+    }))
+  } catch (error) {
+    console.error('Error fetching nearby places:', error)
+    return []
+  }
 }
 
 export async function GET() {
@@ -42,7 +50,7 @@ export async function GET() {
     return NextResponse.json({ ...randomStation, spots: uniqueSpots })
   } catch (error) {
     console.error('ランダム駅の取得エラー:', error)
-    return NextResponse.json({ error: 'ランダム駅の取得に失敗しました' }, { status: 500 })
+    return NextResponse.json({ error: error instanceof Error ? error.message : 'ランダム駅の取得に失敗しました' }, { status: 500 })
   }
 }
 

@@ -43,6 +43,9 @@ export default function Home() {
         throw new Error(errorData.error || '駅の取得に失敗しました')
       }
       const newStation = await response.json()
+      if (!newStation || typeof newStation !== 'object') {
+        throw new Error('Invalid station data received')
+      }
       setStation(newStation)
     } catch (error) {
       console.error('駅の取得エラー:', error)
@@ -56,19 +59,29 @@ export default function Home() {
   }
 
   const loadFavorites = async () => {
-    const favs = await getFavoriteStations()
-    setFavorites(favs)
+    try {
+      const favs = await getFavoriteStations()
+      setFavorites(favs)
+    } catch (error) {
+      console.error('お気に入りの取得エラー:', error)
+      setError('お気に入りの取得に失敗しました')
+    }
   }
 
   const handleToggleFavorite = async () => {
     if (station) {
-      const favoriteStation: FavoriteStation = {
-        id: station.id,
-        name: station.name,
-        lines: station.lines
+      try {
+        const favoriteStation: FavoriteStation = {
+          id: station.id,
+          name: station.name,
+          lines: station.lines
+        }
+        const updatedFavorites = await toggleFavoriteStation(favoriteStation)
+        setFavorites(updatedFavorites)
+      } catch (error) {
+        console.error('お気に入りの更新エラー:', error)
+        setError('お気に入りの更新に失敗しました')
       }
-      const updatedFavorites = await toggleFavoriteStation(favoriteStation)
-      setFavorites(updatedFavorites)
     }
   }
 
@@ -88,6 +101,13 @@ export default function Home() {
     <main className="container max-w-md mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">ランダム駅ピッカー</h1>
       
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+          <strong className="font-bold">エラー: </strong>
+          <span className="block sm:inline">{error}</span>
+        </div>
+      )}
+
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="w-full mb-4">
           <TabsTrigger value="picker" className="flex-1">ピッカー</TabsTrigger>
@@ -96,88 +116,63 @@ export default function Home() {
         </TabsList>
 
         <TabsContent value="picker">
-          <div className="space-y-4">
-            <p className="text-muted-foreground">都内の駅をランダムに選びます</p>
-            
-            <Button 
-              onClick={() => pickStation()} 
-              className="w-full bg-blue-500 hover:bg-blue-600 text-white h-16 text-lg font-bold"
-              disabled={loading || initialLoad}
-            >
-              {loading || initialLoad ? '選択中...' : '駅のシャッフル！'}
-            </Button>
-
-            {error && (
-              <p className="text-red-500 text-center">{error}</p>
-            )}
-
+          {loading ? (
             <Card>
-              <CardContent className="p-6 space-y-6">
-                {(loading || initialLoad) ? (
-                  <>
-                    <Skeleton className="h-8 w-3/4 mx-auto" />
-                    <Skeleton className="w-full h-[300px]" />
-                    <Skeleton className="h-20 w-full" />
-                    <div className="space-y-4">
-                      <Skeleton className="h-4 w-1/2" />
-                      <div className="grid grid-cols-2 gap-4">
-                        <Skeleton className="h-32 w-full" />
-                        <Skeleton className="h-32 w-full" />
-                        <Skeleton className="h-32 w-full" />
-                        <Skeleton className="h-32 w-full" />
-                      </div>
-                    </div>
-                    <div className="flex gap-2">
-                      <Skeleton className="h-10 w-full" />
-                      <Skeleton className="h-10 w-full" />
-                    </div>
-                  </>
-                ) : station ? (
-                  <>
-                    <h2 className="text-3xl font-bold text-center">{station.name}</h2>
-                    
-                    <Map center={{ lat: station.lat, lng: station.lng }} />
-
-                    <div className="bg-muted p-4 rounded-lg space-y-2">
-                      <h3 className="font-semibold mb-2">駅情報</h3>
-                      <div className="flex items-center gap-2">
-                        <Train className="w-4 h-4" />
-                        <span>路線: {station.lines.join('、')}</span>
-                      </div>
-                    </div>
-
-                    <div className="space-y-4">
-                      <h3 className="font-semibold flex items-center gap-2">
-                        <MapPin className="w-4 h-4" />
-                        周辺のおすすめスポット
-                      </h3>
-                      <div className="grid grid-cols-2 gap-4">
-                        {station.spots.map((spot) => (
-                          <SpotCard key={spot.id} name={spot.name} type={spot.type} photo={spot.photo} />
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="flex gap-2">
-                      <Button asChild className="flex-1 bg-blue-500 hover:bg-blue-600 text-white">
-                        <Link href={`/visit/${encodeURIComponent(station.name)}`}>
-                          行ってみた！
-                        </Link>
-                      </Button>
-                      <Button 
-                        variant={isFavorite ? "default" : "outline"} 
-                        className="flex-1"
-                        onClick={handleToggleFavorite}
-                      >
-                        <Star className={`w-4 h-4 mr-2 ${isFavorite ? "fill-current" : ""}`} />
-                        {isFavorite ? "お気に入り解除" : "お気に入り"}
-                      </Button>
-                    </div>
-                  </>
-                ) : null}
+              <CardContent className="p-4">
+                <Skeleton className="h-4 w-2/3 mb-2" />
+                <Skeleton className="h-4 w-1/2" />
               </CardContent>
             </Card>
-          </div>
+          ) : station ? (
+            <Card>
+              <CardContent className="p-4">
+                <h2 className="text-xl font-semibold mb-2">{station.name}駅</h2>
+                <p className="text-sm text-gray-600 mb-4">
+                  <Train className="inline-block mr-1" size={16} />
+                  {station.lines.join('、')}
+                </p>
+                <Map center={{ lat: station.lat, lng: station.lng }} />
+                <Button
+                  variant="outline"
+                  className="w-full mt-2"
+                  onClick={() => window.open(`https://www.google.com/maps?q=${station.lat},${station.lng}`, '_blank')}
+                >
+                  Google Mapで開く
+                </Button>
+                <div className="mt-4 grid grid-cols-2 gap-4">
+                  {station.spots.map((spot) => (
+                    <SpotCard key={spot.id} {...spot} />
+                  ))}
+                </div>
+                <div className="mt-4 flex justify-between">
+                  <Button onClick={() => pickStation(false)}>別の駅を選ぶ</Button>
+                  <Button variant="outline" onClick={handleToggleFavorite}>
+                    {isFavorite ? (
+                      <>
+                        <Star className="mr-2 h-4 w-4 fill-current" /> お気に入り解除
+                      </>
+                    ) : (
+                      <>
+                        <Star className="mr-2 h-4 w-4" /> お気に入りに追加
+                      </>
+                    )}
+                  </Button>
+                </div>
+                <div className="mt-4">
+                  <Link href={`/visit/${encodeURIComponent(station.id)}`}>
+                    <Button className="w-full">訪問を記録</Button>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card>
+              <CardContent className="p-4 text-center">
+                <p>駅が選択されていません</p>
+                <Button onClick={() => pickStation(false)} className="mt-4">駅を選ぶ</Button>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
 
         <TabsContent value="visited">
