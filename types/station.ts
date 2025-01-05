@@ -21,3 +21,9 @@ export interface VisitInfo {
   memo: string
 }
 
+export interface FavoriteStation {
+  id: string
+  name: string
+  lines: string[]
+}
+
