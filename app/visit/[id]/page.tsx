@@ -38,39 +38,53 @@ export default function VisitPage({ params }: { params: { id: string } }) {
 
   useEffect(() => {
     const loadExistingVisit = async () => {
-      const visits = await getVisitedStations()
-      const existingVisit = visits.find(v => v.stationId === params.id)
+      console.log('Loading visit data for station ID:', params.id);
+      const visits = await getVisitedStations();
+      console.log('All visits:', visits);
+      const existingVisit = visits.find(v => v.stationId === decodeURIComponent(params.id));
+      console.log('Existing visit:', existingVisit);
+      
       if (existingVisit) {
-        setDate(existingVisit.date)
-        setWeather(existingVisit.weather)
-        setMemo(existingVisit.memo)
-        setStationName(existingVisit.name)
-        setStationLines(existingVisit.lines)
+        console.log('Setting existing visit data');
+        setDate(existingVisit.date);
+        setWeather(existingVisit.weather);
+        setMemo(existingVisit.memo);
+        setStationName(existingVisit.name);
+        setStationLines(existingVisit.lines);
       } else {
-        // 新規訪問の場合、駅情報を取得
-        const decodedId = decodeURIComponent(params.id)
-        const response = await fetch(`/api/station/${encodeURIComponent(decodedId)}`)
+        console.log('No existing visit found, fetching station data');
+        const decodedId = decodeURIComponent(params.id);
+        const response = await fetch(`/api/station/${encodeURIComponent(decodedId)}`);
         if (response.ok) {
-          const stationData = await response.json()
-          setStationName(stationData.name)
-          setStationLines(stationData.lines)
+          const stationData = await response.json();
+          console.log('Fetched station data:', stationData);
+          setStationName(stationData.name);
+          setStationLines(stationData.lines);
+          setDate("unknown");
+          setWeather("unknown");
+          setMemo("");
+        } else {
+          console.error('Failed to fetch station data');
         }
       }
-    }
-    loadExistingVisit()
-  }, [params.id])
+    };
+
+    loadExistingVisit();
+  }, [params.id]);
 
   const handleSubmit = async () => {
-    await saveVisit({
+    const visitInfo = {
       stationId: decodeURIComponent(params.id),
       name: stationName,
       lines: stationLines,
       date,
       weather,
       memo
-    })
-    router.push('/')
-  }
+    };
+    console.log('Saving visit info:', visitInfo);
+    await saveVisit(visitInfo);
+    router.push('/');
+  };
 
   const getMaxDate = () => {
     const today = new Date()
