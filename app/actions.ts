@@ -1,7 +1,7 @@
 'use server'
 
 import { cookies } from 'next/headers'
-import { Station, VisitInfo, FavoriteStation } from '@/types/station'
+import { VisitInfo, FavoriteStation } from '@/types/station'
 
 export async function saveVisit(info: VisitInfo) {
   const visits = JSON.parse(cookies().get('visits')?.value || '[]')

@@ -1,16 +1,24 @@
 import { NextResponse } from 'next/server'
-import { Station } from '@/types/station'
+import { Station, Spot } from '@/types/station'
 import stationsData from '@/data/tokyo-stations.json'
 
-async function getNearbyPlaces(lat: number, lng: number, type: string, limit: number) {
+interface PlaceResult {
+  place_id: string;
+  name: string;
+  photos?: { photo_reference: string }[];
+}
+
+async function getNearbyPlaces(lat: number, lng: number, type: string, limit: number): Promise<Spot[]> {
   const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=1000&type=${type}&language=ja&key=${process.env.GOOGLE_PLACES_API_KEY}`
   const response = await fetch(url)
   const data = await response.json()
-  return data.results.slice(0, limit).map((place: any) => ({
+  return data.results.slice(0, limit).map((place: PlaceResult) => ({
     id: place.place_id,
     name: place.name,
     type: type,
-    photo: place.photos ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${place.photos[0].photo_reference}&key=${process.env.GOOGLE_PLACES_API_KEY}` : null
+    photo: place.photos ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${place.photos[0].photo_reference}&key=${process.env.GOOGLE_PLACES_API_KEY}` : null,
+    lat: 0, // We don't have this information from the API response
+    lng: 0  // We don't have this information from the API response
   }))
 }
 
