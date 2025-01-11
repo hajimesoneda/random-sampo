@@ -4,14 +4,13 @@ import { useState, useEffect } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Station, FavoriteStation } from '@/types/station'
-import { Train, MapPin, Star } from 'lucide-react'
+import { Station, FavoriteStation, Spot } from '@/types/station'
+import { Train, Star } from 'lucide-react'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { SpotCard } from '@/components/spot-card'
 import { VisitedStations } from '@/components/visited-stations'
 import { FavoriteStations } from '@/components/favorite-stations'
-import { Skeleton } from "@/components/ui/skeleton"
 import { toggleFavoriteStation, getFavoriteStations } from '@/app/actions'
 
 const Map = dynamic(() => import('@/components/map'), { 
@@ -22,16 +21,17 @@ const Map = dynamic(() => import('@/components/map'), {
 export default function Home() {
   const [station, setStation] = useState<Station | null>(null)
   const [loading, setLoading] = useState(true)
-  const [initialLoad, setInitialLoad] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [favorites, setFavorites] = useState<FavoriteStation[]>([])
   const [activeTab, setActiveTab] = useState("picker")
+  const [selectedSpot, setSelectedSpot] = useState<Spot | null>(null)
+  const [stationKey, setStationKey] = useState<string>('')
+  //const [mapLoaded, setMapLoaded] = useState(false) //Removed
 
-  const pickStation = async (isInitialLoad = false, stationId?: string) => {
-    if (!isInitialLoad) {
-      setLoading(true)
-      setStation(null)
-    }
+  const pickStation = async (stationId?: string) => {
+    setLoading(true)
+    setStation(null)
+    setSelectedSpot(null)
     setError(null)
     try {
       const url = stationId 
@@ -47,14 +47,12 @@ export default function Home() {
         throw new Error('Invalid station data received')
       }
       setStation(newStation)
+      setStationKey(Date.now().toString()) // 新しい駅が設定されたときに stationKey を更新
     } catch (error) {
       console.error('駅の取得エラー:', error)
       setError(error instanceof Error ? error.message : '予期せぬエラーが発生しました')
     } finally {
       setLoading(false)
-      if (isInitialLoad) {
-        setInitialLoad(false)
-      }
     }
   }
 
@@ -87,11 +85,11 @@ export default function Home() {
 
   const handleSelectFavorite = (selectedStation: FavoriteStation) => {
     setActiveTab("picker")
-    pickStation(false, selectedStation.id)
+    pickStation(selectedStation.id)
   }
 
   useEffect(() => {
-    pickStation(true)
+    pickStation()
     loadFavorites()
   }, [])
 
@@ -117,12 +115,7 @@ export default function Home() {
 
         <TabsContent value="picker">
           {loading ? (
-            <Card>
-              <CardContent className="p-4">
-                <Skeleton className="h-4 w-2/3 mb-2" />
-                <Skeleton className="h-4 w-1/2" />
-              </CardContent>
-            </Card>
+            <div className="w-full h-[300px] bg-muted animate-pulse rounded-lg" />
           ) : station ? (
             <Card>
               <CardContent className="p-4">
@@ -131,21 +124,36 @@ export default function Home() {
                   <Train className="inline-block mr-1" size={16} />
                   {station.lines.join('、')}
                 </p>
-                <Map center={{ lat: station.lat, lng: station.lng }} />
+                <Map 
+                  center={{ lat: station.lat, lng: station.lng }} 
+                  selectedSpot={selectedSpot} 
+                  stationKey={stationKey} // stationKey prop を追加
+                />
                 <Button
                   variant="outline"
                   className="w-full mt-2"
-                  onClick={() => window.open(`https://www.google.com/maps?q=${station.lat},${station.lng}`, '_blank')}
+                  onClick={() => {
+                    if (station && selectedSpot) {
+                      const origin = `${station.lat},${station.lng}`;
+                      const destination = `${selectedSpot.lat},${selectedSpot.lng}`;
+                      const url = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&travelmode=walking`;
+                      window.open(url, '_blank');
+                    } else {
+                      window.open(`https://www.google.com/maps?q=${station.lat},${station.lng}`, '_blank');
+                    }
+                  }}
                 >
                   Google Mapで開く
                 </Button>
                 <div className="mt-4 grid grid-cols-2 gap-4">
-                  {station.spots.map((spot) => (
-                    <SpotCard key={spot.id} {...spot} />
-                  ))}
+                  {station.spots?.map((spot) => (
+                    <SpotCard key={spot.id} {...spot} onClick={() => setSelectedSpot(spot)} />
+                  )) || (
+                    <p className="col-span-2 text-center text-muted-foreground">スポットが見つかりません</p>
+                  )}
                 </div>
                 <div className="mt-4 flex justify-between">
-                  <Button onClick={() => pickStation(false)}>別の駅を選ぶ</Button>
+                  <Button onClick={() => pickStation()}>別の駅を選ぶ</Button>
                   <Button variant="outline" onClick={handleToggleFavorite}>
                     {isFavorite ? (
                       <>
@@ -169,7 +177,7 @@ export default function Home() {
             <Card>
               <CardContent className="p-4 text-center">
                 <p>駅が選択されていません</p>
-                <Button onClick={() => pickStation(false)} className="mt-4">駅を選ぶ</Button>
+                <Button onClick={() => pickStation()} className="mt-4">駅を選ぶ</Button>
               </CardContent>
             </Card>
           )}

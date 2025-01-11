@@ -1,14 +1,15 @@
 import { Card, CardContent } from "@/components/ui/card"
-import { MapPin, Camera, Coffee, Utensils } from 'lucide-react'
+import { MapPin, Camera, Coffee, Utensils, Droplet } from 'lucide-react'
 import Image from 'next/image'
 
 interface SpotCardProps {
   name: string
   type: string
   photo: string | null
+  onClick?: () => void
 }
 
-export function SpotCard({ name, type, photo }: SpotCardProps) {
+export function SpotCard({ name, type, photo, onClick }: SpotCardProps) {
   const getIcon = () => {
     switch (type) {
       case 'tourist_attraction':
@@ -17,6 +18,8 @@ export function SpotCard({ name, type, photo }: SpotCardProps) {
         return <Coffee className="w-4 h-4" />;
       case 'restaurant':
         return <Utensils className="w-4 h-4" />;
+      case 'public_bath':
+        return <Droplet className="w-4 h-4" />;
       default:
         return <MapPin className="w-4 h-4" />;
     }
@@ -30,13 +33,15 @@ export function SpotCard({ name, type, photo }: SpotCardProps) {
         return 'カフェ';
       case 'restaurant':
         return 'レストラン';
+      case 'public_bath':
+        return '銭湯';
       default:
         return type;
     }
   }
 
   return (
-    <Card className="overflow-hidden">
+    <Card className="overflow-hidden cursor-pointer" onClick={onClick}>
       <CardContent className="p-0">
         <div className="relative aspect-[4/3]">
           {photo ? (
