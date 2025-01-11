@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { getGoogleMapsLoader } from '@/lib/google-maps-loader'
 import { Spot } from '@/types/station'
+import { Loader } from '@googlemaps/js-api-loader'
 
 interface MapProps {
   center: {
@@ -57,8 +58,10 @@ export default function Map({ center, selectedSpot }: MapProps) {
               icon: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png'
             })
 
+            let infoContent = `<div><strong>${selectedSpot.name}</strong><br>${selectedSpot.type}</div>`
+
             const infoWindow = new maps.InfoWindow({
-              content: `<div><strong>${selectedSpot.name}</strong><br>${selectedSpot.type}</div>`
+              content: infoContent
             })
 
             infoWindow.open(map, spotMarker)

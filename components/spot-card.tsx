@@ -1,5 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card"
-import { MapPin, Camera, Coffee, Utensils } from 'lucide-react'
+import { MapPin, Camera, Coffee, Utensils, Droplet } from 'lucide-react'
 import Image from 'next/image'
 
 interface SpotCardProps {
@@ -18,6 +18,8 @@ export function SpotCard({ name, type, photo, onClick }: SpotCardProps) {
         return <Coffee className="w-4 h-4" />;
       case 'restaurant':
         return <Utensils className="w-4 h-4" />;
+      case 'public_bath':
+        return <Droplet className="w-4 h-4" />;
       default:
         return <MapPin className="w-4 h-4" />;
     }
@@ -31,6 +33,8 @@ export function SpotCard({ name, type, photo, onClick }: SpotCardProps) {
         return 'カフェ';
       case 'restaurant':
         return 'レストラン';
+      case 'public_bath':
+        return '銭湯';
       default:
         return type;
     }
