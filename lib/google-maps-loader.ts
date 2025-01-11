@@ -1,39 +1,50 @@
-/// <reference types="@types/google.maps" />
 import { Loader } from '@googlemaps/js-api-loader'
 
-let loaderInstance: Loader | null = null;
+class GoogleMapsLoader {
+  private static instance: GoogleMapsLoader;
+  private loader: Loader | null = null;
+  private loadPromise: Promise<void> | null = null;
 
-export async function getGoogleMapsLoader(): Promise<Loader> {
-  if (loaderInstance) return loaderInstance;
+  private constructor() {}
 
-  try {
-    const response = await fetch('/api/maps-api-key');
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+  public static getInstance(): GoogleMapsLoader {
+    if (!GoogleMapsLoader.instance) {
+      GoogleMapsLoader.instance = new GoogleMapsLoader();
     }
-    const data = await response.json();
+    return GoogleMapsLoader.instance;
+  }
 
-    if (!data.apiKey) {
-      console.error('API key not received from server');
-      throw new Error('Failed to load Google Maps API key');
+  public async load(): Promise<void> {
+    if (this.loadPromise) {
+      return this.loadPromise;
     }
 
-    console.log('Received API key:', data.apiKey.substring(0, 5) + '...');  // APIキーの最初の5文字のみをログ出力
+    if (!this.loader) {
+      const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+      const mapId = process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID;
 
-    loaderInstance = new Loader({
-      apiKey: data.apiKey,
-      version: 'weekly',
-      libraries: ['places'],
-      language: 'ja',
-      region: 'JP',
+      if (!apiKey) {
+        throw new Error('Google Maps API key is not configured');
+      }
+
+      this.loader = new Loader({
+        apiKey,
+        version: 'weekly',
+        libraries: ['places', 'marker'],
+        language: 'ja',
+        region: 'JP',
+        mapIds: mapId ? [mapId] : undefined
+      });
+    }
+
+    this.loadPromise = this.loader.load().catch((error) => {
+      this.loadPromise = null;
+      throw error;
     });
 
-    return loaderInstance;
-  } catch (error) {
-    console.error('Error loading Google Maps API key:', error);
-    throw error;
+    return this.loadPromise;
   }
 }
 
-export type { Loader }
+export const loadGoogleMaps = () => GoogleMapsLoader.getInstance().load();
 

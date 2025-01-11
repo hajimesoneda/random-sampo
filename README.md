@@ -50,8 +50,8 @@ Google ConsoleからGoogle Maps API、Places API、Direction APIを有効化し�
 
 以下でローカルサーバー起動
 ```bash
-npm install
-npm run dev
+yarn install
+yarn start
 ```
 
 ## converterディレクトリの中身について
@@ -69,3 +69,11 @@ https://uedayou.net/jrslod-geojson-downloader/
 
 - 訪問済み駅情報とお気に入りの駅はブラウザのCookieに保存されます。
 - おすすめスポットの写真はGoggle Places APIで取得しています
+
+## 実装予定
+- モバイルアプリ化
+- 名前変更：例「さすらい」
+- コンフィグアイコンをクリックして設定ができるように
+- 実際に訪問してチェックインするモードの追加。
+- おすすめスポットのカテゴリーをカスタマイズできるように
+- ゲーム化（訪問駅数を競う）

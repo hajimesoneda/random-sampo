@@ -1,10 +1,11 @@
 'use server'
 
 import { cookies } from 'next/headers'
-import { VisitInfo, FavoriteStation } from '@/types/station'
+import { Station, FavoriteStation, VisitInfo } from '@/types/station'
 
 export async function saveVisit(info: VisitInfo) {
-  const visits = JSON.parse(cookies().get('visits')?.value || '[]')
+  const cookieStore = await cookies()
+  const visits = JSON.parse((await cookieStore.get('visits'))?.value || '[]')
   const existingIndex = visits.findIndex((v: VisitInfo) => v.stationId === info.stationId)
   
   if (existingIndex !== -1) {
@@ -15,27 +16,30 @@ export async function saveVisit(info: VisitInfo) {
     visits.push(info)
     
     // visited-stations クッキーも更新
-    const visitedStations = JSON.parse(cookies().get('visited-stations')?.value || '[]')
+    const visitedStations = JSON.parse((await cookieStore.get('visited-stations'))?.value || '[]')
     if (!visitedStations.includes(info.stationId)) {
       visitedStations.push(info.stationId)
-      cookies().set('visited-stations', JSON.stringify(visitedStations))
+      await cookieStore.set('visited-stations', JSON.stringify(visitedStations))
     }
   }
 
-  cookies().set('visits', JSON.stringify(visits))
+  await cookieStore.set('visits', JSON.stringify(visits))
 }
 
 export async function getVisitedStations(): Promise<VisitInfo[]> {
-  return JSON.parse(cookies().get('visits')?.value || '[]')
+  const cookieStore = await cookies()
+  return JSON.parse((await cookieStore.get('visits'))?.value || '[]')
 }
 
 export async function resetVisitedStations() {
-  cookies().set('visited-stations', '[]')
-  cookies().set('visits', '[]')
+  const cookieStore = await cookies()
+  await cookieStore.set('visited-stations', '[]')
+  await cookieStore.set('visits', '[]')
 }
 
-export async function toggleFavoriteStation(station: FavoriteStation) {
-  const favorites = JSON.parse(cookies().get('favorite-stations')?.value || '[]')
+export async function toggleFavoriteStation(station: FavoriteStation): Promise<FavoriteStation[]> {
+  const cookieStore = await cookies()
+  const favorites = JSON.parse((await cookieStore.get('favorite-stations'))?.value || '[]')
   const index = favorites.findIndex((fav: FavoriteStation) => fav.id === station.id)
 
   if (index > -1) {
@@ -44,11 +48,13 @@ export async function toggleFavoriteStation(station: FavoriteStation) {
     favorites.push(station)
   }
 
-  cookies().set('favorite-stations', JSON.stringify(favorites))
+  await cookieStore.set('favorite-stations', JSON.stringify(favorites))
   return favorites
 }
 
 export async function getFavoriteStations(): Promise<FavoriteStation[]> {
-  return JSON.parse(cookies().get('favorite-stations')?.value || '[]')
+  const cookieStore = await cookies()
+  const favoritesString = (await cookieStore.get('favorite-stations'))?.value
+  return JSON.parse(favoritesString || '[]')
 }
 

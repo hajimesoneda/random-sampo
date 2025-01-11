@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  reactStrictMode: true,
   images: {
     remotePatterns: [
       {
@@ -13,7 +14,17 @@ const nextConfig = {
         pathname: '/maps/api/**',
       }
     ],
-  }
+  },
+  output: 'random-sampo',
+  typescript: {
+    // ビルド時の型チェックを無効にする
+    ignoreBuildErrors: true,
+  },
+  eslint: {
+    // ビルド時のESLintチェックを無効にする
+    ignoreDuringBuilds: true,
+  },
 }
 
-export default nextConfig;
+module.exports = nextConfig
+

@@ -49,6 +49,7 @@ export function SpotCard({ name, type, photo, onClick }: SpotCardProps) {
               src={photo}
               alt={name}
               fill
+              priority={true}
               className="object-cover"
               sizes="(max-width: 768px) 50vw, 33vw"
               unoptimized

@@ -31,20 +31,28 @@ export default function Home() {
     setStation(null)
     setSelectedSpot(null)
     setError(null)
+
     try {
       const url = stationId 
         ? `/api/station/${encodeURIComponent(stationId)}` 
         : '/api/random-station'
+      
       const response = await fetch(url)
+      const data = await response.json()
+
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || '駅の取得に失敗しました')
+        throw new Error(data.error || '駅の取得に失敗しました')
       }
-      const newStation = await response.json()
-      if (!newStation || typeof newStation !== 'object') {
-        throw new Error('Invalid station data received')
+
+      // Validate station data
+      if (!data || typeof data !== 'object' || !data.id || !data.name || 
+          !Array.isArray(data.lines) || typeof data.lat !== 'number' || 
+          typeof data.lng !== 'number') {
+        console.error('Invalid station data received:', data)
+        throw new Error('無効な駅データを受け取りました')
       }
-      setStation(newStation)
+
+      setStation(data)
     } catch (error) {
       console.error('駅の取得エラー:', error)
       setError(error instanceof Error ? error.message : '予期せぬエラーが発生しました')
@@ -64,19 +72,19 @@ export default function Home() {
   }
 
   const handleToggleFavorite = async () => {
-    if (station) {
-      try {
-        const favoriteStation: FavoriteStation = {
-          id: station.id,
-          name: station.name,
-          lines: station.lines
-        }
-        const updatedFavorites = await toggleFavoriteStation(favoriteStation)
-        setFavorites(updatedFavorites)
-      } catch (error) {
-        console.error('お気に入りの更新エラー:', error)
-        setError('お気に入りの更新に失敗しました')
+    if (!station) return;
+
+    try {
+      const favoriteStation: FavoriteStation = {
+        id: station.id,
+        name: station.name,
+        lines: station.lines
       }
+      const updatedFavorites = await toggleFavoriteStation(favoriteStation)
+      setFavorites(updatedFavorites)
+    } catch (error) {
+      console.error('お気に入りの更新エラー:', error)
+      setError('お気に入りの更新に失敗しました')
     }
   }
 
@@ -86,8 +94,17 @@ export default function Home() {
   }
 
   useEffect(() => {
-    pickStation()
-    loadFavorites()
+    const initialize = async () => {
+      try {
+        await pickStation()
+        await loadFavorites()
+      } catch (error) {
+        console.error('初期化エラー:', error)
+        setError('アプリケーションの初期化に失敗しました')
+      }
+    }
+
+    initialize()
   }, [])
 
   const isFavorite = station ? favorites.some(fav => fav.id === station.id) : false
@@ -125,7 +142,26 @@ export default function Home() {
                   <Train className="inline-block mr-1" size={16} />
                   {station.lines.join('、')}
                 </p>
-                <Map center={{ lat: station.lat, lng: station.lng }} selectedSpot={selectedSpot} />
+                <Map
+                  center={{ lat: station.lat, lng: station.lng }}
+                  selectedSpot={selectedSpot}
+                  spots={station.spots || []}
+                />
+                <div className="mt-4 grid grid-cols-2 gap-4">
+                  {station.spots && station.spots.length > 0 ? (
+                    station.spots.map((spot) => (
+                      <SpotCard 
+                        key={spot.id} 
+                        {...spot} 
+                        onClick={() => setSelectedSpot(spot)} 
+                      />
+                    ))
+                  ) : (
+                    <p className="col-span-2 text-center text-muted-foreground">
+                      スポットが見つかりません
+                    </p>
+                  )}
+                </div>
                 <Button
                   variant="outline"
                   className="w-full mt-2"
@@ -142,13 +178,6 @@ export default function Home() {
                 >
                   Google Mapで開く
                 </Button>
-                <div className="mt-4 grid grid-cols-2 gap-4">
-                  {station.spots?.map((spot) => (
-                    <SpotCard key={spot.id} {...spot} onClick={() => setSelectedSpot(spot)} />
-                  )) || (
-                    <p className="col-span-2 text-center text-muted-foreground">スポットが見つかりません</p>
-                  )}
-                </div>
                 <div className="mt-4 flex justify-between">
                   <Button onClick={() => pickStation()}>別の駅を選ぶ</Button>
                   <Button variant="outline" onClick={handleToggleFavorite}>

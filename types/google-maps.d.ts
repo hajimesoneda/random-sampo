@@ -9,19 +9,11 @@ declare namespace google {
       mapTypeControl?: boolean;
       streetViewControl?: boolean;
       fullscreenControl?: boolean;
-    }
-    class Marker {
-      constructor(opts?: MarkerOptions);
-    }
-    interface MarkerOptions {
-      position: { lat: number; lng: number };
-      map: Map;
-      animation?: any;
-      icon?: string;
+      mapId?: string;
     }
     class InfoWindow {
       constructor(opts?: InfoWindowOptions);
-      open(map: Map, anchor?: Marker): void;
+      open(map: Map, anchor?: any): void;
     }
     interface InfoWindowOptions {
       content: string;
@@ -32,6 +24,7 @@ declare namespace google {
     class DirectionsRenderer {
       constructor(opts?: DirectionsRendererOptions);
       setDirections(result: DirectionsResult): void;
+      setMap(map: Map | null): void;
     }
     interface DirectionsRendererOptions {
       map: Map;
@@ -43,7 +36,7 @@ declare namespace google {
       travelMode: TravelMode;
     }
     enum TravelMode {
-      WALKING
+      WALKING = 'WALKING'
     }
     interface DirectionsResult {
       routes: Array<{
@@ -55,11 +48,22 @@ declare namespace google {
       }>;
     }
     enum DirectionsStatus {
-      OK
+      OK = 'OK'
     }
     class LatLngBounds {
       extend(latLng: { lat: number; lng: number }): void;
     }
+    namespace marker {
+      class AdvancedMarkerElement {
+        constructor(opts?: AdvancedMarkerElementOptions);
+        addListener(event: string, handler: () => void): void;
+      }
+      interface AdvancedMarkerElementOptions {
+        map: Map;
+        position: { lat: number; lng: number };
+        title?: string;
+        content?: HTMLElement;
+      }
+    }
   }
 }
-
