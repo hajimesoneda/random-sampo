@@ -1,31 +1,39 @@
-/// <reference types="@types/google.maps" />
 import { Loader } from '@googlemaps/js-api-loader'
 
 let loaderInstance: Loader | null = null;
+let apiKeyPromise: Promise<string> | null = null;
+
+async function getApiKey(): Promise<string> {
+  if (!apiKeyPromise) {
+    apiKeyPromise = fetch('/api/maps-api-key')
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(data => {
+        if (!data.apiKey) {
+          throw new Error('API key not received from server');
+        }
+        return data.apiKey;
+      });
+  }
+  return apiKeyPromise;
+}
 
 export async function getGoogleMapsLoader(): Promise<Loader> {
   if (loaderInstance) return loaderInstance;
 
   try {
-    const response = await fetch('/api/maps-api-key');
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    const data = await response.json();
-
-    if (!data.apiKey) {
-      console.error('API key not received from server');
-      throw new Error('Failed to load Google Maps API key');
-    }
-
-    console.log('Received API key:', data.apiKey.substring(0, 5) + '...');  // APIキーの最初の5文字のみをログ出力
-
+    const apiKey = await getApiKey();
+    
     loaderInstance = new Loader({
-      apiKey: data.apiKey,
+      apiKey,
       version: 'weekly',
       libraries: ['places'],
       language: 'ja',
-      region: 'JP',
+      region: 'JP'
     });
 
     return loaderInstance;

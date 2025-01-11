@@ -25,6 +25,8 @@ export default function Home() {
   const [favorites, setFavorites] = useState<FavoriteStation[]>([])
   const [activeTab, setActiveTab] = useState("picker")
   const [selectedSpot, setSelectedSpot] = useState<Spot | null>(null)
+  const [stationKey, setStationKey] = useState<string>('')
+  //const [mapLoaded, setMapLoaded] = useState(false) //Removed
 
   const pickStation = async (stationId?: string) => {
     setLoading(true)
@@ -45,6 +47,7 @@ export default function Home() {
         throw new Error('Invalid station data received')
       }
       setStation(newStation)
+      setStationKey(Date.now().toString()) // 新しい駅が設定されたときに stationKey を更新
     } catch (error) {
       console.error('駅の取得エラー:', error)
       setError(error instanceof Error ? error.message : '予期せぬエラーが発生しました')
@@ -112,11 +115,7 @@ export default function Home() {
 
         <TabsContent value="picker">
           {loading ? (
-            <Card>
-              <CardContent className="p-4">
-                <div className="w-full h-[300px] bg-muted animate-pulse rounded-lg" />
-              </CardContent>
-            </Card>
+            <div className="w-full h-[300px] bg-muted animate-pulse rounded-lg" />
           ) : station ? (
             <Card>
               <CardContent className="p-4">
@@ -125,7 +124,11 @@ export default function Home() {
                   <Train className="inline-block mr-1" size={16} />
                   {station.lines.join('、')}
                 </p>
-                <Map center={{ lat: station.lat, lng: station.lng }} selectedSpot={selectedSpot} />
+                <Map 
+                  center={{ lat: station.lat, lng: station.lng }} 
+                  selectedSpot={selectedSpot} 
+                  stationKey={stationKey} // stationKey prop を追加
+                />
                 <Button
                   variant="outline"
                   className="w-full mt-2"

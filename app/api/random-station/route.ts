@@ -19,8 +19,13 @@ interface PlaceResult {
   price_level?: number;
 }
 
+const MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY;
+if (!MAPS_API_KEY) {
+  throw new Error('GOOGLE_MAPS_API_KEY is not configured');
+}
+
 async function getNearbyPlaces(lat: number, lng: number, type: string, keyword: string | null = null): Promise<Spot[]> {
-  let url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=1000&language=ja&key=${process.env.GOOGLE_MAPS_API_KEY}`
+  let url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=1000&language=ja&key=${MAPS_API_KEY}`
   
   if (type !== 'public_bath') {
     url += `&type=${type}`
@@ -36,7 +41,7 @@ async function getNearbyPlaces(lat: number, lng: number, type: string, keyword: 
       id: place.place_id,
       name: place.name,
       type: type,
-      photo: place.photos ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${place.photos[0].photo_reference}&key=${process.env.GOOGLE_MAPS_API_KEY}` : null,
+      photo: place.photos ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${place.photos[0].photo_reference}&key=${MAPS_API_KEY}` : null,
       lat: place.geometry.location.lat,
       lng: place.geometry.location.lng
     }
@@ -70,6 +75,10 @@ export async function GET() {
     }
 
     const randomStationData = stationsData[Math.floor(Math.random() * stationsData.length)]
+    if (!randomStationData) {
+      throw new Error('駅が見つかりません')
+    }
+
     const randomStation: Station = {
       ...randomStationData,
       spots: [],

@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
 
 export async function GET() {
-  // APIキーを環境変数から取得
   const apiKey = process.env.GOOGLE_MAPS_API_KEY
 
   if (!apiKey) {
@@ -9,7 +8,13 @@ export async function GET() {
     return NextResponse.json({ error: 'API key not found' }, { status: 500 })
   }
 
-  // APIキーをレスポンスとして返す
-  return NextResponse.json({ apiKey })
+  // Only return the API key if the request is from our application
+  const response = NextResponse.json({ apiKey })
+  
+  // Add security headers
+  response.headers.set('Cache-Control', 'no-store')
+  response.headers.set('Content-Type', 'application/json')
+  
+  return response
 }
 
