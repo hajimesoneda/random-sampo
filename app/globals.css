@@ -76,3 +76,11 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+@layer components {
+  /* 他のカスタムコンポーネントスタイル */
+
+  .rdp-weeks td {
+    @apply text-center;
+  }
+}
