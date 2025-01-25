@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -9,11 +9,13 @@ import { Train, Star } from "lucide-react"
 import Link from "next/link"
 import dynamic from "next/dynamic"
 import { SpotCard } from "@/components/spot-card"
-import { VisitedStations } from "@/components/visited-stations"
+import { useRouter } from "next/navigation"
 import { FavoriteStations } from "@/components/favorite-stations"
 import { toggleFavoriteStation, getFavoriteStations } from "@/app/actions"
-import { useRouter } from "next/navigation"
 
+const VisitedStations = dynamic(() => import("@/components/visited-stations").then((mod) => mod.VisitedStations), {
+  ssr: false,
+})
 const Map = dynamic(() => import("@/components/map"), {
   ssr: false,
   loading: () => <div className="w-full h-[300px] bg-muted animate-pulse" />,
@@ -35,7 +37,7 @@ export default function Home() {
     router.push(`/?tab=${value}`, { scroll: false })
   }
 
-  const pickStation = async (stationId?: string) => {
+  const pickStation = useCallback(async (stationId?: string) => {
     setLoading(true)
     setStation(null)
     setSelectedSpot(null)
@@ -44,24 +46,24 @@ export default function Home() {
       const url = stationId ? `/api/station/${encodeURIComponent(stationId)}` : "/api/random-station"
       const response = await fetch(url)
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || "駅の取得に失敗しました")
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`)
       }
       const newStation = await response.json()
       if (!newStation || typeof newStation !== "object") {
         throw new Error("Invalid station data received")
       }
       setStation(newStation)
-      setStationKey(Date.now().toString()) // 新しい駅が設定されたときに stationKey を更新
+      setStationKey(Date.now().toString())
     } catch (error) {
       console.error("駅の取得エラー:", error)
       setError(error instanceof Error ? error.message : "予期せぬエラーが発生しました")
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
-  const loadFavorites = async () => {
+  const loadFavorites = useCallback(async () => {
     try {
       const favs = await getFavoriteStations()
       setFavorites(favs)
@@ -69,7 +71,7 @@ export default function Home() {
       console.error("お気に入りの取得エラー:", error)
       setError("お気に入りの取得に失敗しました")
     }
-  }
+  }, [])
 
   const handleToggleFavorite = async () => {
     if (station) {
@@ -100,12 +102,9 @@ export default function Home() {
     if (tabParam && ["picker", "visited", "favorites"].includes(tabParam)) {
       setActiveTabState(tabParam)
     }
-  }, [])
-
-  useEffect(() => {
     pickStation()
     loadFavorites()
-  }, [])
+  }, [pickStation, loadFavorites])
 
   const isFavorite = station ? favorites.some((fav) => fav.id === station.id) : false
 
@@ -151,7 +150,7 @@ export default function Home() {
                 <Map
                   center={{ lat: station.lat, lng: station.lng }}
                   selectedSpot={selectedSpot}
-                  stationKey={stationKey} // stationKey prop を追加
+                  stationKey={stationKey}
                 />
                 <Button
                   variant="outline"
