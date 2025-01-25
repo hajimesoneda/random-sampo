@@ -1,106 +1,96 @@
-'use client'
+"use client"
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from "react"
+import { useRouter, useParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import { ArrowLeft, CalendarIcon } from 'lucide-react'
-import { saveVisit, getVisitedStations } from '@/app/actions'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { ArrowLeft, CalendarIcon } from "lucide-react"
+import { saveVisit, getVisitedStations } from "@/app/actions"
 import { Calendar } from "@/components/ui/calendar"
-import { ja } from 'date-fns/locale';
+import { ja } from "date-fns/locale"
+import { format } from "date-fns"
 
-type WeatherOption = "unknown" | "☀️ 晴れ" | "☁️ 曇り" | "🌧️ 雨" | "❄️ 雪";
+type WeatherOption = "unknown" | "☀️ 晴れ" | "☁️ 曇り" | "🌧️ 雨" | "❄️ 雪"
 
-const weatherOptions: WeatherOption[] = [
-  "unknown",
-  "☀️ 晴れ",
-  "☁️ 曇り",
-  "🌧️ 雨",
-  "❄️ 雪"
-];
+const weatherOptions: WeatherOption[] = ["unknown", "☀️ 晴れ", "☁️ 曇り", "🌧️ 雨", "❄️ 雪"]
 
-export default function VisitPage({ params }: { params: { id: string } }) {
+export default function VisitPage() {
+  const params = useParams()
+  const id = Array.isArray(params.id) ? params.id[0] : params.id
   const router = useRouter()
-  const [date, setDate] = useState<string>("unknown")
+  const [date, setDate] = useState<Date | "unknown">(new Date())
   const [weather, setWeather] = useState<WeatherOption>("unknown")
-  const [memo, setMemo] = useState('')
+  const [memo, setMemo] = useState("")
   const [showDatePicker, setShowDatePicker] = useState(false)
-  const [stationName, setStationName] = useState('')
+  const [stationName, setStationName] = useState("")
   const [stationLines, setStationLines] = useState<string[]>([])
 
   useEffect(() => {
     const loadExistingVisit = async () => {
-      console.log('Loading visit data for station ID:', params.id);
-      const visits = await getVisitedStations();
-      console.log('All visits:', visits);
-      const existingVisit = visits.find(v => v.stationId === decodeURIComponent(params.id));
-      console.log('Existing visit:', existingVisit);
-      
+      console.log("Loading visit data for station ID:", id)
+      const visits = await getVisitedStations()
+      console.log("All visits:", visits)
+      const existingVisit = visits.find((v) => v.stationId === decodeURIComponent(id))
+      console.log("Existing visit:", existingVisit)
+
       if (existingVisit) {
-        console.log('Setting existing visit data');
-        setDate(existingVisit.date);
-        setWeather(existingVisit.weather as WeatherOption);
-        setMemo(existingVisit.memo);
-        setStationName(existingVisit.name);
-        setStationLines(existingVisit.lines);
+        console.log("Setting existing visit data")
+        setDate(existingVisit.date === "unknown" ? "unknown" : new Date(existingVisit.date))
+        setWeather(existingVisit.weather as WeatherOption)
+        setMemo(existingVisit.memo)
+        setStationName(existingVisit.name)
+        setStationLines(existingVisit.lines)
       } else {
-        console.log('No existing visit found, fetching station data');
-        const decodedId = decodeURIComponent(params.id);
-        const response = await fetch(`/api/station/${encodeURIComponent(decodedId)}`);
+        console.log("No existing visit found, fetching station data")
+        const decodedId = decodeURIComponent(id)
+        const response = await fetch(`/api/station/${encodeURIComponent(decodedId)}`)
         if (response.ok) {
-          const stationData = await response.json();
-          console.log('Fetched station data:', stationData);
-          setStationName(stationData.name);
-          setStationLines(stationData.lines);
-          setDate("unknown");
-          setWeather("unknown");
-          setMemo("");
+          const stationData = await response.json()
+          console.log("Fetched station data:", stationData)
+          setStationName(stationData.name)
+          setStationLines(stationData.lines)
+          setDate(new Date())
+          setWeather("unknown")
+          setMemo("")
         } else {
-          console.error('Failed to fetch station data');
+          console.error("Failed to fetch station data")
         }
       }
-    };
+    }
 
-    loadExistingVisit();
-  }, [params.id]);
+    loadExistingVisit()
+  }, [id])
 
   const handleSubmit = async () => {
     const visitInfo = {
-      stationId: decodeURIComponent(params.id),
+      stationId: decodeURIComponent(id),
       name: stationName,
       lines: stationLines,
-      date,
+      date: date === "unknown" ? "unknown" : format(date, "yyyy-MM-dd"),
       weather,
-      memo
-    };
-    console.log('Saving visit info:', visitInfo);
-    await saveVisit(visitInfo);
-    router.push('/');
-  };
+      memo,
+    }
+    console.log("Saving visit info:", visitInfo)
+    await saveVisit(visitInfo)
+    router.push("/?tab=visited")
+  }
+
+  const formatDisplayDate = (date: Date | "unknown") => {
+    if (date === "unknown") return "不明"
+    return format(date, "yyyy年MM月dd日")
+  }
 
   return (
     <main className="container max-w-md mx-auto p-4">
-      <Button
-        variant="ghost"
-        className="mb-4"
-        onClick={() => router.back()}
-      >
+      <Button variant="ghost" className="mb-4" onClick={() => router.back()}>
         <ArrowLeft className="w-4 h-4 mr-2" />
         戻る
       </Button>
 
-      <h1 className="text-2xl font-bold mb-4">
-        {stationName}駅に行ってみた！
-      </h1>
+      <h1 className="text-2xl font-bold mb-4">{stationName}駅に行ってみた！</h1>
 
       <Card>
         <CardContent className="p-6 space-y-6">
@@ -109,7 +99,7 @@ export default function VisitPage({ params }: { params: { id: string } }) {
             <div className="relative">
               <Input
                 type="text"
-                value={date === "unknown" ? "不明" : date}
+                value={formatDisplayDate(date)}
                 readOnly
                 className="w-full cursor-pointer"
                 onClick={() => setShowDatePicker(true)}
@@ -122,18 +112,38 @@ export default function VisitPage({ params }: { params: { id: string } }) {
               <div className="absolute z-10 mt-1 bg-white shadow-lg rounded-md">
                 <Calendar
                   mode="single"
-                  selected={date === "unknown" ? undefined : new Date(date)}
+                  selected={date === "unknown" ? undefined : date}
                   onSelect={(newDate) => {
-                    if (newDate) {
-                      setDate(newDate.toISOString().split('T')[0])
-                    } else {
-                      setDate("unknown")
-                    }
+                    setDate(newDate || "unknown")
                     setShowDatePicker(false)
                   }}
                   initialFocus
                   locale={ja}
                   disabled={{ after: new Date() }}
+                  className="rounded-md border"
+                  classNames={{
+                    months: "space-y-4",
+                    month: "space-y-4",
+                    caption: "flex justify-center pt-1 relative items-center",
+                    caption_label: "text-sm font-medium",
+                    nav: "space-x-1 flex items-center",
+                    nav_button: "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100",
+                    nav_button_previous: "absolute left-1",
+                    nav_button_next: "absolute right-1",
+                    table: "w-full border-collapse space-y-1 rdp-weeks",
+                    head_row: "flex",
+                    head_cell: "text-muted-foreground rounded-md w-9 font-normal text-[0.8rem]",
+                    row: "flex w-full mt-2",
+                    cell: "text-center text-sm p-0 relative [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
+                    day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100",
+                    day_selected:
+                      "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
+                    day_today: "bg-accent text-accent-foreground",
+                    day_outside: "text-muted-foreground opacity-50",
+                    day_disabled: "text-muted-foreground opacity-50",
+                    day_range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground",
+                    day_hidden: "invisible",
+                  }}
                 />
                 <div className="p-2 border-t">
                   <Button
