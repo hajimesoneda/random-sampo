@@ -1,0 +1,4 @@
+{
+  "components": ["button", "card", "dialog", "input", "label", "select", "checkbox", "tabs"]
+}
+

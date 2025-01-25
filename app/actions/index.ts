@@ -1,9 +1,7 @@
 "use server"
 
 import { cookies } from "next/headers"
-import { Station } from "@/types/station"
-
-type VisitInfo = { stationId: string; lastVisit: Date }
+import type { VisitInfo, FavoriteStation } from "@/types/station"
 
 export async function saveVisit(info: VisitInfo) {
   const visits = JSON.parse(cookies().get("visits")?.value || "[]")
@@ -38,9 +36,9 @@ export async function resetVisitedStations() {
   cookies().set("visits", "[]")
 }
 
-export async function toggleFavoriteStation(station: { id: string; name: string }) {
+export async function toggleFavoriteStation(station: FavoriteStation) {
   const favorites = JSON.parse(cookies().get("favorite-stations")?.value || "[]")
-  const index = favorites.findIndex((fav: { id: string; name: string }) => fav.id === station.id)
+  const index = favorites.findIndex((fav: FavoriteStation) => fav.id === station.id)
 
   if (index > -1) {
     favorites.splice(index, 1)
@@ -52,7 +50,8 @@ export async function toggleFavoriteStation(station: { id: string; name: string 
   return favorites
 }
 
-export async function getFavoriteStations(): Promise<{ id: string; name: string }[]> {
-  return JSON.parse(cookies().get("favorite-stations")?.value || "[]")
+export async function getFavoriteStations(): Promise<FavoriteStation[]> {
+  const favorites = JSON.parse(cookies().get("favorite-stations")?.value || "[]")
+  return favorites
 }
 

@@ -52,4 +52,3 @@ export async function GET(
     return NextResponse.json({ error: '駅の取得に失敗しました' }, { status: 500 })
   }
 }
-

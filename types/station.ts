@@ -5,14 +5,14 @@ export interface Station {
   lat: number
   lng: number
   spots?: Spot[]
-  passengers?: number | null
-  firstDeparture?: string | null
+  passengers?: number
+  firstDeparture?: string
 }
 
 export interface Spot {
   id: string
   name: string
-  type: "tourist_attraction" | "cafe" | "restaurant" | "public_bath"
+  type: "tourist_attraction" | "cafe" | "restaurant" | "public_bath" | string
   photo: string | null
   lat: number
   lng: number
