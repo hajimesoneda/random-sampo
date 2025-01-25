@@ -49,4 +49,3 @@ export const getPlaceInfo = cache(async (query: string): Promise<PlaceInfo> => {
     return { name: query, photos: [] }
   }
 })
-

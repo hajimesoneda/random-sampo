@@ -5,13 +5,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import type { Station, FavoriteStation, Spot } from "@/types/station"
-import { Train, Star } from "lucide-react"
+import { Train, Star, Settings } from "lucide-react"
 import Link from "next/link"
 import dynamic from "next/dynamic"
 import { SpotCard } from "@/components/spot-card"
 import { useRouter } from "next/navigation"
 import { FavoriteStations } from "@/components/favorite-stations"
-import { toggleFavoriteStation, getFavoriteStations } from "@/app/actions"
+import { toggleFavoriteStation, getFavoriteStations } from "@/app/actions/index"
+import { SettingsModal } from "@/components/settings-modal"
 
 const VisitedStations = dynamic(() => import("@/components/visited-stations").then((mod) => mod.VisitedStations), {
   ssr: false,
@@ -31,6 +32,8 @@ export default function Home() {
   const [selectedSpot, setSelectedSpot] = useState<Spot | null>(null)
   const [stationKey, setStationKey] = useState<string>("")
   const [isMounted, setIsMounted] = useState(false)
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([])
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false)
 
   const handleTabChange = (value: string) => {
     setActiveTabState(value)
@@ -79,7 +82,7 @@ export default function Home() {
         const favoriteStation: FavoriteStation = {
           id: station.id,
           name: station.name,
-          lines: station.lines,
+          lines: station.lines || [], // Use an empty array if lines is undefined
         }
         const updatedFavorites = await toggleFavoriteStation(favoriteStation)
         setFavorites(updatedFavorites)
@@ -106,7 +109,25 @@ export default function Home() {
     loadFavorites()
   }, [pickStation, loadFavorites])
 
+  useEffect(() => {
+    const storedCategories = localStorage.getItem("selectedSpotCategories")
+    if (storedCategories) {
+      setSelectedCategories(JSON.parse(storedCategories))
+    } else {
+      setSelectedCategories(["cafe", "restaurant", "public_bath", "tourist_attraction"])
+    }
+  }, [])
+
   const isFavorite = station ? favorites.some((fav) => fav.id === station.id) : false
+
+  const handleSettingsClick = () => {
+    setIsSettingsOpen(true)
+  }
+
+  const handleSettingsSave = (categories: string[]) => {
+    setSelectedCategories(categories)
+    localStorage.setItem("selectedSpotCategories", JSON.stringify(categories))
+  }
 
   if (!isMounted) {
     return null
@@ -114,7 +135,13 @@ export default function Home() {
 
   return (
     <main className="container max-w-md mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">ランダム駅ピッカー</h1>
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-bold">ランダム駅ピッカー</h1>
+        <Button variant="ghost" size="icon" onClick={handleSettingsClick}>
+          <Settings className="h-5 w-5" />
+          <span className="sr-only">設定</span>
+        </Button>
+      </div>
 
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
@@ -169,9 +196,13 @@ export default function Home() {
                   Google Mapで開く
                 </Button>
                 <div className="mt-4 grid grid-cols-2 gap-4">
-                  {station.spots?.map((spot) => (
-                    <SpotCard key={spot.id} {...spot} onClick={() => setSelectedSpot(spot)} />
-                  )) || <p className="col-span-2 text-center text-muted-foreground">スポットが見つかりません</p>}
+                  {station.spots
+                    ?.filter((spot) => selectedCategories.includes(spot.type))
+                    .map((spot) => <SpotCard key={spot.id} {...spot} onClick={() => setSelectedSpot(spot)} />) || (
+                    <p className="col-span-2 text-center text-muted-foreground">
+                      選択したカテゴリーのスポットが見つかりません
+                    </p>
+                  )}
                 </div>
                 <div className="mt-4 flex justify-between">
                   <Button onClick={() => pickStation()}>別の駅を選ぶ</Button>
@@ -214,6 +245,13 @@ export default function Home() {
           <FavoriteStations favorites={favorites} onUpdate={setFavorites} onSelectStation={handleSelectFavorite} />
         </TabsContent>
       </Tabs>
+
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        onSave={handleSettingsSave}
+        initialCategories={selectedCategories}
+      />
     </main>
   )
 }

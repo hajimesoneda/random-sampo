@@ -1,8 +1,8 @@
-'use client'
+"use client"
 
-import { useEffect, useRef, useState } from 'react'
-import { getGoogleMapsLoader } from '@/lib/google-maps-loader'
-import { Spot } from '@/types/station'
+import { useEffect, useRef, useState } from "react"
+import { getGoogleMapsLoader } from "@/lib/google-maps-loader"
+import type { Spot } from "@/types/station"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 
 interface MapProps {
@@ -11,7 +11,7 @@ interface MapProps {
     lng: number
   }
   selectedSpot: Spot | null
-  stationKey: string // 新しいプロパティ
+  stationKey: string
 }
 
 export default function Map({ center, selectedSpot, stationKey }: MapProps) {
@@ -19,54 +19,66 @@ export default function Map({ center, selectedSpot, stationKey }: MapProps) {
   const [error, setError] = useState<string | null>(null)
   const [walkingTime, setWalkingTime] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [map, setMap] = useState<google.maps.Map | null>(null)
+  const [map, setMap] = useState<
+    | (google.maps.Map & {
+        setOptions?: (options: google.maps.MapOptions) => void
+        getZoom?: () => number
+        fitBounds?: (bounds: google.maps.LatLngBounds) => void
+      })
+    | null
+  >(null)
 
   useEffect(() => {
-    let isMounted = true;
+    let isMounted = true
     const initMap = async () => {
-      if (!mapRef.current) return;
+      if (!mapRef.current) return
 
       try {
         setIsLoading(true)
         setError(null)
-        
+
         const loader = await getGoogleMapsLoader()
         await loader.load()
-        
+
         if (!window.google) {
-          throw new Error('Google Maps failed to load')
+          throw new Error("Google Maps failed to load")
         }
 
-        const { Map } = window.google.maps
+        const { Map, Marker } = window.google.maps
 
         const mapOptions: google.maps.MapOptions = {
           center,
           zoom: 15,
           mapTypeControl: false,
           streetViewControl: false,
-          fullscreenControl: false
+          fullscreenControl: false,
         }
 
         const newMap = new Map(mapRef.current, mapOptions)
         if (isMounted) {
           // 駅のマーカーを追加
-          new window.google.maps.Marker({
+          const marker = new Marker({
             position: center,
             map: newMap,
-            animation: window.google.maps.Animation.DROP,
-            icon: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png'
-          });
-          
+            icon: "http://maps.google.com/mapfiles/ms/icons/red-dot.png",
+          }) as google.maps.Marker & { setAnimation?: (animation: any) => void }
+
+          // Set animation if available
+          const mapsWithAnimation = google.maps as { Animation?: { DROP: any } }
+          if (mapsWithAnimation.Animation && "DROP" in mapsWithAnimation.Animation && marker.setAnimation) {
+            marker.setAnimation(mapsWithAnimation.Animation.DROP)
+          }
+
           setMap(newMap)
           setIsLoading(false)
         }
       } catch (error) {
-        console.error('Google Maps エラー:', error)
+        console.error("Google Maps エラー:", error)
         if (isMounted) {
           if (error instanceof Error) {
             setError(`Google Mapsの読み込みに失敗しました: ${error.message}`)
           } else {
-            setError('Google Mapsの読み込みに失敗しました。APIキーの設定を確認してください。')
+            setError("Google Mapsの読み込みに失敗しました。APIキーの設定を確認してください。")
           }
           setIsLoading(false)
         }
@@ -76,36 +88,41 @@ export default function Map({ center, selectedSpot, stationKey }: MapProps) {
     initMap()
 
     return () => {
-      isMounted = false;
+      isMounted = false
     }
-  }, [center, stationKey]) // stationKey を依存配列に追加
+  }, [center])
 
   useEffect(() => {
-    if (!map || !selectedSpot) return;
+    if (!map || !selectedSpot || !map.setOptions) return
 
-    const { Marker, InfoWindow, DirectionsService, DirectionsRenderer, LatLngBounds } = window.google.maps
+    const { Marker, InfoWindow, DirectionsService, DirectionsRenderer, LatLngBounds } = google.maps
 
     // Clear previous markers and directions
-    map.setOptions({ center: center })
+    const currentZoom = map.getZoom ? map.getZoom() : 15 // Default to 15 if getZoom is not available
+    map.setOptions({ center: center, zoom: currentZoom })
 
     // Station marker (red)
     new Marker({
       position: center,
       map,
-      animation: google.maps.Animation.DROP,
-      icon: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png'
+      icon: "http://maps.google.com/mapfiles/ms/icons/red-dot.png",
     })
 
     const spotPosition = { lat: selectedSpot.lat, lng: selectedSpot.lng }
     const spotMarker = new Marker({
       position: spotPosition,
       map,
-      animation: google.maps.Animation.DROP,
-      icon: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png'
-    })
+      icon: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png",
+    }) as google.maps.Marker & { setAnimation?: (animation: any) => void }
+
+    // Set animation if available
+    const mapsWithAnimation = google.maps as { Animation?: { DROP: any } }
+    if (mapsWithAnimation.Animation && "DROP" in mapsWithAnimation.Animation && spotMarker.setAnimation) {
+      spotMarker.setAnimation(mapsWithAnimation.Animation.DROP)
+    }
 
     const infoWindow = new InfoWindow({
-      content: `<div><strong>${selectedSpot.name}</strong><br>${selectedSpot.type}</div>`
+      content: `<div><strong>${selectedSpot.name}</strong><br>${selectedSpot.type}</div>`,
     })
 
     infoWindow.open(map, spotMarker)
@@ -119,7 +136,7 @@ export default function Map({ center, selectedSpot, stationKey }: MapProps) {
     const request: google.maps.DirectionsRequest = {
       origin: center,
       destination: spotPosition,
-      travelMode: google.maps.TravelMode.WALKING
+      travelMode: google.maps.TravelMode.WALKING,
     }
 
     directionsService.route(request, (result, status) => {
@@ -139,11 +156,10 @@ export default function Map({ center, selectedSpot, stationKey }: MapProps) {
         bounds.extend(spotPosition)
         map.fitBounds(bounds)
       } else {
-        console.error('Directions request failed due to ' + status)
+        console.error("Directions request failed due to " + status)
         setError(`ルートの取得に失敗しました: ${status}`)
       }
     })
-
   }, [map, selectedSpot, center])
 
   return (
@@ -155,10 +171,7 @@ export default function Map({ center, selectedSpot, stationKey }: MapProps) {
       ) : (
         <>
           <div className="relative w-full h-[300px]">
-            <div 
-              ref={mapRef} 
-              className="w-full h-full rounded-lg"
-            />
+            <div ref={mapRef} className="w-full h-full rounded-lg" />
             {isLoading && (
               <div className="absolute inset-0 bg-muted flex items-center justify-center text-muted-foreground rounded-lg">
                 地図を読み込んでいます...
@@ -167,13 +180,9 @@ export default function Map({ center, selectedSpot, stationKey }: MapProps) {
           </div>
           <div className="h-6 flex items-center justify-center">
             {walkingTime ? (
-              <p className="text-sm text-muted-foreground">
-                徒歩所要時間: 約{walkingTime}
-              </p>
+              <p className="text-sm text-muted-foreground">徒歩所要時間: 約{walkingTime}</p>
             ) : (
-              <p className="text-sm text-muted-foreground">
-                スポットを選択すると、ルートと所要時間が表示されます。
-              </p>
+              <p className="text-sm text-muted-foreground">スポットを選択すると、ルートと所要時間が表示されます。</p>
             )}
           </div>
         </>

@@ -72,4 +72,3 @@ export function SpotCard({ name, type, photo, onClick }: SpotCardProps) {
     </Card>
   )
 }
-
