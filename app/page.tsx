@@ -4,13 +4,14 @@ import { useState, useEffect } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Station } from '@/types/station'
-import { Train, MapPin } from 'lucide-react'
+import { Station, FavoriteStation, Spot } from '@/types/station'
+import { Train, Star } from 'lucide-react'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { SpotCard } from '@/components/spot-card'
 import { VisitedStations } from '@/components/visited-stations'
-import { Skeleton } from "@/components/ui/skeleton"
+import { FavoriteStations } from '@/components/favorite-stations'
+import { toggleFavoriteStation, getFavoriteStations } from '@/app/actions'
 
 const Map = dynamic(() => import('@/components/map'), { 
   ssr: false,
@@ -20,43 +21,92 @@ const Map = dynamic(() => import('@/components/map'), {
 export default function Home() {
   const [station, setStation] = useState<Station | null>(null)
   const [loading, setLoading] = useState(true)
-  const [initialLoad, setInitialLoad] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [favorites, setFavorites] = useState<FavoriteStation[]>([])
+  const [activeTab, setActiveTab] = useState("picker")
+  const [selectedSpot, setSelectedSpot] = useState<Spot | null>(null)
+  const [stationKey, setStationKey] = useState<string>('')
+  //const [mapLoaded, setMapLoaded] = useState(false) //Removed
 
-  const pickStation = async (isInitialLoad = false) => {
-    if (!isInitialLoad) {
-      setLoading(true)
-      setStation(null)
-    }
+  const pickStation = async (stationId?: string) => {
+    setLoading(true)
+    setStation(null)
+    setSelectedSpot(null)
     setError(null)
     try {
-      const response = await fetch('/api/random-station')
+      const url = stationId 
+        ? `/api/station/${encodeURIComponent(stationId)}` 
+        : '/api/random-station'
+      const response = await fetch(url)
       if (!response.ok) {
         const errorData = await response.json()
         throw new Error(errorData.error || '駅の取得に失敗しました')
       }
       const newStation = await response.json()
+      if (!newStation || typeof newStation !== 'object') {
+        throw new Error('Invalid station data received')
+      }
       setStation(newStation)
+      setStationKey(Date.now().toString()) // 新しい駅が設定されたときに stationKey を更新
     } catch (error) {
       console.error('駅の取得エラー:', error)
       setError(error instanceof Error ? error.message : '予期せぬエラーが発生しました')
     } finally {
       setLoading(false)
-      if (isInitialLoad) {
-        setInitialLoad(false)
+    }
+  }
+
+  const loadFavorites = async () => {
+    try {
+      const favs = await getFavoriteStations()
+      setFavorites(favs)
+    } catch (error) {
+      console.error('お気に入りの取得エラー:', error)
+      setError('お気に入りの取得に失敗しました')
+    }
+  }
+
+  const handleToggleFavorite = async () => {
+    if (station) {
+      try {
+        const favoriteStation: FavoriteStation = {
+          id: station.id,
+          name: station.name,
+          lines: station.lines
+        }
+        const updatedFavorites = await toggleFavoriteStation(favoriteStation)
+        setFavorites(updatedFavorites)
+      } catch (error) {
+        console.error('お気に入りの更新エラー:', error)
+        setError('お気に入りの更新に失敗しました')
       }
     }
   }
 
+  const handleSelectFavorite = (selectedStation: FavoriteStation) => {
+    setActiveTab("picker")
+    pickStation(selectedStation.id)
+  }
+
   useEffect(() => {
-    pickStation(true)
+    pickStation()
+    loadFavorites()
   }, [])
+
+  const isFavorite = station ? favorites.some(fav => fav.id === station.id) : false
 
   return (
     <main className="container max-w-md mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">ランダム駅ピッカー</h1>
       
-      <Tabs defaultValue="picker">
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+          <strong className="font-bold">エラー: </strong>
+          <span className="block sm:inline">{error}</span>
+        </div>
+      )}
+
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="w-full mb-4">
           <TabsTrigger value="picker" className="flex-1">ピッカー</TabsTrigger>
           <TabsTrigger value="visited" className="flex-1">訪問済み</TabsTrigger>
@@ -64,83 +114,73 @@ export default function Home() {
         </TabsList>
 
         <TabsContent value="picker">
-          <div className="space-y-4">
-            <p className="text-muted-foreground">都内の駅をランダムに選びます</p>
-            
-            <Button 
-              onClick={() => pickStation()} 
-              className="w-full"
-              disabled={loading || initialLoad}
-            >
-              {loading || initialLoad ? '選択中...' : '選ぶ！'}
-            </Button>
-
-            {error && (
-              <p className="text-red-500 text-center">{error}</p>
-            )}
-
+          {loading ? (
+            <div className="w-full h-[300px] bg-muted animate-pulse rounded-lg" />
+          ) : station ? (
             <Card>
-              <CardContent className="p-6 space-y-6">
-                {(loading || initialLoad) ? (
-                  <>
-                    <Skeleton className="h-8 w-3/4 mx-auto" />
-                    <Skeleton className="w-full h-[300px]" />
-                    <Skeleton className="h-20 w-full" />
-                    <div className="space-y-4">
-                      <Skeleton className="h-4 w-1/2" />
-                      <div className="grid grid-cols-2 gap-4">
-                        <Skeleton className="h-32 w-full" />
-                        <Skeleton className="h-32 w-full" />
-                        <Skeleton className="h-32 w-full" />
-                        <Skeleton className="h-32 w-full" />
-                      </div>
-                    </div>
-                    <div className="flex gap-2">
-                      <Skeleton className="h-10 w-full" />
-                      <Skeleton className="h-10 w-full" />
-                    </div>
-                  </>
-                ) : station ? (
-                  <>
-                    <h2 className="text-3xl font-bold text-center">{station.name}</h2>
-                    
-                    <Map center={{ lat: station.lat, lng: station.lng }} />
-
-                    <div className="bg-muted p-4 rounded-lg space-y-2">
-                      <h3 className="font-semibold mb-2">駅情報</h3>
-                      <div className="flex items-center gap-2">
-                        <Train className="w-4 h-4" />
-                        <span>路線: {station.lines.join('、')}</span>
-                      </div>
-                    </div>
-
-                    <div className="space-y-4">
-                      <h3 className="font-semibold flex items-center gap-2">
-                        <MapPin className="w-4 h-4" />
-                        周辺のおすすめスポット
-                      </h3>
-                      <div className="grid grid-cols-2 gap-4">
-                        {station.spots.map((spot) => (
-                          <SpotCard key={spot.id} name={spot.name} type={spot.type} photo={spot.photo} />
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="flex gap-2">
-                      <Button asChild className="flex-1">
-                        <Link href={`/visit/${encodeURIComponent(station.name)}`}>
-                          行ってみた！
-                        </Link>
-                      </Button>
-                      <Button variant="outline" className="flex-1">
-                        お気に入り
-                      </Button>
-                    </div>
-                  </>
-                ) : null}
+              <CardContent className="p-4">
+                <h2 className="text-xl font-semibold mb-2">{station.name}駅</h2>
+                <p className="text-sm text-gray-600 mb-4">
+                  <Train className="inline-block mr-1" size={16} />
+                  {station.lines.join('、')}
+                </p>
+                <Map 
+                  center={{ lat: station.lat, lng: station.lng }} 
+                  selectedSpot={selectedSpot} 
+                  stationKey={stationKey} // stationKey prop を追加
+                />
+                <Button
+                  variant="outline"
+                  className="w-full mt-2"
+                  onClick={() => {
+                    if (station && selectedSpot) {
+                      const origin = `${station.lat},${station.lng}`;
+                      const destination = `${selectedSpot.lat},${selectedSpot.lng}`;
+                      const url = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&travelmode=walking`;
+                      window.open(url, '_blank');
+                    } else {
+                      window.open(`https://www.google.com/maps?q=${station.lat},${station.lng}`, '_blank');
+                    }
+                  }}
+                >
+                  Google Mapで開く
+                </Button>
+                <div className="mt-4 grid grid-cols-2 gap-4">
+                  {station.spots?.map((spot) => (
+                    <SpotCard key={spot.id} {...spot} onClick={() => setSelectedSpot(spot)} />
+                  )) || (
+                    <p className="col-span-2 text-center text-muted-foreground">スポットが見つかりません</p>
+                  )}
+                </div>
+                <div className="mt-4 flex justify-between">
+                  <Button onClick={() => pickStation()}>別の駅を選ぶ</Button>
+                  <Button variant="outline" onClick={handleToggleFavorite}>
+                    {isFavorite ? (
+                      <>
+                        <Star className="mr-2 h-4 w-4 fill-current" /> お気に入り解除
+                      </>
+                    ) : (
+                      <>
+                        <Star className="mr-2 h-4 w-4" /> お気に入りに追加
+                      </>
+                    )}
+                  </Button>
+                </div>
+                <div className="mt-4">
+                  <Link href={`/visit/${encodeURIComponent(station.id)}`}>
+                    <Button className="w-full">訪問を記録</Button>
+                  </Link>
+                </div>
               </CardContent>
             </Card>
-          </div>
+          ) : (
+            <Card>
+              <CardContent className="p-4 text-center">
+                <p>駅が選択されていません</p>
+                <Button onClick={() => pickStation()} className="mt-4">駅を選ぶ</Button>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
 
         <TabsContent value="visited">
@@ -148,7 +188,11 @@ export default function Home() {
         </TabsContent>
 
         <TabsContent value="favorites">
-          <p className="text-center text-muted-foreground">お気に入りの駅がここに表示されます</p>
+          <FavoriteStations 
+            favorites={favorites} 
+            onUpdate={setFavorites} 
+            onSelectStation={handleSelectFavorite}
+          />
         </TabsContent>
       </Tabs>
     </main>

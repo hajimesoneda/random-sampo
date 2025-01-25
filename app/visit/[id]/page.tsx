@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -14,40 +14,78 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { ArrowLeft, CalendarIcon } from 'lucide-react'
-import { saveVisit } from '@/app/actions'
+import { saveVisit, getVisitedStations } from '@/app/actions'
 import { Calendar } from "@/components/ui/calendar"
 import { ja } from 'date-fns/locale';
 
-const weatherOptions = [
-  { value: "unknown", label: "不明" },
-  { value: "☀️ 晴れ", label: "☀️ 晴れ" },
-  { value: "☁️ 曇り", label: "☁️ 曇り" },
-  { value: "🌧️ 雨", label: "🌧️ 雨" },
-  { value: "❄️ 雪", label: "❄️ 雪" },
-] as const
+type WeatherOption = "unknown" | "☀️ 晴れ" | "☁️ 曇り" | "🌧️ 雨" | "❄️ 雪";
+
+const weatherOptions: WeatherOption[] = [
+  "unknown",
+  "☀️ 晴れ",
+  "☁️ 曇り",
+  "🌧️ 雨",
+  "❄️ 雪"
+];
 
 export default function VisitPage({ params }: { params: { id: string } }) {
   const router = useRouter()
-  const [dateOption, setDateOption] = useState<"unknown" | "known">("unknown")
-  const [date, setDate] = useState<string>(new Date().toISOString().split('T')[0])
-  const [weather, setWeather] = useState<typeof weatherOptions[number]['value']>("unknown")
+  const [date, setDate] = useState<string>("unknown")
+  const [weather, setWeather] = useState<WeatherOption>("unknown")
   const [memo, setMemo] = useState('')
   const [showDatePicker, setShowDatePicker] = useState(false)
+  const [stationName, setStationName] = useState('')
+  const [stationLines, setStationLines] = useState<string[]>([])
+
+  useEffect(() => {
+    const loadExistingVisit = async () => {
+      console.log('Loading visit data for station ID:', params.id);
+      const visits = await getVisitedStations();
+      console.log('All visits:', visits);
+      const existingVisit = visits.find(v => v.stationId === decodeURIComponent(params.id));
+      console.log('Existing visit:', existingVisit);
+      
+      if (existingVisit) {
+        console.log('Setting existing visit data');
+        setDate(existingVisit.date);
+        setWeather(existingVisit.weather as WeatherOption);
+        setMemo(existingVisit.memo);
+        setStationName(existingVisit.name);
+        setStationLines(existingVisit.lines);
+      } else {
+        console.log('No existing visit found, fetching station data');
+        const decodedId = decodeURIComponent(params.id);
+        const response = await fetch(`/api/station/${encodeURIComponent(decodedId)}`);
+        if (response.ok) {
+          const stationData = await response.json();
+          console.log('Fetched station data:', stationData);
+          setStationName(stationData.name);
+          setStationLines(stationData.lines);
+          setDate("unknown");
+          setWeather("unknown");
+          setMemo("");
+        } else {
+          console.error('Failed to fetch station data');
+        }
+      }
+    };
+
+    loadExistingVisit();
+  }, [params.id]);
 
   const handleSubmit = async () => {
-    await saveVisit({
+    const visitInfo = {
       stationId: decodeURIComponent(params.id),
+      name: stationName,
+      lines: stationLines,
       date,
       weather,
       memo
-    })
-    router.push('/')
-  }
-
-  const getMaxDate = () => {
-    const today = new Date()
-    return today.toISOString().split('T')[0]
-  }
+    };
+    console.log('Saving visit info:', visitInfo);
+    await saveVisit(visitInfo);
+    router.push('/');
+  };
 
   return (
     <main className="container max-w-md mx-auto p-4">
@@ -61,7 +99,7 @@ export default function VisitPage({ params }: { params: { id: string } }) {
       </Button>
 
       <h1 className="text-2xl font-bold mb-4">
-        {decodeURIComponent(params.id)}駅に行ってみた！
+        {stationName}駅に行ってみた！
       </h1>
 
       <Card>
@@ -115,14 +153,14 @@ export default function VisitPage({ params }: { params: { id: string } }) {
 
           <div className="space-y-2">
             <label className="text-sm font-medium">天気</label>
-            <Select value={weather} onValueChange={setWeather}>
+            <Select value={weather} onValueChange={(value: WeatherOption) => setWeather(value)}>
               <SelectTrigger className="w-full">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 {weatherOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
+                  <SelectItem key={option} value={option}>
+                    {option === "unknown" ? "不明" : option}
                   </SelectItem>
                 ))}
               </SelectContent>
