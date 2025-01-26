@@ -56,10 +56,10 @@ export async function GET(request: Request, { params }: { params: { id: string }
       .map((name) => shuffledSpots.find((s) => s.name === name))
       .slice(0, 4)
 
-    return NextResponse.json({ ...station, spots: uniqueSpots.filter(Boolean) })
+    return NextResponse.json({ spots: uniqueSpots.filter(Boolean) })
   } catch (error) {
-    console.error("駅の取得エラー:", error)
-    return NextResponse.json({ error: "駅の取得に失敗しました" }, { status: 500 })
+    console.error("スポットの取得エラー:", error)
+    return NextResponse.json({ error: "スポットの取得に失敗しました" }, { status: 500 })
   }
 }
 

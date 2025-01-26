@@ -19,14 +19,7 @@ export default function Map({ center, selectedSpot, stationKey }: MapProps) {
   const [error, setError] = useState<string | null>(null)
   const [walkingTime, setWalkingTime] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [map, setMap] = useState<
-    | (google.maps.Map & {
-        setOptions?: (options: google.maps.MapOptions) => void
-        getZoom?: () => number
-        fitBounds?: (bounds: google.maps.LatLngBounds) => void
-      })
-    | null
-  >(null)
+  const [map, setMap] = useState<google.maps.Map | null>(null)
 
   useEffect(() => {
     let isMounted = true
@@ -44,7 +37,7 @@ export default function Map({ center, selectedSpot, stationKey }: MapProps) {
           throw new Error("Google Maps failed to load")
         }
 
-        const { Map, Marker } = window.google.maps
+        const { Map } = window.google.maps
 
         const mapOptions: google.maps.MapOptions = {
           center,
@@ -54,21 +47,8 @@ export default function Map({ center, selectedSpot, stationKey }: MapProps) {
           fullscreenControl: false,
         }
 
-        const newMap = new Map(mapRef.current, mapOptions)
-        if (isMounted) {
-          // 駅のマーカーを追加
-          const marker = new Marker({
-            position: center,
-            map: newMap,
-            icon: "http://maps.google.com/mapfiles/ms/icons/red-dot.png",
-          }) as google.maps.Marker & { setAnimation?: (animation: any) => void }
-
-          // Set animation if available
-          const mapsWithAnimation = google.maps as { Animation?: { DROP: any } }
-          if (mapsWithAnimation.Animation && "DROP" in mapsWithAnimation.Animation && marker.setAnimation) {
-            marker.setAnimation(mapsWithAnimation.Animation.DROP)
-          }
-
+        if (isMounted && mapRef.current) {
+          const newMap = new Map(mapRef.current, mapOptions)
           setMap(newMap)
           setIsLoading(false)
         }
@@ -93,13 +73,13 @@ export default function Map({ center, selectedSpot, stationKey }: MapProps) {
   }, [center])
 
   useEffect(() => {
-    if (!map || !selectedSpot || !map.setOptions) return
+    if (!map || !selectedSpot) return
 
-    const { Marker, InfoWindow, DirectionsService, DirectionsRenderer, LatLngBounds } = google.maps
+    const { Marker, InfoWindow, DirectionsService, DirectionsRenderer, LatLngBounds } = window.google.maps
 
     // Clear previous markers and directions
-    const currentZoom = map.getZoom ? map.getZoom() : 15 // Default to 15 if getZoom is not available
-    map.setOptions({ center: center, zoom: currentZoom })
+    map.setCenter(center)
+    map.setZoom(15)
 
     // Station marker (red)
     new Marker({
@@ -113,10 +93,10 @@ export default function Map({ center, selectedSpot, stationKey }: MapProps) {
       position: spotPosition,
       map,
       icon: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png",
-    }) as google.maps.Marker & { setAnimation?: (animation: any) => void }
+    })
 
     // Set animation if available
-    const mapsWithAnimation = google.maps as { Animation?: { DROP: any } }
+    const mapsWithAnimation = window.google.maps as { Animation?: { DROP: any } }
     if (mapsWithAnimation.Animation && "DROP" in mapsWithAnimation.Animation && spotMarker.setAnimation) {
       spotMarker.setAnimation(mapsWithAnimation.Animation.DROP)
     }
