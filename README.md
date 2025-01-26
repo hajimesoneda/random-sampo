@@ -15,17 +15,18 @@
 - 訪問情報を記録する
 
 ## 主な機能
-
 1. ランダム駅選択
-   - 東京の駅をランダムに選択（地下鉄とJR線を含む）
+   - 東京の駅をランダムに選択
    - 選択された駅の詳細情報を表示（駅名、路線情報）
 
 2. 地図表示
    - Google Maps上で駅の位置を表示
    - 選択されたスポットへのルートを地図上に表示
+   - 徒歩での所要時間を表示
 
 3. 周辺スポット表示
-   - 駅周辺のおすすめスポットを表示（観光スポット、カフェ、レストラン）
+   - 駅周辺のおすすめスポットを表示（最大4つ）
+   - カスタマイズ可能なカテゴリー（デフォルト：カフェ、レストラン、銭湯、観光スポット）
    - スポットの写真と簡単な情報を表示
 
 4. お気に入り機能
@@ -37,32 +38,55 @@
    - 訪問済みの駅リストを表示
    - 訪問情報の編集と削除
 
-6. Google Maps連携
+6. 設定
+   - スポットのカテゴリーをカスタマイズ（最大8つまで）
+   - カテゴリーの追加、削除、管理
+
+7. Google Maps連携
    - 「Google Mapで開く」ボタンで外部のGoogle Mapsアプリで駅とスポットを表示
    - 選択したスポットへのルートをGoogle Mapsで表示
   
 ## インストールと起動
 
-リポジトリをクローンします：
+1. リポジトリをクローン：
+   git clone https://github.com/yourusername/random-sampo.git
+   cd random-sampo
 
-```bash
-git clone https://github.com/yourusername/random-sampo.git
-cd random-sampo
-```
+2. 依存関係をインストール：
+   npm install
 
-プロジェクトルートの
-.env.local.sampleファイルを参考に.env.localを作成
+3. shadcnをインストール：
+   npx shadcn@latest init
 
-Google ConsoleからGoogle Maps API、Places API、Direction APIを有効化してAPIキーを取得、
-.env.local
-に記載する
-＊.env.localファイルは.gitignoreに追加してリポジトリの管理対象外にしてください。
+   インストール時に以下のオプションを選択してください：
+   - Would you like to use TypeScript? › Yes
+   - Which style would you like to use? › Default
+   - Which color would you like to use as base color? › Slate
+   - Where is your global CSS file? › app/globals.css
+   - Do you want to use CSS variables for colors? › Yes
+   - Where is your tailwind.config.js located? › tailwind.config.js
+   - Configure the import alias for components: › @/components
+   - Configure the import alias for utils: › @/lib/utils
+   - Are you using React Server Components? › Yes
 
-以下でローカルサーバー起動
-```bash
-npm install
-npm run dev
-```
+4. 必要なshadcnコンポーネントをインストール：
+   ```
+   npx shadcn@latest add button card dialog input label select checkbox tabs
+	 ```
+5. 環境変数を設定：
+   .env.localファイルを作成し、以下の変数を設定してください：
+   GOOGLE_MAPS_API_KEY=your_google_maps_api_key
+   GOOGLE_PLACES_API_KEY=your_google_places_api_key
+
+6. 開発サーバーを起動：
+   npm run dev
+   ブラウザで http://localhost:3000 を開いてアプリケーションにアクセスしてください。
+
+7. プロダクションビルドを作成：
+   npm run build
+
+8. プロダクションビルドを実行：
+   npm start
 
 ## converterディレクトリの中身について
 
@@ -90,7 +114,6 @@ https://uedayou.net/jrslod-geojson-downloader/
 - ビジュアル要素追加（ロゴ、アイコンなど）
 - 駅・スポットへのチェックイン機能
 - データをクラウドに保存（Firebase, Supabase, etc）
-- 設定機能追加（おすすめスポットの編集, etc）
 - おすすめスポットの駅からの距離をカスタマイズできるように（徒歩だけではなく、自転車やLUUP向け）
 - SNS的な何か
 - ゲームモード追加

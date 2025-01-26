@@ -1,42 +1,43 @@
 import { Card, CardContent } from "@/components/ui/card"
-import { MapPin, Camera, Coffee, Utensils, Droplet } from 'lucide-react'
-import Image from 'next/image'
+import { MapPin, Camera, Coffee, Utensils, Droplet } from "lucide-react"
+import Image from "next/image"
 
 interface SpotCardProps {
   name: string
   type: string
   photo: string | null
   onClick?: () => void
+  categoryLabel: string
 }
 
-export function SpotCard({ name, type, photo, onClick }: SpotCardProps) {
+export function SpotCard({ name, type, photo, onClick, categoryLabel }: SpotCardProps) {
   const getIcon = () => {
     switch (type) {
-      case 'tourist_attraction':
-        return <Camera className="w-4 h-4" />;
-      case 'cafe':
-        return <Coffee className="w-4 h-4" />;
-      case 'restaurant':
-        return <Utensils className="w-4 h-4" />;
-      case 'public_bath':
-        return <Droplet className="w-4 h-4" />;
+      case "tourist_attraction":
+        return <Camera className="w-4 h-4" />
+      case "cafe":
+        return <Coffee className="w-4 h-4" />
+      case "restaurant":
+        return <Utensils className="w-4 h-4" />
+      case "public_bath":
+        return <Droplet className="w-4 h-4" />
       default:
-        return <MapPin className="w-4 h-4" />;
+        return <MapPin className="w-4 h-4" />
     }
   }
 
   const getTypeName = () => {
     switch (type) {
-      case 'tourist_attraction':
-        return '観光スポット';
-      case 'cafe':
-        return 'カフェ';
-      case 'restaurant':
-        return 'レストラン';
-      case 'public_bath':
-        return '銭湯';
+      case "tourist_attraction":
+        return "観光スポット"
+      case "cafe":
+        return "カフェ"
+      case "restaurant":
+        return "レストラン"
+      case "public_bath":
+        return "銭湯"
       default:
-        return type;
+        return type
     }
   }
 
@@ -46,7 +47,7 @@ export function SpotCard({ name, type, photo, onClick }: SpotCardProps) {
         <div className="relative aspect-[4/3]">
           {photo ? (
             <Image
-              src={photo}
+              src={photo || "/placeholder.svg"}
               alt={name}
               fill
               className="object-cover"
@@ -64,7 +65,7 @@ export function SpotCard({ name, type, photo, onClick }: SpotCardProps) {
             {getIcon()}
             <div>
               <h4 className="font-medium leading-tight">{name}</h4>
-              <p className="text-sm text-muted-foreground">{getTypeName()}</p>
+              <p className="text-sm text-muted-foreground">{categoryLabel}</p>
             </div>
           </div>
         </div>
@@ -72,3 +73,4 @@ export function SpotCard({ name, type, photo, onClick }: SpotCardProps) {
     </Card>
   )
 }
+

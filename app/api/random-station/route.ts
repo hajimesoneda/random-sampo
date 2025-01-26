@@ -24,56 +24,40 @@ if (!MAPS_API_KEY) {
   throw new Error("GOOGLE_MAPS_API_KEY is not configured")
 }
 
-async function getNearbyPlaces(lat: number, lng: number, type: string, keyword: string | null = null): Promise<Spot[]> {
+async function getNearbyPlaces(lat: number, lng: number, categoryId: string): Promise<Spot[]> {
   let url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=1000&language=ja&key=${MAPS_API_KEY}`
 
-  if (type !== "public_bath") {
-    url += `&type=${type}`
-  } else if (keyword) {
-    url += `&keyword=${encodeURIComponent(keyword)}`
-  }
+  // Use keyword search for the category
+  url += `&keyword=${encodeURIComponent(categoryId)}`
 
-  const response = await fetch(url)
-  if (!response.ok) {
-    throw new Error(`Google Places API error: ${response.status} ${response.statusText}`)
-  }
-  const data = await response.json()
+  try {
+    const response = await fetch(url)
+    if (!response.ok) {
+      throw new Error(`Google Places API error: ${response.status} ${response.statusText}`)
+    }
+    const data = await response.json()
 
-  return data.results.map((place: PlaceResult) => {
-    const spot: Spot = {
+    if (!data.results || !Array.isArray(data.results)) {
+      throw new Error(`Invalid response from Google Places API: ${JSON.stringify(data)}`)
+    }
+
+    return data.results.map((place: PlaceResult) => ({
       id: place.place_id,
       name: place.name,
-      type: type,
+      type: categoryId,
       photo: place.photos
         ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${place.photos[0].photo_reference}&key=${MAPS_API_KEY}`
         : null,
       lat: place.geometry.location.lat,
       lng: place.geometry.location.lng,
-    }
-
-    if (type === "public_bath") {
-      spot.openingHours = place.opening_hours?.weekday_text ? place.opening_hours.weekday_text.join(", ") : undefined
-      spot.price = place.price_level ? place.price_level * 200 + 300 : undefined
-    }
-
-    return spot
-  })
-}
-
-function areLocationsSame(spot1: Spot, spot2: Spot): boolean {
-  return spot1.lat === spot2.lat && spot1.lng === spot2.lng
-}
-
-function findUniqueSpot(spots: Spot[], selectedSpots: Spot[]): Spot | null {
-  for (const spot of spots) {
-    if (!selectedSpots.some((selectedSpot) => areLocationsSame(selectedSpot, spot))) {
-      return spot
-    }
+    }))
+  } catch (error) {
+    console.error(`Error fetching nearby places for category ${categoryId}:`, error)
+    return []
   }
-  return null
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     if (!Array.isArray(stationsData) || stationsData.length === 0) {
       throw new Error("駅データが見つかりません")
@@ -91,15 +75,19 @@ export async function GET() {
       firstDeparture: randomStationData.firstDeparture ?? undefined,
     }
 
-    const touristSpots = await getNearbyPlaces(randomStation.lat, randomStation.lng, "tourist_attraction")
-    const cafes = await getNearbyPlaces(randomStation.lat, randomStation.lng, "cafe")
-    const restaurants = await getNearbyPlaces(randomStation.lat, randomStation.lng, "restaurant")
-    const publicBaths = await getNearbyPlaces(randomStation.lat, randomStation.lng, "public_bath", "銭湯 OR 温泉")
+    // Get categories from the request URL
+    const url = new URL(request.url)
+    const categoriesParam = url.searchParams.get("categories")
+    const categories = categoriesParam ? JSON.parse(decodeURIComponent(categoriesParam)) : []
 
-    const allSpots = [...touristSpots, ...cafes, ...restaurants, ...publicBaths]
+    // Fetch spots for all provided categories
+    const allSpots = await Promise.all(
+      categories.map((categoryId: string) => getNearbyPlaces(randomStation.lat, randomStation.lng, categoryId)),
+    )
+    const flattenedSpots = allSpots.flat()
 
     // Shuffle all spots and select up to 4 unique spots
-    const shuffledSpots = allSpots.sort(() => Math.random() - 0.5)
+    const shuffledSpots = flattenedSpots.sort(() => Math.random() - 0.5)
     const uniqueSpots = Array.from(new Set(shuffledSpots.map((s) => s.name)))
       .map((name) => shuffledSpots.find((s) => s.name === name))
       .slice(0, 4)

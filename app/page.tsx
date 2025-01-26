@@ -19,7 +19,7 @@ const VisitedStations = dynamic(() => import("@/components/visited-stations").th
 })
 const Map = dynamic(() => import("@/components/map"), {
   ssr: false,
-  loading: () => <div className="w-full h-[300px] bg-muted animate-pulse" />,
+  loading: () => <div className="w-full h-[300px] bg-muted animate-pulse rounded-lg" />,
 })
 
 export default function Home() {
@@ -32,7 +32,7 @@ export default function Home() {
   const [selectedSpot, setSelectedSpot] = useState<Spot | null>(null)
   const [stationKey, setStationKey] = useState<string>("")
   const [isMounted, setIsMounted] = useState(false)
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([])
+  const [selectedCategories, setSelectedCategories] = useState<{ id: string; label: string }[]>([])
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
 
   const handleTabChange = (value: string) => {
@@ -40,31 +40,66 @@ export default function Home() {
     router.push(`/?tab=${value}`, { scroll: false })
   }
 
-  const pickStation = useCallback(async (stationId?: string) => {
-    setLoading(true)
-    setStation(null)
-    setSelectedSpot(null)
-    setError(null)
-    try {
-      const url = stationId ? `/api/station/${encodeURIComponent(stationId)}` : "/api/random-station"
-      const response = await fetch(url)
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
-        throw new Error(errorData.error || `HTTP error! status: ${response.status}`)
-      }
-      const newStation = await response.json()
-      if (!newStation || typeof newStation !== "object") {
-        throw new Error("Invalid station data received")
-      }
-      setStation(newStation)
-      setStationKey(Date.now().toString())
-    } catch (error) {
-      console.error("駅の取得エラー:", error)
-      setError(error instanceof Error ? error.message : "予期せぬエラーが発生しました")
-    } finally {
-      setLoading(false)
+  const fetchStation = useCallback(async (url: string) => {
+    const response = await fetch(url)
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      throw new Error(errorData.error || `HTTP error! status: ${response.status}`)
     }
+    const newStation = await response.json()
+    if (!newStation || typeof newStation !== "object") {
+      throw new Error("Invalid station data received")
+    }
+    return newStation
   }, [])
+
+  const pickStation = useCallback(
+    async (stationId?: string) => {
+      setLoading(true)
+      setStation(null)
+      setSelectedSpot(null)
+      setError(null)
+      try {
+        const categoriesParam = encodeURIComponent(JSON.stringify(selectedCategories.map((cat) => cat.id)))
+        const url = stationId
+          ? `/api/station/${encodeURIComponent(stationId)}?categories=${categoriesParam}`
+          : `/api/random-station?categories=${categoriesParam}`
+
+        const newStation = await fetchStation(url)
+        setStation(newStation)
+        setStationKey(Date.now().toString())
+      } catch (error) {
+        console.error("駅の取得エラー:", error)
+        setError(error instanceof Error ? error.message : "予期せぬエラーが発生しました")
+      } finally {
+        setLoading(false)
+      }
+    },
+    [selectedCategories, fetchStation],
+  )
+
+  const updateStationSpots = useCallback(
+    async (categories: { id: string; label: string }[]) => {
+      if (!station) return
+
+      try {
+        const categoriesParam = encodeURIComponent(JSON.stringify(categories.map((cat) => cat.id)))
+        const url = `/api/station/${encodeURIComponent(station.id)}/spots?categories=${categoriesParam}`
+
+        const response = await fetch(url)
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+        const data = await response.json()
+        setStation((prevStation) => (prevStation ? { ...prevStation, spots: data.spots } : null))
+        setStationKey(Date.now().toString())
+      } catch (error) {
+        console.error("スポットの更新エラー:", error)
+        setError(error instanceof Error ? error.message : "スポットの更新に失敗しました")
+      }
+    },
+    [station],
+  )
 
   const loadFavorites = useCallback(async () => {
     try {
@@ -82,7 +117,7 @@ export default function Home() {
         const favoriteStation: FavoriteStation = {
           id: station.id,
           name: station.name,
-          lines: station.lines || [], // Use an empty array if lines is undefined
+          lines: station.lines || [],
         }
         const updatedFavorites = await toggleFavoriteStation(favoriteStation)
         setFavorites(updatedFavorites)
@@ -110,11 +145,20 @@ export default function Home() {
   }, [pickStation, loadFavorites])
 
   useEffect(() => {
+    const defaultCategories = [
+      { id: "cafe", label: "カフェ" },
+      { id: "restaurant", label: "レストラン" },
+      { id: "public_bath", label: "銭湯" },
+      { id: "tourist_attraction", label: "観光スポット" },
+    ]
+
     const storedCategories = localStorage.getItem("selectedSpotCategories")
     if (storedCategories) {
-      setSelectedCategories(JSON.parse(storedCategories))
+      const parsedCategories = JSON.parse(storedCategories)
+      setSelectedCategories(parsedCategories)
     } else {
-      setSelectedCategories(["cafe", "restaurant", "public_bath", "tourist_attraction"])
+      setSelectedCategories(defaultCategories)
+      localStorage.setItem("selectedSpotCategories", JSON.stringify(defaultCategories))
     }
   }, [])
 
@@ -124,9 +168,16 @@ export default function Home() {
     setIsSettingsOpen(true)
   }
 
-  const handleSettingsSave = (categories: string[]) => {
-    setSelectedCategories(categories)
-    localStorage.setItem("selectedSpotCategories", JSON.stringify(categories))
+  const handleSettingsSave = (newCategories: { id: string; label: string }[]) => {
+    setSelectedCategories(newCategories)
+    localStorage.setItem("selectedSpotCategories", JSON.stringify(newCategories))
+    updateStationSpots(newCategories)
+  }
+
+  const handleCategoryChange = (newCategories: { id: string; label: string }[]) => {
+    setSelectedCategories(newCategories)
+    localStorage.setItem("selectedSpotCategories", JSON.stringify(newCategories))
+    updateStationSpots(newCategories)
   }
 
   if (!isMounted) {
@@ -170,15 +221,17 @@ export default function Home() {
             <Card>
               <CardContent className="p-4">
                 <h2 className="text-xl font-semibold mb-2">{station.name}駅</h2>
-                <p className="text-sm text-gray-600 mb-4">
+                <p className="text-sm text-gray-600 mb-2">
                   <Train className="inline-block mr-1" size={16} />
                   {station.lines.join("、")}
                 </p>
-                <Map
-                  center={{ lat: station.lat, lng: station.lng }}
-                  selectedSpot={selectedSpot}
-                  stationKey={stationKey}
-                />
+                {station.lat && station.lng && (
+                  <Map
+                    center={{ lat: station.lat, lng: station.lng }}
+                    selectedSpot={selectedSpot}
+                    stationKey={stationKey}
+                  />
+                )}
                 <Button
                   variant="outline"
                   className="w-full mt-2"
@@ -188,7 +241,7 @@ export default function Home() {
                       const destination = `${selectedSpot.lat},${selectedSpot.lng}`
                       const url = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&travelmode=walking`
                       window.open(url, "_blank")
-                    } else {
+                    } else if (station) {
                       window.open(`https://www.google.com/maps?q=${station.lat},${station.lng}`, "_blank")
                     }
                   }}
@@ -196,9 +249,16 @@ export default function Home() {
                   Google Mapで開く
                 </Button>
                 <div className="mt-4 grid grid-cols-2 gap-4">
-                  {station.spots
-                    ?.filter((spot) => selectedCategories.includes(spot.type))
-                    .map((spot) => <SpotCard key={spot.id} {...spot} onClick={() => setSelectedSpot(spot)} />) || (
+                  {station.spots && station.spots.length > 0 ? (
+                    station.spots.map((spot) => (
+                      <SpotCard
+                        key={spot.id}
+                        {...spot}
+                        onClick={() => setSelectedSpot(spot)}
+                        categoryLabel={selectedCategories.find((cat) => cat.id === spot.type)?.label || spot.type}
+                      />
+                    ))
+                  ) : (
                     <p className="col-span-2 text-center text-muted-foreground">
                       選択したカテゴリーのスポットが見つかりません
                     </p>
@@ -250,6 +310,7 @@ export default function Home() {
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
         onSave={handleSettingsSave}
+        onCategoryChange={handleCategoryChange}
         initialCategories={selectedCategories}
       />
     </main>
