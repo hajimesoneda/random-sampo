@@ -1,9 +1,26 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { getGoogleMapsLoader } from "@/lib/google-maps-loader"
+import { getGoogleMapsLoader, Loader } from "@/lib/google-maps-loader"
 import type { Spot } from "@/types/station"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+
+interface GoogleMap extends google.maps.Map {
+  setCenter(latlng: { lat: number; lng: number }): void
+  setZoom(zoom: number): void
+  fitBounds(bounds: google.maps.LatLngBounds): void
+}
+
+interface Marker extends google.maps.Marker {
+  setMap(map: google.maps.Map | null): void
+  setAnimation(animation: any): void
+}
+
+// Remove this interface
+// interface DirectionsRenderer extends google.maps.DirectionsRenderer {
+//   setMap(map: google.maps.Map | null): void
+//   setDirections(result: google.maps.DirectionsResult): void
+// }
 
 interface MapProps {
   center: {
@@ -16,10 +33,14 @@ interface MapProps {
 
 export default function Map({ center, selectedSpot, stationKey }: MapProps) {
   const mapRef = useRef<HTMLDivElement>(null)
+  const directionsRendererRef = useRef<
+    (google.maps.DirectionsRenderer & { setMap: (map: google.maps.Map | null) => void }) | null
+  >(null)
   const [error, setError] = useState<string | null>(null)
   const [walkingTime, setWalkingTime] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [map, setMap] = useState<google.maps.Map | null>(null)
+  const [map, setMap] = useState<GoogleMap | null>(null)
+  const [markers, setMarkers] = useState<Marker[]>([])
 
   useEffect(() => {
     let isMounted = true
@@ -48,7 +69,7 @@ export default function Map({ center, selectedSpot, stationKey }: MapProps) {
         }
 
         if (isMounted && mapRef.current) {
-          const newMap = new Map(mapRef.current, mapOptions)
+          const newMap = new window.google.maps.Map(mapRef.current, mapOptions) as GoogleMap
           setMap(newMap)
           setIsLoading(false)
         }
@@ -73,34 +94,45 @@ export default function Map({ center, selectedSpot, stationKey }: MapProps) {
   }, [center])
 
   useEffect(() => {
-    if (!map || !selectedSpot) return
+    if (!map || !selectedSpot || !window.google) return
 
     const { Marker, InfoWindow, DirectionsService, DirectionsRenderer, LatLngBounds } = window.google.maps
 
-    // Clear previous markers and directions
-    map.setCenter(center)
+    // Clear previous directions
+    if (directionsRendererRef.current) {
+      directionsRendererRef.current.setMap(null)
+    }
+    // Clear previous markers
+    markers.forEach((marker) => marker.setMap(null))
+    setMarkers([])
+
+    // Update map center and zoom
+    const newCenter = { lat: center.lat, lng: center.lng }
+    map.setCenter(newCenter)
     map.setZoom(15)
 
     // Station marker (red)
-    new Marker({
+    const stationMarker = new Marker({
       position: center,
       map,
       icon: "http://maps.google.com/mapfiles/ms/icons/red-dot.png",
-    })
+    }) as Marker
 
     const spotPosition = { lat: selectedSpot.lat, lng: selectedSpot.lng }
     const spotMarker = new Marker({
       position: spotPosition,
       map,
       icon: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png",
-    })
+    }) as Marker
+
+    setMarkers([stationMarker, spotMarker])
 
     // Set animation if available
-    const mapsWithAnimation = window.google.maps as { Animation?: { DROP: any } }
-    if (mapsWithAnimation.Animation && "DROP" in mapsWithAnimation.Animation && spotMarker.setAnimation) {
-      spotMarker.setAnimation(mapsWithAnimation.Animation.DROP)
+		/*
+    if (window.google.maps.Animation && window.google.maps.Animation.DROP) {
+      spotMarker.setAnimation(window.google.maps.Animation.DROP)
     }
-
+		*/
     const infoWindow = new InfoWindow({
       content: `<div><strong>${selectedSpot.name}</strong><br>${selectedSpot.type}</div>`,
     })
@@ -108,20 +140,20 @@ export default function Map({ center, selectedSpot, stationKey }: MapProps) {
     infoWindow.open(map, spotMarker)
 
     const directionsService = new DirectionsService()
-    const directionsRenderer = new DirectionsRenderer({
+    directionsRendererRef.current = new DirectionsRenderer({
       map,
       suppressMarkers: true,
-    })
+    }) as google.maps.DirectionsRenderer & { setMap: (map: google.maps.Map | null) => void }
 
     const request: google.maps.DirectionsRequest = {
-      origin: center,
+      origin: newCenter,
       destination: spotPosition,
       travelMode: google.maps.TravelMode.WALKING,
     }
 
     directionsService.route(request, (result, status) => {
-      if (status === google.maps.DirectionsStatus.OK && result) {
-        directionsRenderer.setDirections(result)
+      if (status === google.maps.DirectionsStatus.OK && result && directionsRendererRef.current) {
+        directionsRendererRef.current.setDirections(result)
 
         const route = result.routes[0]
         if (route && route.legs.length > 0) {
@@ -132,7 +164,7 @@ export default function Map({ center, selectedSpot, stationKey }: MapProps) {
         }
 
         const bounds = new LatLngBounds()
-        bounds.extend(center)
+        bounds.extend(newCenter)
         bounds.extend(spotPosition)
         map.fitBounds(bounds)
       } else {
@@ -140,7 +172,7 @@ export default function Map({ center, selectedSpot, stationKey }: MapProps) {
         setError(`ルートの取得に失敗しました: ${status}`)
       }
     })
-  }, [map, selectedSpot, center])
+  }, [map, selectedSpot, center, markers])
 
   return (
     <div className="space-y-2">

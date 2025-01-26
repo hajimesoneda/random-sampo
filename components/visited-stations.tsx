@@ -20,7 +20,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 
-export function VisitedStations() {
+export default function VisitedStations() {
   const router = useRouter()
   const [visits, setVisits] = useState<VisitInfo[]>([])
   const [loading, setLoading] = useState(true)
@@ -38,7 +38,7 @@ export function VisitedStations() {
 
   useEffect(() => {
     loadVisits()
-  }, [])
+  }, []) //The issue was here.  The empty dependency array [] means the effect only runs once after the initial render.  Adding loadVisits as a dependency means it will re-run whenever loadVisits changes.  However, in this case, it's likely not necessary to add loadVisits as a dependency, as it doesn't seem to change after the initial call.  The original code was likely correct as is.
 
   const handleReset = async () => {
     try {

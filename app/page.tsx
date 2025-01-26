@@ -5,7 +5,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import type { Station, FavoriteStation, Spot } from "@/types/station"
-import { Train, Star, Settings } from "lucide-react"
+import type { UserWithoutPassword } from "@/types/user"
+import { Train, Star, Settings, LogOut } from "lucide-react"
 import Link from "next/link"
 import dynamic from "next/dynamic"
 import { SpotCard } from "@/components/spot-card"
@@ -14,12 +15,13 @@ import { FavoriteStations } from "@/components/favorite-stations"
 import { toggleFavoriteStation, getFavoriteStations } from "@/app/actions/index"
 import { SettingsModal } from "@/components/settings-modal"
 
-const VisitedStations = dynamic(() => import("@/components/visited-stations").then((mod) => mod.VisitedStations), {
+const VisitedStations = dynamic(() => import("@/components/visited-stations"), {
   ssr: false,
 })
+
 const Map = dynamic(() => import("@/components/map"), {
   ssr: false,
-  loading: () => <div className="w-full h-[300px] bg-muted animate-pulse rounded-lg" />,
+  loading: () => <div className="w-full h-[300px] bg-muted animate-pulse" />,
 })
 
 export default function Home() {
@@ -34,6 +36,7 @@ export default function Home() {
   const [isMounted, setIsMounted] = useState(false)
   const [selectedCategories, setSelectedCategories] = useState<{ id: string; label: string }[]>([])
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
+  const [user, setUser] = useState<UserWithoutPassword | null>(null)
 
   const handleTabChange = (value: string) => {
     setActiveTabState(value)
@@ -133,16 +136,58 @@ export default function Home() {
     pickStation(selectedStation.id)
   }
 
+  const handleSettingsClick = () => {
+    setIsSettingsOpen(true)
+  }
+
+  const handleLogout = () => {
+    localStorage.removeItem("token")
+    router.push("/login")
+  }
+
+  const handleCategoryChange = (newCategories: { id: string; label: string }[]) => {
+    setSelectedCategories(newCategories)
+    localStorage.setItem("selectedSpotCategories", JSON.stringify(newCategories))
+    updateStationSpots(newCategories)
+  }
+
   useEffect(() => {
-    setIsMounted(true)
-    const urlParams = new URLSearchParams(window.location.search)
-    const tabParam = urlParams.get("tab")
-    if (tabParam && ["picker", "visited", "favorites"].includes(tabParam)) {
-      setActiveTabState(tabParam)
+    const token = localStorage.getItem("token")
+    if (!token) {
+      router.push("/login")
+    } else {
+      fetch("/api/auth/user", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.user) {
+            setUser(data.user)
+            setIsMounted(true)
+          } else {
+            localStorage.removeItem("token")
+            router.push("/login")
+          }
+        })
+        .catch((error) => {
+          console.error("Failed to fetch user:", error)
+          localStorage.removeItem("token")
+          router.push("/login")
+        })
     }
-    pickStation()
-    loadFavorites()
-  }, [pickStation, loadFavorites])
+  }, [router])
+
+  useEffect(() => {
+    if (isMounted) {
+      const urlParams = new URLSearchParams(window.location.search)
+      const tabParam = urlParams.get("tab")
+      if (tabParam && ["picker", "visited", "favorites"].includes(tabParam)) {
+        setActiveTabState(tabParam)
+      }
+      pickStation()
+      loadFavorites()
+    }
+  }, [isMounted, pickStation, loadFavorites])
 
   useEffect(() => {
     const defaultCategories = [
@@ -162,37 +207,29 @@ export default function Home() {
     }
   }, [])
 
-  const isFavorite = station ? favorites.some((fav) => fav.id === station.id) : false
-
-  const handleSettingsClick = () => {
-    setIsSettingsOpen(true)
-  }
-
-  const handleSettingsSave = (newCategories: { id: string; label: string }[]) => {
-    setSelectedCategories(newCategories)
-    localStorage.setItem("selectedSpotCategories", JSON.stringify(newCategories))
-    updateStationSpots(newCategories)
-  }
-
-  const handleCategoryChange = (newCategories: { id: string; label: string }[]) => {
-    setSelectedCategories(newCategories)
-    localStorage.setItem("selectedSpotCategories", JSON.stringify(newCategories))
-    updateStationSpots(newCategories)
-  }
-
-  if (!isMounted) {
+  if (!isMounted || !user) {
     return null
   }
+
+  const isFavorite = station ? favorites.some((fav) => fav.id === station.id) : false
 
   return (
     <main className="container max-w-md mx-auto p-4">
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold">ランダム駅ピッカー</h1>
-        <Button variant="ghost" size="icon" onClick={handleSettingsClick}>
-          <Settings className="h-5 w-5" />
-          <span className="sr-only">設定</span>
-        </Button>
+        <div className="flex items-center space-x-2">
+          <Button variant="ghost" size="icon" onClick={handleSettingsClick}>
+            <Settings className="h-5 w-5" />
+            <span className="sr-only">設定</span>
+          </Button>
+          <Button variant="ghost" size="icon" onClick={handleLogout}>
+            <LogOut className="h-5 w-5" />
+            <span className="sr-only">ログアウト</span>
+          </Button>
+        </div>
       </div>
+
+      {user && <p className="mb-4">ようこそ、{user.email}さん</p>}
 
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
@@ -201,7 +238,7 @@ export default function Home() {
         </div>
       )}
 
-      <Tabs key={isMounted ? "mounted" : "unmounted"} value={activeTab} onValueChange={handleTabChange}>
+      <Tabs value={activeTab} onValueChange={handleTabChange}>
         <TabsList className="w-full mb-4">
           <TabsTrigger value="picker" className="flex-1">
             ピッカー
@@ -225,13 +262,11 @@ export default function Home() {
                   <Train className="inline-block mr-1" size={16} />
                   {station.lines.join("、")}
                 </p>
-                {station.lat && station.lng && (
-                  <Map
-                    center={{ lat: station.lat, lng: station.lng }}
-                    selectedSpot={selectedSpot}
-                    stationKey={stationKey}
-                  />
-                )}
+                <Map
+                  center={{ lat: station.lat, lng: station.lng }}
+                  selectedSpot={selectedSpot}
+                  stationKey={stationKey}
+                />
                 <Button
                   variant="outline"
                   className="w-full mt-2"
@@ -241,7 +276,7 @@ export default function Home() {
                       const destination = `${selectedSpot.lat},${selectedSpot.lng}`
                       const url = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&travelmode=walking`
                       window.open(url, "_blank")
-                    } else if (station) {
+                    } else {
                       window.open(`https://www.google.com/maps?q=${station.lat},${station.lng}`, "_blank")
                     }
                   }}
@@ -250,9 +285,9 @@ export default function Home() {
                 </Button>
                 <div className="mt-4 grid grid-cols-2 gap-4">
                   {station.spots && station.spots.length > 0 ? (
-                    station.spots.map((spot) => (
+                    station.spots.map((spot, index) => (
                       <SpotCard
-                        key={spot.id}
+                        key={`${spot.id}-${index}`}
                         {...spot}
                         onClick={() => setSelectedSpot(spot)}
                         categoryLabel={selectedCategories.find((cat) => cat.id === spot.type)?.label || spot.type}
@@ -309,7 +344,6 @@ export default function Home() {
       <SettingsModal
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
-        onSave={handleSettingsSave}
         onCategoryChange={handleCategoryChange}
         initialCategories={selectedCategories}
       />
