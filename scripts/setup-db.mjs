@@ -1,5 +1,9 @@
 import { pool } from "../src/db/pool.js";
-import { users, visits, favorites } from "../src/db/schema.js";
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+console.log("Database URL:", process.env.DATABASE_URL ? "Set" : "Not set");
 
 async function setupDatabase() {
   try {
@@ -42,5 +46,5 @@ async function setupDatabase() {
   }
 }
 
-setupDatabase();
+setupDatabase().catch(console.error);
 
