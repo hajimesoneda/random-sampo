@@ -1,9 +1,9 @@
-import { pool } from "../src/db/pool.js";
-import dotenv from 'dotenv';
+import { pool } from "../src/db/index.js"
+import dotenv from "dotenv"
 
-dotenv.config();
+dotenv.config()
 
-console.log("Database URL:", process.env.DATABASE_URL ? "Set" : "Not set");
+console.log("Database URL:", process.env.DATABASE_URL ? "Set" : "Not set")
 
 async function setupDatabase() {
   try {
@@ -15,7 +15,7 @@ async function setupDatabase() {
         password TEXT NOT NULL,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       )
-    `);
+    `)
 
     await pool.query(`
       CREATE TABLE IF NOT EXISTS visits (
@@ -27,7 +27,7 @@ async function setupDatabase() {
         weather TEXT,
         memo TEXT
       )
-    `);
+    `)
 
     await pool.query(`
       CREATE TABLE IF NOT EXISTS favorites (
@@ -36,15 +36,15 @@ async function setupDatabase() {
         station_id TEXT NOT NULL,
         station_name TEXT NOT NULL
       )
-    `);
+    `)
 
-    console.log("Database setup completed successfully");
+    console.log("Database setup completed successfully")
   } catch (error) {
-    console.error("Error setting up database:", error);
+    console.error("Error setting up database:", error)
   } finally {
-    await pool.end();
+    await pool.end()
   }
 }
 
-setupDatabase().catch(console.error);
+setupDatabase().catch(console.error)
 
