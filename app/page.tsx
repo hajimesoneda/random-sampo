@@ -207,6 +207,26 @@ export default function Home() {
     }
   }, [])
 
+  useEffect(() => {
+    const checkDatabaseConnection = async () => {
+      try {
+        const response = await fetch("/api/check-connection")
+        const data = await response.json()
+        if (data.success) {
+          console.log("Database connection info:")
+          console.log("Database name:", data.dbName)
+          console.log("Available tables:", data.tables)
+        } else {
+          console.error("Failed to get database connection info:", data.error)
+        }
+      } catch (error) {
+        console.error("Error checking database connection:", error)
+      }
+    }
+
+    checkDatabaseConnection()
+  }, [])
+
   if (!isMounted || !user) {
     return null
   }
