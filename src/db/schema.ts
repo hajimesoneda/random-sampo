@@ -1,4 +1,4 @@
-import { pgTable, serial, text, doublePrecision, varchar, timestamp, integer } from "drizzle-orm/pg-core"
+import { pgTable, serial, text, doublePrecision, timestamp, integer } from "drizzle-orm/pg-core"
 
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
@@ -29,6 +29,6 @@ export const stations = pgTable("stations", {
   name: text("name").notNull(),
   lat: doublePrecision("lat").notNull(),
   lng: doublePrecision("lng").notNull(),
-  lines: varchar("lines", { length: 255 }).array().notNull(),
+  lines: text("lines").array().notNull(),
 })
 

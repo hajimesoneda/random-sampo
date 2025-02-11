@@ -1,70 +1,43 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Plus, X } from "lucide-react"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-
-interface Category {
-  id: string
-  label: string
-}
+import { Checkbox } from "@/components/ui/checkbox"
 
 interface SettingsModalProps {
   isOpen: boolean
   onClose: () => void
-  onCategoryChange: (categories: Category[]) => void
-  initialCategories: Category[]
+  onCategoryChange: (categories: { id: string; label: string }[]) => void
+  initialCategories: { id: string; label: string }[]
 }
 
 export function SettingsModal({ isOpen, onClose, onCategoryChange, initialCategories }: SettingsModalProps) {
-  const [categories, setCategories] = useState<Category[]>(initialCategories)
-  const [newCategory, setNewCategory] = useState("")
-  const [error, setError] = useState<string | null>(null)
+  const [categories, setCategories] = useState(initialCategories)
 
-  useEffect(() => {
-    setCategories(initialCategories)
-  }, [initialCategories])
-
-  const handleAddCategory = () => {
-    if (newCategory && categories.length < 8) {
-      const newId = newCategory.toLowerCase().replace(/\s+/g, "_")
-      const isDuplicate = categories.some((category) => category.label.toLowerCase() === newCategory.toLowerCase())
-
-      if (isDuplicate) {
-        setError("同じ名前のカテゴリーは追加できません。")
-        return
+  const handleCategoryChange = (id: string, checked: boolean | string) => {
+    setCategories((prevCategories) => {
+      const updatedCategories = [...prevCategories]
+      const index = updatedCategories.findIndex((cat) => cat.id === id)
+      if (Boolean(checked) && index === -1) {
+        updatedCategories.push({ id, label: initialCategories.find((cat) => cat.id === id)?.label || id })
+      } else if (!Boolean(checked) && index !== -1) {
+        updatedCategories.splice(index, 1)
       }
-
-      const updatedCategories = [...categories, { id: newId, label: newCategory }]
-      setCategories(updatedCategories)
-      setNewCategory("")
-      setError(null)
-      onCategoryChange(updatedCategories)
-      localStorage.setItem("selectedSpotCategories", JSON.stringify(updatedCategories))
-    }
+      return updatedCategories
+    })
   }
 
-  const handleAddButtonClick = () => {
-    handleAddCategory()
-  }
-
-  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      e.preventDefault()
-      handleAddCategory()
-    }
-  }
-
-  const handleRemoveCategory = (id: string) => {
-    if (categories.length > 1) {
-      const updatedCategories = categories.filter((category) => category.id !== id)
-      setCategories(updatedCategories)
-      onCategoryChange(updatedCategories)
-      localStorage.setItem("selectedSpotCategories", JSON.stringify(updatedCategories))
-    }
+  const handleSave = () => {
+    onCategoryChange(categories)
+    onClose()
   }
 
   return (
@@ -72,44 +45,26 @@ export function SettingsModal({ isOpen, onClose, onCategoryChange, initialCatego
       <DialogContent>
         <DialogHeader>
           <DialogTitle>設定</DialogTitle>
+          <DialogDescription>スポットのカテゴリーを選択してください</DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
-          <h2 className="text-lg font-semibold">表示するスポットのカテゴリー</h2>
-          <div className="flex flex-wrap gap-2">
-            {categories.map((category) => (
-              <div key={category.id} className="flex items-center bg-secondary px-3 py-1 rounded-full">
-                <span className="text-sm font-medium mr-2">{category.label}</span>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => handleRemoveCategory(category.id)}
-                  className="h-6 w-6 p-0"
-                  disabled={categories.length === 1}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-            ))}
-          </div>
-          {error && (
-            <Alert variant="destructive">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-          <div className="flex items-center space-x-2 mt-4">
-            <Input
-              value={newCategory}
-              onChange={(e) => setNewCategory(e.target.value)}
-              onKeyDown={handleInputKeyDown}
-              placeholder="新しいカテゴリー"
-              className="flex-grow"
-            />
-            <Button onClick={handleAddButtonClick} disabled={!newCategory || categories.length >= 8}>
-              <Plus className="h-4 w-4 mr-2" />
-              追加
-            </Button>
-          </div>
+          {initialCategories.map((category) => (
+            <div key={category.id} className="flex items-center">
+              <Checkbox
+                id={category.id}
+                checked={categories.some((cat) => cat.id === category.id)}
+                onCheckedChange={(checked: boolean) => handleCategoryChange(category.id, checked)}
+              />
+              <label htmlFor={category.id} className="ml-2">
+                {category.label}
+              </label>
+            </div>
+          ))}
         </div>
+        <DialogFooter>
+          <Button onClick={onClose}>キャンセル</Button>
+          <Button onClick={handleSave}>保存</Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   )

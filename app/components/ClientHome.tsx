@@ -21,7 +21,7 @@ import {
   getFavoritesFromLocalStorage,
 } from "@/src/utils/localStorage"
 import type { Session } from "next-auth"
-import VisitedStations from "@/components/visited-stations"
+import { VisitedStations } from "@/components/visited-stations"
 
 interface ClientHomeProps {
   session?: Session | null
@@ -323,6 +323,7 @@ export default function ClientHome({ session: initialSession }: ClientHomeProps)
                         {...spot}
                         onClick={() => setSelectedSpot(spot)}
                         categoryLabel={selectedCategories.find((cat) => cat.id === spot.type)?.label || spot.type}
+                        photo={spot.photo || "/placeholder.svg?height=100&width=100"}
                       />
                     ))
                   ) : (

@@ -1,12 +1,11 @@
 "use server"
 
 import { db } from "@/src/db"
-import { visits, favorites } from "@/src/db/schema"
-import { eq, and } from "drizzle-orm"
+import { visits, favorites, stations } from "@/src/db/schema"
 import type { VisitInfo, FavoriteStation, WeatherType } from "@/types/station"
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/app/api/auth/[...nextauth]/auth-options"
-import type { Session } from "next-auth"
+import { eq, and } from "drizzle-orm"
 
 export async function saveVisit(info: VisitInfo, userId: number) {
   console.log("Saving visit:", info, "for user:", userId)
@@ -31,6 +30,7 @@ export async function saveVisit(info: VisitInfo, userId: number) {
 }
 
 export async function saveVisitWithSession(info: VisitInfo) {
+  console.log("Attempting to save visit with session")
   const session = await getServerSession(authOptions)
   console.log("Session in saveVisitWithSession:", JSON.stringify(session, null, 2))
 
@@ -41,6 +41,7 @@ export async function saveVisitWithSession(info: VisitInfo) {
 
   try {
     const userId = Number.parseInt(session.user.id)
+    console.log("User ID from session:", userId)
     return await saveVisit(info, userId)
   } catch (error) {
     console.error("Error in saveVisitWithSession:", error)
@@ -48,38 +49,7 @@ export async function saveVisitWithSession(info: VisitInfo) {
   }
 }
 
-export async function getVisitedStations(userId: number): Promise<VisitInfo[]> {
-  console.log("Getting visited stations for user:", userId)
-  try {
-    const result = await db.select().from(visits).where(eq(visits.userId, userId))
-    console.log("Visited stations retrieved:", result)
-    return result.map((visit) => ({
-      stationId: visit.stationId,
-      name: visit.stationName,
-      date: visit.date.toISOString(),
-      weather: visit.weather as WeatherType,
-      memo: visit.memo || "",
-    }))
-  } catch (error) {
-    console.error("Error getting visited stations:", error)
-    throw error
-  }
-}
-
-export async function resetVisitedStations(userId: number) {
-  console.log("Resetting visited stations for user:", userId)
-  try {
-    const result = await db.delete(visits).where(eq(visits.userId, userId)).returning()
-    console.log("Visited stations reset:", result)
-    return result
-  } catch (error) {
-    console.error("Error resetting visited stations:", error)
-    throw error
-  }
-}
-
 export async function toggleFavoriteStation(userId: number, station: FavoriteStation) {
-  console.log("Toggling favorite station:", station, "for user:", userId)
   try {
     const existingFavorite = await db
       .select()
@@ -88,8 +58,10 @@ export async function toggleFavoriteStation(userId: number, station: FavoriteSta
       .limit(1)
 
     if (existingFavorite.length > 0) {
+      // If the station is already a favorite, remove it
       await db.delete(favorites).where(and(eq(favorites.userId, userId), eq(favorites.stationId, station.id)))
     } else {
+      // If the station is not a favorite, add it
       await db.insert(favorites).values({
         userId,
         stationId: station.id,
@@ -97,26 +69,59 @@ export async function toggleFavoriteStation(userId: number, station: FavoriteSta
       })
     }
 
+    // Return updated list of favorites
     return getFavoriteStations(userId)
   } catch (error) {
     console.error("Error toggling favorite station:", error)
-    throw error
+    throw new Error("Failed to toggle favorite station")
   }
 }
 
 export async function getFavoriteStations(userId: number): Promise<FavoriteStation[]> {
-  console.log("Getting favorite stations for user:", userId)
   try {
-    const result = await db.select().from(favorites).where(eq(favorites.userId, userId))
-    console.log("Favorite stations retrieved:", result)
-    return result.map((favorite) => ({
-      id: favorite.stationId,
-      name: favorite.stationName,
-      lines: [], // 路線情報はデータベースに保存されていないため、空の配列を返します
+    const favoriteStations = await db
+      .select({
+        id: favorites.stationId,
+        name: favorites.stationName,
+        lines: stations.lines,
+      })
+      .from(favorites)
+      .leftJoin(stations, eq(favorites.stationId, stations.id))
+      .where(eq(favorites.userId, userId))
+
+    return favoriteStations.map((station) => ({
+      id: station.id,
+      name: station.name,
+      lines: station.lines || [],
     }))
   } catch (error) {
-    console.error("Error getting favorite stations:", error)
-    throw error
+    console.error("Error fetching favorite stations:", error)
+    throw new Error("Failed to fetch favorite stations")
+  }
+}
+
+export async function getVisitedStations(userId: number): Promise<VisitInfo[]> {
+  try {
+    const visitedStations = await db
+      .select({
+        stationId: visits.stationId,
+        name: visits.stationName,
+        date: visits.date,
+        weather: visits.weather,
+        memo: visits.memo,
+      })
+      .from(visits)
+      .where(eq(visits.userId, userId))
+      .orderBy(visits.date)
+
+    return visitedStations.map((station) => ({
+      ...station,
+      date: station.date.toISOString().split("T")[0], // Convert Date to YYYY-MM-DD string
+      weather: station.weather as WeatherType, // Cast weather to WeatherType
+    }))
+  } catch (error) {
+    console.error("Error fetching visited stations:", error)
+    throw new Error("Failed to fetch visited stations")
   }
 }
 
