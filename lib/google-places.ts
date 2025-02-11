@@ -39,69 +39,40 @@ export async function fetchNearbyPlaces({
   type: string
   radius: number
 }): Promise<Spot[]> {
-  const types = Array.isArray(getCategoryType(type))
-    ? (getCategoryType(type) as string[])
-    : [getCategoryType(type) as string]
-  const keywords = getCategoryKeywords(type)
+  const apiType = getCategoryType(type)
+  const keywords = getCategoryKeywords(type) || type
 
-  console.log(`Fetching places for type: ${type}, types: ${types.join(",")}, keywords: ${keywords}`)
+  console.log(`Fetching places for type: ${type}, API type: ${apiType}, keywords: ${keywords}`)
 
-  // Fetch places for each type
-  const allResults = await Promise.all(
-    types.map(async (placeType) => {
-      const url = new URL("https://maps.googleapis.com/maps/api/place/nearbysearch/json")
-      url.searchParams.append("location", `${lat},${lng}`)
-      url.searchParams.append("radius", radius.toString())
-      url.searchParams.append("type", placeType)
-      if (keywords) {
-        url.searchParams.append("keyword", keywords)
-      }
-      url.searchParams.append("key", GOOGLE_MAPS_API_KEY)
-      url.searchParams.append("language", "ja")
-      url.searchParams.append("region", "jp")
+  const url = new URL("https://maps.googleapis.com/maps/api/place/textsearch/json")
+  url.searchParams.append("query", `${keywords} near ${lat},${lng}`)
+  url.searchParams.append("radius", radius.toString())
+  url.searchParams.append("key", GOOGLE_MAPS_API_KEY)
+  url.searchParams.append("language", "ja")
+  url.searchParams.append("region", "jp")
 
-      console.log(`Fetching from URL: ${url.toString()}`)
+  // 事前定義されたカテゴリーの場合のみ、typeパラメータを追加
+  if (apiType !== "point_of_interest") {
+    url.searchParams.append("type", Array.isArray(apiType) ? apiType[0] : apiType)
+  }
 
-      const response = await fetch(url.toString())
-      if (!response.ok) {
-        throw new Error(`Failed to fetch nearby places: ${response.statusText}`)
-      }
+  console.log(`Fetching from URL: ${url.toString()}`)
 
-      const data: PlacesResponse = await response.json()
+  const response = await fetch(url.toString())
+  if (!response.ok) {
+    throw new Error(`Failed to fetch nearby places: ${response.statusText}`)
+  }
 
-      if (data.status !== "OK") {
-        console.error(`Places API error: ${data.status}`, data.error_message)
-        return []
-      }
+  const data: PlacesResponse = await response.json()
 
-      console.log(`Found ${data.results.length} results for type ${placeType}`)
-      return data.results
-    }),
-  )
+  if (data.status !== "OK") {
+    console.error(`Places API error: ${data.status}`, data.error_message)
+    return []
+  }
 
-  // Merge and filter results
-  const mergedResults = allResults.flat()
+  console.log(`Found ${data.results.length} results for type ${type}`)
 
-  // Filter results based on type and keywords
-  const filteredResults =
-    type === "public_bath"
-      ? mergedResults.filter(
-          (place) =>
-            place.types.some((t) => ["spa", "onsen"].includes(t)) &&
-            (place.name.includes("銭湯") || place.name.includes("温泉") || place.name.includes("スーパー銭湯")),
-        )
-      : mergedResults
-
-  console.log(`Filtered to ${filteredResults.length} results`)
-
-  // Remove duplicates based on place_id
-  const uniqueResults = filteredResults.filter(
-    (place, index, self) => index === self.findIndex((p) => p.place_id === place.place_id),
-  )
-
-  console.log(`Final unique results: ${uniqueResults.length}`)
-
-  return uniqueResults.map((place) => ({
+  return data.results.map((place) => ({
     id: place.place_id,
     name: place.name,
     lat: place.geometry.location.lat,

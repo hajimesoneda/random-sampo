@@ -21,6 +21,7 @@ export const categoryMapping: Record<string, Category> = {
     id: "tourist_attraction",
     label: "観光スポット",
     type: "tourist_attraction",
+    keywords: "観光地,名所,観光スポット",
   },
   park: {
     id: "park",
@@ -46,13 +47,21 @@ export const categoryMapping: Record<string, Category> = {
 
 export type CategoryId = keyof typeof categoryMapping
 
-export function getCategoryType(id: string): string | string[] {
-  const category = categoryMapping[id as CategoryId]
-  return category ? category.type : id
+export function getCategoryType(label: string): string | string[] {
+  const category = Object.values(categoryMapping).find((cat) => cat.label === label)
+  if (category) {
+    return category.type
+  }
+  // カスタムカテゴリーの場合、デフォルトのタイプを返す
+  return "point_of_interest"
 }
 
-export function getCategoryKeywords(id: string): string | undefined {
-  const category = categoryMapping[id as CategoryId]
-  return category?.keywords
+export function getCategoryKeywords(label: string): string | undefined {
+  const category = Object.values(categoryMapping).find((cat) => cat.label === label)
+  if (category?.keywords) {
+    return category.keywords
+  }
+  // カスタムカテゴリーの場合、ラベルをそのままキーワードとして使用
+  return label
 }
 
