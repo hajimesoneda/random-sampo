@@ -20,17 +20,14 @@ import {
   saveFavoriteToLocalStorage,
   getFavoritesFromLocalStorage,
 } from "@/src/utils/localStorage"
+import type { Session } from "next-auth"
+import { VisitedStations } from "@/components/visited-stations"
 
-const VisitedStations = dynamic(() => import("@/components/visited-stations"), {
-  ssr: false,
-})
+interface ClientHomeProps {
+  session?: Session | null
+}
 
-const Map = dynamic(() => import("@/components/map"), {
-  ssr: false,
-  loading: () => <div className="w-full h-[300px] bg-muted animate-pulse" />,
-})
-
-export default function ClientHome() {
+export default function ClientHome({ session: initialSession }: ClientHomeProps) {
   const [station, setStation] = useState<Station | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -232,6 +229,8 @@ export default function ClientHome() {
   }
 
   const isFavorite = station ? favorites.some((fav) => fav.id === station.id) : false
+
+  const Map = dynamic(() => import("@/components/map"), { ssr: false })
 
   return (
     <main className="container max-w-md mx-auto p-4">

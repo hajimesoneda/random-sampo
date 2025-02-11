@@ -5,6 +5,6 @@ import ClientHome from "./components/ClientHome"
 export default async function Home() {
   const session = await getServerSession(authOptions)
 
-  return <ClientHome initialSession={session} />
+  return <ClientHome session={session} />
 }
 
