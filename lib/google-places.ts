@@ -42,10 +42,15 @@ export async function fetchNearbyPlaces({
   const apiType = getCategoryType(type)
   const keywords = getCategoryKeywords(type) || type
 
-  console.log(`Fetching places for type: ${type}, API type: ${apiType}, keywords: ${keywords}`)
+  // カスタムカテゴリーの場合、typeをキーワードとして使用
+  const queryKeyword = type.startsWith("custom_") ? keywords : type
+
+  console.log(
+    `Fetching places for type: ${type}, API type: ${apiType}, keywords: ${keywords}, queryKeyword: ${queryKeyword}`,
+  )
 
   const url = new URL("https://maps.googleapis.com/maps/api/place/textsearch/json")
-  url.searchParams.append("query", `${keywords} near ${lat},${lng}`)
+  url.searchParams.append("query", `${queryKeyword} near ${lat},${lng}`)
   url.searchParams.append("radius", radius.toString())
   url.searchParams.append("key", GOOGLE_MAPS_API_KEY)
   url.searchParams.append("language", "ja")
