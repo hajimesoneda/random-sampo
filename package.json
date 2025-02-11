@@ -4,14 +4,13 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
     "setup-db": "node --loader ts-node/esm scripts/setup-db.ts",
     "setup-stations-db": "node scripts/setup-stations-db.js",
     "seed": "node scripts/seed-stations.cjs",
-    "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev"
+    "prisma:generate": "prisma generate"
   },
   "dependencies": {
     "@googlemaps/js-api-loader": "^1.16.2",
