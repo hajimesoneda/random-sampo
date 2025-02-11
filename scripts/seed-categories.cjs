@@ -23,6 +23,10 @@ async function main() {
     })
   }
   console.log("Seeding completed.")
+
+  // Log all categories after seeding
+  const allCategories = await prisma.category.findMany()
+  console.log("All categories after seeding:", allCategories)
 }
 
 main()

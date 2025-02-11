@@ -187,6 +187,7 @@ export default function ClientHome({ session: initialSession, isGuest }: ClientH
     setSelectedCategories(newCategories)
     if (status === "authenticated") {
       try {
+        console.log("Sending categories update:", newCategories)
         const response = await fetch("/api/categories", {
           method: "POST",
           headers: {
@@ -198,8 +199,12 @@ export default function ClientHome({ session: initialSession, isGuest }: ClientH
           }),
         })
         if (!response.ok) {
-          throw new Error("Failed to update categories")
+          const errorData = await response.json()
+          console.error("Error response:", errorData)
+          throw new Error(errorData.error || "Failed to update categories")
         }
+        const result = await response.json()
+        console.log("Category update result:", result)
       } catch (error) {
         console.error("Error updating categories:", error)
         setError("カテゴリーの更新に失敗しました")

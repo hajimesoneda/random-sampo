@@ -47,47 +47,49 @@ export async function POST(request: Request) {
   const userId = Number.parseInt(session.user.id)
   const { categories, customCategories } = await request.json()
 
-  try {
-    // First, ensure all categories exist
-    const existingCategories = await prisma.category.findMany({
-      where: {
-        id: {
-          in: categories,
-        },
-      },
-    })
+  console.log("Received data:", { userId, categories, customCategories })
 
-    if (existingCategories.length !== categories.length) {
-      console.error(
-        "Some categories do not exist:",
-        categories.filter((id) => !existingCategories.some((cat) => cat.id === id)),
-      )
-      return NextResponse.json({ error: "Some categories do not exist" }, { status: 400 })
+  try {
+    // Ensure all categories exist in the database
+    for (const categoryId of categories) {
+      await prisma.category.upsert({
+        where: { id: categoryId },
+        update: {},
+        create: { id: categoryId, label: categoryId, type: categoryId },
+      })
     }
 
-    // Now perform the upsert operation
-    await prisma.categoryPreference.upsert({
+    // Fetch existing categories to ensure they're valid
+    const existingCategories = await prisma.category.findMany({
+      where: { id: { in: categories } },
+    })
+
+    const validCategoryIds = existingCategories.map((cat) => cat.id)
+
+    // Update the user's category preference
+    const result = await prisma.categoryPreference.upsert({
       where: { userId },
       update: {
         categories: {
-          set: categories.map((id: string) => ({ id })),
+          set: validCategoryIds.map((id) => ({ id })),
         },
         customCategories: customCategories || [],
       },
       create: {
         userId,
         categories: {
-          connect: categories.map((id: string) => ({ id })),
+          connect: validCategoryIds.map((id) => ({ id })),
         },
         customCategories: customCategories || [],
       },
     })
 
-    return NextResponse.json({ success: true })
+    console.log("Upsert result:", result)
+
+    return NextResponse.json({ success: true, result })
   } catch (error) {
     console.error("Error updating categories:", error)
-    return NextResponse.json({ error: "Failed to update categories" }, { status: 500 })
+    return NextResponse.json({ error: "Failed to update categories", details: error }, { status: 500 })
   }
 }
 
-	
