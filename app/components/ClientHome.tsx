@@ -113,6 +113,8 @@ export default function ClientHome({ session: initialSession, isGuest }: ClientH
       } catch (error) {
         console.error("スポットの更新エラー:", error)
         setError(error instanceof Error ? error.message : "スポットの更新に失敗しました")
+        // Set empty spots array to prevent undefined errors
+        setStation((prevStation) => (prevStation ? { ...prevStation, spots: [] } : null))
       }
     },
     [station],
@@ -326,7 +328,7 @@ export default function ClientHome({ session: initialSession, isGuest }: ClientH
                   Google Mapで開く
                 </Button>
                 <div className="mt-4 grid grid-cols-2 gap-4">
-                  {station.spots && station.spots.length > 0 ? (
+                  {station?.spots && station.spots.length > 0 ? (
                     station.spots.map((spot, index) => (
                       <SpotCard key={`${spot.id}-${index}`} {...spot} onClick={() => setSelectedSpot(spot)} />
                     ))

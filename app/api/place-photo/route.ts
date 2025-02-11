@@ -8,6 +8,7 @@ export async function GET(request: Request) {
     const reference = searchParams.get("reference")
 
     if (!reference) {
+      console.error("Photo reference is missing")
       return NextResponse.json({ error: "Photo reference is required" }, { status: 400 })
     }
 
@@ -15,6 +16,7 @@ export async function GET(request: Request) {
 
     const response = await fetch(url)
     if (!response.ok) {
+      console.error(`Failed to fetch photo: ${response.status} ${response.statusText}`)
       throw new Error(`Failed to fetch photo: ${response.statusText}`)
     }
 

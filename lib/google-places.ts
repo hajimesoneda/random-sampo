@@ -40,8 +40,8 @@ export async function fetchNearbyPlaces({
   url.searchParams.append("radius", radius.toString())
   url.searchParams.append("type", type)
   url.searchParams.append("key", GOOGLE_MAPS_API_KEY)
-  url.searchParams.append("language", "ja") // Add Japanese language parameter
-  url.searchParams.append("region", "jp") // Add Japan region parameter
+  url.searchParams.append("language", "ja")
+  url.searchParams.append("region", "jp")
 
   const response = await fetch(url.toString())
   if (!response.ok) {
