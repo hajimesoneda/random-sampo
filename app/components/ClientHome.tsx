@@ -23,6 +23,7 @@ import {
 import type { Session } from "next-auth"
 import { VisitedStations } from "@/components/visited-stations"
 import { categoryMapping } from "@/lib/category-mapping"
+import type { Category } from "@/types/category"
 
 interface ClientHomeProps {
   session?: Session | null
@@ -38,7 +39,7 @@ export default function ClientHome({ session: initialSession, isGuest }: ClientH
   const [selectedSpot, setSelectedSpot] = useState<Station["spots"][0] | null>(null)
   const [stationKey, setStationKey] = useState<string>("")
   const [isMounted, setIsMounted] = useState(false)
-  const [selectedCategories, setSelectedCategories] = useState<{ id: string; label: string; type: string }[]>([])
+  const [selectedCategories, setSelectedCategories] = useState<Category[]>([])
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [visitedStations, setVisitedStations] = useState<VisitInfo[]>([])
   const { data: session, status } = useSession()
@@ -183,7 +184,7 @@ export default function ClientHome({ session: initialSession, isGuest }: ClientH
     }
   }
 
-  const handleCategoryChange = async (newCategories: { id: string; label: string; type: string }[]) => {
+  const handleCategoryChange = async (newCategories: Category[]) => {
     setSelectedCategories(newCategories)
     if (status === "authenticated") {
       try {
@@ -212,7 +213,7 @@ export default function ClientHome({ session: initialSession, isGuest }: ClientH
     } else {
       localStorage.setItem("selectedSpotCategories", JSON.stringify(newCategories))
     }
-    updateStationSpots(newCategories)
+    updateStationSpots(newCategories as { id: string; label: string; type: string }[])
   }
 
   useEffect(() => {

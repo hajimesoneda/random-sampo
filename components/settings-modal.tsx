@@ -13,17 +13,18 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { categoryMapping } from "@/lib/category-mapping"
+import type { Category } from "@/types/category"
 
 interface SettingsModalProps {
   isOpen: boolean
   onClose: () => void
-  onCategoryChange: (categories: { id: string; label: string; type: string }[]) => void
-  initialCategories: { id: string; label: string; type: string }[]
+  onCategoryChange: (categories: Category[]) => void
+  initialCategories: Category[]
 }
 
 export function SettingsModal({ isOpen, onClose, onCategoryChange, initialCategories }: SettingsModalProps) {
-  const [categories, setCategories] = useState(initialCategories)
-  const [customCategories, setCustomCategories] = useState<{ id: string; label: string; type: string }[]>([])
+  const [categories, setCategories] = useState<Category[]>(initialCategories)
+  const [customCategories, setCustomCategories] = useState<Category[]>([])
   const [newCategoryLabel, setNewCategoryLabel] = useState("")
 
   useEffect(() => {
@@ -49,7 +50,7 @@ export function SettingsModal({ isOpen, onClose, onCategoryChange, initialCatego
 
   const handleAddCustomCategory = () => {
     if (newCategoryLabel.trim() && customCategories.length < 2) {
-      const newCategory = {
+      const newCategory: Category = {
         id: `custom_${Date.now()}`,
         label: newCategoryLabel.trim(),
         type: newCategoryLabel.trim().toLowerCase().replace(/\s+/g, "_"),
