@@ -265,21 +265,32 @@ export default function ClientHome({ session: initialSession, isGuest }: ClientH
         } catch (error) {
           console.error("Error fetching categories:", error)
           setError("カテゴリーの取得に失敗しました")
+          // エラー時はデフォルトカテゴリーを設定
+          setDefaultCategories()
         }
       } else {
         const storedCategories = localStorage.getItem("selectedSpotCategories")
         if (storedCategories) {
           setSelectedCategories(JSON.parse(storedCategories))
         } else {
-          const defaultCategories = Object.values(categoryMapping).slice(0, 4)
-          setSelectedCategories(defaultCategories)
-          localStorage.setItem("selectedSpotCategories", JSON.stringify(defaultCategories))
+          setDefaultCategories()
         }
       }
     }
 
     fetchCategories()
   }, [status])
+
+  const setDefaultCategories = () => {
+    const defaultCategories = [
+      categoryMapping.cafe,
+      categoryMapping.restaurant,
+      categoryMapping.public_bath,
+      categoryMapping.tourist_attraction,
+    ]
+    setSelectedCategories(defaultCategories)
+    localStorage.setItem("selectedSpotCategories", JSON.stringify(defaultCategories))
+  }
 
   useEffect(() => {
     randomizeCategories()

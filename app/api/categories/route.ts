@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth/next"
 import { authOptions } from "../auth/[...nextauth]/auth-options"
 import prisma from "@/lib/prisma"
 import type { Category } from "@/types/category"
+import { categoryMapping } from "@/lib/category-mapping"
 
 export async function GET() {
   const session = await getServerSession(authOptions)
@@ -20,9 +21,12 @@ export async function GET() {
     })
 
     if (!userPreference) {
-      const defaultCategories = await prisma.category.findMany({
-        take: 4,
-      })
+      const defaultCategories = [
+        categoryMapping.cafe,
+        categoryMapping.restaurant,
+        categoryMapping.public_bath,
+        categoryMapping.tourist_attraction,
+      ]
       return NextResponse.json({ categories: defaultCategories })
     }
 
@@ -84,8 +88,8 @@ export async function POST(request: Request) {
       update: {
         categories: {
           set: categories
-            .map((label: string) => {
-              const dbCategory = dbCategories.find((cat) => cat.label === label)
+            .map((categoryId: string) => {
+              const dbCategory = dbCategories.find((cat) => cat.id === categoryId)
               return dbCategory ? { id: dbCategory.id } : null
             })
             .filter(Boolean),
@@ -96,8 +100,8 @@ export async function POST(request: Request) {
         userId,
         categories: {
           connect: categories
-            .map((label: string) => {
-              const dbCategory = dbCategories.find((cat) => cat.label === label)
+            .map((categoryId: string) => {
+              const dbCategory = dbCategories.find((cat) => cat.id === categoryId)
               return dbCategory ? { id: dbCategory.id } : null
             })
             .filter(Boolean),
