@@ -328,13 +328,7 @@ export default function ClientHome({ session: initialSession, isGuest }: ClientH
                 <div className="mt-4 grid grid-cols-2 gap-4">
                   {station.spots && station.spots.length > 0 ? (
                     station.spots.map((spot, index) => (
-                      <SpotCard
-                        key={`${spot.id}-${index}`}
-                        {...spot}
-                        onClick={() => setSelectedSpot(spot)}
-                        categoryLabel={selectedCategories.find((cat) => cat.id === spot.type)?.label || spot.type}
-                        photo={spot.photo || "/placeholder.svg?height=100&width=100"}
-                      />
+                      <SpotCard key={`${spot.id}-${index}`} {...spot} onClick={() => setSelectedSpot(spot)} />
                     ))
                   ) : (
                     <p className="col-span-2 text-center text-muted-foreground">

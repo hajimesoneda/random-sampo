@@ -40,6 +40,8 @@ export async function fetchNearbyPlaces({
   url.searchParams.append("radius", radius.toString())
   url.searchParams.append("type", type)
   url.searchParams.append("key", GOOGLE_MAPS_API_KEY)
+  url.searchParams.append("language", "ja") // Add Japanese language parameter
+  url.searchParams.append("region", "jp") // Add Japan region parameter
 
   const response = await fetch(url.toString())
   if (!response.ok) {
@@ -55,7 +57,7 @@ export async function fetchNearbyPlaces({
     lng: place.geometry.location.lng,
     type: type,
     photo: place.photos?.[0]
-      ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photo_reference=${place.photos[0].photo_reference}&key=${GOOGLE_MAPS_API_KEY}`
+      ? `/api/place-photo?reference=${place.photos[0].photo_reference}`
       : "/placeholder.svg?height=400&width=400",
   }))
 }
