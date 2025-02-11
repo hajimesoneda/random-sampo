@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { useSession } from "next-auth/react"
+import { useSession, signOut } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import type { Station, FavoriteStation } from "@/types/station"
 import { toggleFavoriteStation, getFavoriteStations, getVisitedStations } from "@/app/actions/index"
@@ -175,7 +175,7 @@ export default function ClientHome({ session: initialSession, isGuest }: ClientH
   }
 
   const handleLogout = () => {
-    // Implement logout logic here
+    signOut({ callbackUrl: "/login" })
   }
 
   const handleCategoryChange = async (newCategories: { id: string; label: string; type: string }[]) => {
