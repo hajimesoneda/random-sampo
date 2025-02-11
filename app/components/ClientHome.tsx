@@ -25,6 +25,7 @@ import { VisitedStations } from "@/components/visited-stations"
 import { categoryMapping } from "@/lib/category-mapping"
 import type { Category } from "@/types/category"
 import { shuffleArray } from "@/utils/array-utils"
+import { Badge } from "@/components/ui/badge"
 
 interface ClientHomeProps {
   session?: Session | null
@@ -323,6 +324,12 @@ export default function ClientHome({ session: initialSession, isGuest }: ClientH
 
   const Map = dynamic(() => import("@/components/map"), { ssr: false })
 
+  // カテゴリーIDからラベルを取得する関数
+  function getCategoryLabel(categoryId: string): string {
+    const category = Object.values(categoryMapping).find((cat) => cat.id === categoryId)
+    return category ? category.label : categoryId
+  }
+
   return (
     <main className="container max-w-md mx-auto p-4">
       <div className="flex justify-between items-center mb-4">
@@ -409,7 +416,10 @@ export default function ClientHome({ session: initialSession, isGuest }: ClientH
                 <div className="mt-4 grid grid-cols-2 gap-4">
                   {station?.spots && station.spots.length > 0 ? (
                     station.spots.map((spot, index) => (
-                      <SpotCard key={`${spot.id}-${index}`} {...spot} onClick={() => setSelectedSpot(spot)} />
+                      <div key={`${spot.id}-${index}`} className="relative">
+                        <SpotCard {...spot} onClick={() => setSelectedSpot(spot)} />
+                        <Badge className="absolute top-2 right-2 z-10">{getCategoryLabel(spot.type)}</Badge>
+                      </div>
                     ))
                   ) : (
                     <p className="col-span-2 text-center text-muted-foreground">

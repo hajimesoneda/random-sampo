@@ -13,6 +13,8 @@ export async function GET(request: Request, { params }: { params: { id: string }
   const categories: string[] = categoriesParam ? JSON.parse(categoriesParam) : []
 
   try {
+    console.log(`Fetching spots for station ${stationId} with categories:`, categories)
+
     const station = await prisma.station.findUnique({
       where: { id: stationId },
       select: { lat: true, lng: true },
@@ -45,6 +47,9 @@ export async function GET(request: Request, { params }: { params: { id: string }
       ...customCategories,
     ]
 
+    console.log("Fetching spots for categories:", allCategories)
+
+    // カテゴリーごとのスポットを取得
     const spotsPromises = allCategories.map(async (category) => {
       const spots = await fetchNearbyPlaces({
         lat: station.lat,
@@ -52,63 +57,57 @@ export async function GET(request: Request, { params }: { params: { id: string }
         type: category.id,
         radius: 1000,
       })
-      return spots.map((spot) => ({ ...spot, categoryId: category.id }))
+      return { categoryId: category.id, spots }
     })
 
-    const allSpots = (await Promise.all(spotsPromises)).flat()
+    const results = await Promise.all(spotsPromises)
+    const validResults = results.filter((result) => result.spots.length > 0)
 
-    // カテゴリーごとにスポットを分類
-    const spotsByCategory: { [key: string]: Spot[] } = {}
-    allSpots.forEach((spot) => {
-      if (!spotsByCategory[spot.categoryId]) {
-        spotsByCategory[spot.categoryId] = []
-      }
-      spotsByCategory[spot.categoryId].push(spot)
-    })
+    if (validResults.length === 0) {
+      return NextResponse.json({ spots: [] })
+    }
 
+    // ここからがシャッフルと選択のロジック
     const selectedSpots: Spot[] = []
-    const availableCategories = Object.keys(spotsByCategory)
 
-    // できるだけ多様なカテゴリーから選択
-    while (selectedSpots.length < 4 && availableCategories.length > 0) {
-      const categoryIndex = Math.floor(Math.random() * availableCategories.length)
-      const categoryId = availableCategories[categoryIndex]
-      const categorySpots = spotsByCategory[categoryId]
+    // 1. まず、各カテゴリーの結果をシャッフル
+    const shuffledCategories = shuffleArray([...validResults])
 
-      if (categorySpots.length > 0) {
-        const spotIndex = Math.floor(Math.random() * categorySpots.length)
-        const selectedSpot = categorySpots[spotIndex]
+    // 2. 各カテゴリーから最低1つのスポットを選択（可能な場合）
+    for (const category of shuffledCategories) {
+      if (selectedSpots.length >= 4) break
 
-        if (!selectedSpots.some((spot) => spot.id === selectedSpot.id)) {
-          selectedSpots.push(selectedSpot)
-          categorySpots.splice(spotIndex, 1)
-        }
+      const shuffledSpots = shuffleArray([...category.spots])
+      const spot = shuffledSpots[0]
 
-        if (categorySpots.length === 0) {
-          availableCategories.splice(categoryIndex, 1)
-        }
-      } else {
-        availableCategories.splice(categoryIndex, 1)
+      if (spot && !selectedSpots.some((s) => s.id === spot.id)) {
+        selectedSpots.push(spot)
       }
     }
 
-    // 4つのスポットが選択されていない場合、残りのスポットからランダムに選択
+    // 3. まだ4つに満たない場合、残りのスポットからランダムに追加
     if (selectedSpots.length < 4) {
-      const remainingSpots = allSpots.filter((spot) => !selectedSpots.some((s) => s.id === spot.id))
-      while (selectedSpots.length < 4 && remainingSpots.length > 0) {
-        const index = Math.floor(Math.random() * remainingSpots.length)
-        selectedSpots.push(remainingSpots[index])
-        remainingSpots.splice(index, 1)
+      const remainingSpots = shuffledCategories
+        .flatMap((category) => category.spots)
+        .filter((spot) => !selectedSpots.some((s) => s.id === spot.id))
+
+      const shuffledRemaining = shuffleArray(remainingSpots)
+
+      for (const spot of shuffledRemaining) {
+        if (selectedSpots.length >= 4) break
+        if (!selectedSpots.some((s) => s.id === spot.id)) {
+          selectedSpots.push(spot)
+        }
       }
     }
 
-    // 選択されたスポットの順番をシャッフル
-    const shuffledSpots = shuffleArray(selectedSpots)
+    // 4. 最終的な結果をシャッフル
+    const finalSpots = shuffleArray(selectedSpots)
 
-    return NextResponse.json({ spots: shuffledSpots })
+    return NextResponse.json({ spots: finalSpots })
   } catch (error) {
     console.error("Error fetching spots:", error)
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 })
+    return NextResponse.json({ error: "スポットの取得中にエラーが発生しました。" }, { status: 500 })
   }
 }
 
