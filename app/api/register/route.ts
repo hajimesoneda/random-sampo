@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { db } from "@/src/db"
 import { users } from "@/src/db/schema"
-import bcrypt from "bcryptjs"
+import bcrypt from "bcrypt"
 import { eq } from "drizzle-orm"
 
 export async function POST(req: Request) {

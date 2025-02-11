@@ -11,6 +11,7 @@ export default async function Home({
   const session = await getServerSession(authOptions)
   const isGuest = searchParams.guest === "true"
 
+  // Don't redirect if user is authenticated or accessing as guest
   if (!session && !isGuest) {
     redirect("/login")
   }

@@ -2,7 +2,7 @@ import CredentialsProvider from "next-auth/providers/credentials"
 import { db } from "@/src/db"
 import { users } from "@/src/db/schema"
 import { eq } from "drizzle-orm"
-import bcrypt from "bcryptjs"
+import bcrypt from "bcrypt"
 import type { AuthOptions } from "next-auth"
 
 export const authOptions: AuthOptions = {

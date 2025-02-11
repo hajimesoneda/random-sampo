@@ -25,7 +25,7 @@ import { VisitedStations } from "@/components/visited-stations"
 
 interface ClientHomeProps {
   session?: Session | null
-  isGuest: boolean
+  isGuest?: boolean
 }
 
 export default function ClientHome({ session: initialSession, isGuest }: ClientHomeProps) {
@@ -49,16 +49,21 @@ export default function ClientHome({ session: initialSession, isGuest }: ClientH
   }
 
   const fetchStation = useCallback(async (url: string) => {
-    const response = await fetch(url)
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
-      throw new Error(errorData.error || `HTTP error! status: ${response.status}`)
+    try {
+      const response = await fetch(url)
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`)
+      }
+      const newStation = await response.json()
+      if (!newStation || typeof newStation !== "object") {
+        throw new Error("Invalid station data received")
+      }
+      return newStation
+    } catch (error) {
+      console.error("Station fetch error:", error)
+      throw error
     }
-    const newStation = await response.json()
-    if (!newStation || typeof newStation !== "object") {
-      throw new Error("Invalid station data received")
-    }
-    return newStation
   }, [])
 
   const pickStation = useCallback(
@@ -78,7 +83,11 @@ export default function ClientHome({ session: initialSession, isGuest }: ClientH
         setStationKey(Date.now().toString())
       } catch (error) {
         console.error("駅の取得エラー:", error)
-        setError(error instanceof Error ? error.message : "予期せぬエラーが発生しました")
+        setError(
+          error instanceof Error
+            ? error.message
+            : "駅の取得中にエラーが発生しました。しばらく待ってから再度お試しください。",
+        )
       } finally {
         setLoading(false)
       }
@@ -172,14 +181,6 @@ export default function ClientHome({ session: initialSession, isGuest }: ClientH
     updateStationSpots(newCategories)
   }
 
-  const handleVisitRecord = () => {
-    if (status === "authenticated" || isGuest) {
-      router.push(`/visit/${encodeURIComponent(station!.id)}`)
-    } else {
-      router.push("/login")
-    }
-  }
-
   useEffect(() => {
     setIsMounted(true)
   }, [])
@@ -268,10 +269,8 @@ export default function ClientHome({ session: initialSession, isGuest }: ClientH
 
       {session?.user?.email ? (
         <p className="mb-4">ようこそ、{session.user.email}さん</p>
-      ) : isGuest ? (
-        <p className="mb-4">ゲストとして利用中</p>
       ) : (
-        <p className="mb-4">ログインしていません</p>
+        <p className="mb-4">ゲストとして利用中</p>
       )}
 
       {error && (
@@ -358,9 +357,9 @@ export default function ClientHome({ session: initialSession, isGuest }: ClientH
                   </Button>
                 </div>
                 <div className="mt-4">
-                  <Button className="w-full" onClick={handleVisitRecord}>
-                    訪問を記録
-                  </Button>
+                  <Link href={`/visit/${encodeURIComponent(station.id)}`}>
+                    <Button className="w-full">訪問を記録</Button>
+                  </Link>
                 </div>
               </CardContent>
             </Card>
