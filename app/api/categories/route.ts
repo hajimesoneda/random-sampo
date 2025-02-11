@@ -48,6 +48,24 @@ export async function POST(request: Request) {
   const { categories, customCategories } = await request.json()
 
   try {
+    // First, ensure all categories exist
+    const existingCategories = await prisma.category.findMany({
+      where: {
+        id: {
+          in: categories,
+        },
+      },
+    })
+
+    if (existingCategories.length !== categories.length) {
+      console.error(
+        "Some categories do not exist:",
+        categories.filter((id) => !existingCategories.some((cat) => cat.id === id)),
+      )
+      return NextResponse.json({ error: "Some categories do not exist" }, { status: 400 })
+    }
+
+    // Now perform the upsert operation
     await prisma.categoryPreference.upsert({
       where: { userId },
       update: {
@@ -72,3 +90,4 @@ export async function POST(request: Request) {
   }
 }
 
+	
