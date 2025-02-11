@@ -10,7 +10,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
   const stationId = params.id
   const { searchParams } = new URL(request.url)
   const categoriesParam = searchParams.get("categories")
-  const categoryLabels: string[] = categoriesParam ? JSON.parse(categoriesParam) : []
+  const categoryIds: string[] = categoriesParam ? JSON.parse(categoriesParam) : []
 
   try {
     const stationResult = await db.select().from(stations).where(eq(stations.id, stationId)).limit(1)
@@ -22,7 +22,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
     const station = stationResult[0]
 
     // Fetch categories from the database
-    const dbCategories = await db.select().from(categories).where(inArray(categories.label, categoryLabels))
+    const dbCategories = await db.select().from(categories).where(inArray(categories.id, categoryIds))
 
     // Fetch custom categories from user preferences
     const customCategoriesResult = await db
@@ -35,7 +35,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
     const customCategories: Category[] = customCategoriesResult[0]?.customCategories
       ? (JSON.parse(customCategoriesResult[0].customCategories as string) as any[])
           .filter(isValidCategory)
-          .filter((cat) => categoryLabels.includes(cat.label))
+          .filter((cat) => categoryIds.includes(cat.id))
       : []
 
     // Combine database categories and custom categories

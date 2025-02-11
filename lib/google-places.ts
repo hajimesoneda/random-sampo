@@ -41,9 +41,10 @@ export async function fetchNearbyPlaces({
 }): Promise<Spot[]> {
   const apiType = getCategoryType(type)
   const keywords = getCategoryKeywords(type) || type
+  const isCustomCategory = type.startsWith("custom_")
 
-  // カスタムカテゴリーの場合、typeをキーワードとして使用
-  const queryKeyword = type.startsWith("custom_") ? keywords : type
+  // カスタムカテゴリーの場合はキーワードを、それ以外は日本語ラベルと英語タイプの両方を使用
+  const queryKeyword = isCustomCategory ? keywords : `${keywords} ${apiType}`
 
   console.log(
     `Fetching places for type: ${type}, API type: ${apiType}, keywords: ${keywords}, queryKeyword: ${queryKeyword}`,
@@ -57,7 +58,7 @@ export async function fetchNearbyPlaces({
   url.searchParams.append("region", "jp")
 
   // 事前定義されたカテゴリーの場合のみ、typeパラメータを追加
-  if (apiType !== "point_of_interest") {
+  if (!isCustomCategory && apiType !== "point_of_interest") {
     url.searchParams.append("type", Array.isArray(apiType) ? apiType[0] : apiType)
   }
 
@@ -77,7 +78,12 @@ export async function fetchNearbyPlaces({
 
   console.log(`Found ${data.results.length} results for type ${type}`)
 
-  return data.results.map((place) => ({
+  // 各カテゴリーごとに1~2個のスポットをランダムに選択
+  const numSpots = Math.floor(Math.random() * 2) + 1
+  const shuffledResults = shuffleArray(data.results)
+  const selectedResults = shuffledResults.slice(0, numSpots)
+
+  return selectedResults.map((place) => ({
     id: place.place_id,
     name: place.name,
     lat: place.geometry.location.lat,
@@ -85,5 +91,15 @@ export async function fetchNearbyPlaces({
     type: type,
     photo: place.photos?.[0]?.photo_reference || "/placeholder.svg?height=400&width=400",
   }))
+}
+
+// shuffleArray関数をこのファイルにも追加
+function shuffleArray<T>(array: T[]): T[] {
+  const shuffled = [...array]
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+  }
+  return shuffled
 }
 

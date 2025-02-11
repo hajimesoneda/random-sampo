@@ -24,6 +24,7 @@ import type { Session } from "next-auth"
 import { VisitedStations } from "@/components/visited-stations"
 import { categoryMapping } from "@/lib/category-mapping"
 import type { Category } from "@/types/category"
+import { shuffleArray } from "@/utils/array-utils"
 
 interface ClientHomeProps {
   session?: Session | null
@@ -42,6 +43,7 @@ export default function ClientHome({ session: initialSession, isGuest }: ClientH
   const [selectedCategories, setSelectedCategories] = useState<Category[]>([])
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [visitedStations, setVisitedStations] = useState<VisitInfo[]>([])
+  const [randomizedCategories, setRandomizedCategories] = useState<Category[]>([])
   const { data: session, status } = useSession()
   const router = useRouter()
 
@@ -75,7 +77,7 @@ export default function ClientHome({ session: initialSession, isGuest }: ClientH
       setSelectedSpot(null)
       setError(null)
       try {
-        const categoriesParam = encodeURIComponent(JSON.stringify(selectedCategories.map((cat) => cat.id)))
+        const categoriesParam = encodeURIComponent(JSON.stringify(randomizedCategories.map((cat) => cat.id)))
         const url = stationId
           ? `/api/station/${encodeURIComponent(stationId)}?categories=${categoriesParam}`
           : `/api/random-station?categories=${categoriesParam}`
@@ -94,7 +96,7 @@ export default function ClientHome({ session: initialSession, isGuest }: ClientH
         setLoading(false)
       }
     },
-    [selectedCategories, fetchStation],
+    [randomizedCategories, fetchStation],
   )
 
   const updateStationSpots = useCallback(
@@ -216,6 +218,12 @@ export default function ClientHome({ session: initialSession, isGuest }: ClientH
     updateStationSpots(newCategories)
   }
 
+  const randomizeCategories = useCallback(() => {
+    const shuffled = shuffleArray([...selectedCategories])
+    const numCategories = Math.min(Math.floor(Math.random() * 3) + 1, shuffled.length) // 1~3個のカテゴリーをランダムに選択
+    setRandomizedCategories(shuffled.slice(0, numCategories))
+  }, [selectedCategories])
+
   useEffect(() => {
     setIsMounted(true)
   }, [])
@@ -261,6 +269,10 @@ export default function ClientHome({ session: initialSession, isGuest }: ClientH
 
     fetchCategories()
   }, [status])
+
+  useEffect(() => {
+    randomizeCategories()
+  }, [selectedCategories, randomizeCategories])
 
   useEffect(() => {
     const loadVisitedStations = async () => {
