@@ -1,33 +1,33 @@
-import { withAuth } from "next-auth/middleware"
 import { NextResponse } from "next/server"
+import { getToken } from "next-auth/jwt"
+import type { NextRequest } from "next/server"
 
-export default withAuth(
-  function middleware(req) {
-    // Allow guest access to the main page
-    if (req.nextUrl.pathname === "/") {
-      return NextResponse.next()
-    }
+export async function middleware(request: NextRequest) {
+  const token = await getToken({ req: request })
+  const isAuthenticated = !!token
 
-    // Allow access to login and register pages
-    if (["/login", "/register"].includes(req.nextUrl.pathname)) {
-      return NextResponse.next()
-    }
+  const isAuthPage = request.nextUrl.pathname.startsWith("/login") || request.nextUrl.pathname.startsWith("/register")
+  const isApiRoute = request.nextUrl.pathname.startsWith("/api")
 
-    // For all other routes, ensure the user is authenticated
-    if (!req.nextauth.token && !req.nextUrl.pathname.startsWith("/api")) {
-      return NextResponse.redirect(new URL("/login", req.url))
-    }
-
+  // Allow access to public routes and API routes
+  if (request.nextUrl.pathname === "/" || isApiRoute) {
     return NextResponse.next()
-  },
-  {
-    callbacks: {
-      authorized: ({ token }) => !!token,
-    },
-  },
-)
+  }
+
+  // Redirect authenticated users away from auth pages
+  if (isAuthenticated && isAuthPage) {
+    return NextResponse.redirect(new URL("/", request.url))
+  }
+
+  // Redirect unauthenticated users to login page for protected routes
+  if (!isAuthenticated && !isAuthPage) {
+    return NextResponse.redirect(new URL("/login", request.url))
+  }
+
+  return NextResponse.next()
+}
 
 export const config = {
-  matcher: ["/((?!api/auth|_next/static|_next/image|favicon.ico).*)"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
 }
 
