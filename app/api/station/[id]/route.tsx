@@ -76,6 +76,25 @@ async function fetchSpots(lat: number, lng: number, categories: Category[]) {
   })
 
   const spotsArrays = await Promise.all(spotsPromises)
-  return spotsArrays.flat().slice(0, 4) // Limit to 4 spots total
+  const allSpots = spotsArrays.flat()
+
+  // スポットが見つからない場合のエラーハンドリング
+  if (allSpots.length === 0) {
+    console.warn("No spots found for any category")
+    return []
+  }
+
+  // 最大4つのスポットをランダムに選択
+  return shuffleArray(allSpots).slice(0, 4)
+}
+
+// shuffleArray関数を追加
+function shuffleArray<T>(array: T[]): T[] {
+  const shuffled = [...array]
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+  }
+  return shuffled
 }
 

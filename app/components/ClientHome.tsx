@@ -77,7 +77,9 @@ export default function ClientHome({ session: initialSession, isGuest }: ClientH
       setSelectedSpot(null)
       setError(null)
       try {
-        const categoriesParam = encodeURIComponent(JSON.stringify(randomizedCategories.map((cat) => cat.id)))
+        // ランダム化されたカテゴリーが空の場合、すべてのカテゴリーを使用
+        const categoriesToUse = randomizedCategories.length > 0 ? randomizedCategories : selectedCategories
+        const categoriesParam = encodeURIComponent(JSON.stringify(categoriesToUse.map((cat) => cat.id)))
         const url = stationId
           ? `/api/station/${encodeURIComponent(stationId)}?categories=${categoriesParam}`
           : `/api/random-station?categories=${categoriesParam}`
@@ -96,7 +98,7 @@ export default function ClientHome({ session: initialSession, isGuest }: ClientH
         setLoading(false)
       }
     },
-    [randomizedCategories, fetchStation],
+    [randomizedCategories, selectedCategories, fetchStation],
   )
 
   const updateStationSpots = useCallback(
@@ -220,7 +222,7 @@ export default function ClientHome({ session: initialSession, isGuest }: ClientH
 
   const randomizeCategories = useCallback(() => {
     const shuffled = shuffleArray([...selectedCategories])
-    const numCategories = Math.min(Math.floor(Math.random() * 3) + 1, shuffled.length) // 1~3個のカテゴリーをランダムに選択
+    const numCategories = Math.min(Math.max(2, Math.floor(Math.random() * 4)), shuffled.length) // 2~3個のカテゴリーをランダムに選択
     setRandomizedCategories(shuffled.slice(0, numCategories))
   }, [selectedCategories])
 

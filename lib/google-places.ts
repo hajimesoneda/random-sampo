@@ -78,12 +78,8 @@ export async function fetchNearbyPlaces({
 
   console.log(`Found ${data.results.length} results for type ${type}`)
 
-  // 各カテゴリーごとに1~2個のスポットをランダムに選択
-  const numSpots = Math.floor(Math.random() * 2) + 1
-  const shuffledResults = shuffleArray(data.results)
-  const selectedResults = shuffledResults.slice(0, numSpots)
-
-  return selectedResults.map((place) => ({
+  // 最大10個のスポットを返す
+  return data.results.slice(0, 10).map((place) => ({
     id: place.place_id,
     name: place.name,
     lat: place.geometry.location.lat,
@@ -91,15 +87,5 @@ export async function fetchNearbyPlaces({
     type: type,
     photo: place.photos?.[0]?.photo_reference || "/placeholder.svg?height=400&width=400",
   }))
-}
-
-// shuffleArray関数をこのファイルにも追加
-function shuffleArray<T>(array: T[]): T[] {
-  const shuffled = [...array]
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1))
-    ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
-  }
-  return shuffled
 }
 
