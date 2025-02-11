@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { fetchNearbyPlaces } from "@/lib/google-places"
 import prisma from "@/lib/prisma"
 import type { Category } from "@/types/category"
+import { isValidCategory } from "@/types/category"
 import type { Spot } from "@/types/station"
 
 export async function GET(request: Request, { params }: { params: { id: string } }) {
@@ -27,10 +28,17 @@ export async function GET(request: Request, { params }: { params: { id: string }
     })
 
     // Fetch custom categories from user preferences
-    const customCategories = await prisma.categoryPreference.findMany({
+    const customCategoriesResult = await prisma.categoryPreference.findFirst({
       where: { categories: { some: { id: { in: categories } } } },
       select: { customCategories: true },
     })
+
+    // Parse and validate custom categories
+    const customCategories: Category[] = customCategoriesResult?.customCategories
+      ? (JSON.parse(customCategoriesResult.customCategories as string) as unknown[])
+          .filter(isValidCategory)
+          .filter((cat) => categories.includes(cat.id))
+      : []
 
     // Combine database categories and custom categories
     const allCategories: Category[] = [
@@ -38,7 +46,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
         ...cat,
         type: cat.type.includes(",") ? cat.type.split(",") : cat.type,
       })),
-      ...((customCategories[0]?.customCategories as Category[]) || []),
+      ...customCategories,
     ]
 
     // Fetch spots for each category in parallel
