@@ -47,8 +47,8 @@ export async function GET(request: Request, { params }: { params: { id: string }
       ...customCategories,
     ]
 
-    // Fetch spots for the station
-    const spots = await fetchSpots(station.lat, station.lng, allCategories)
+    // Fetch spots for the station with category distribution
+    const spots = await fetchSpotsWithDistribution(station.lat, station.lng, allCategories)
 
     return NextResponse.json({
       id: station.id,
@@ -64,7 +64,8 @@ export async function GET(request: Request, { params }: { params: { id: string }
   }
 }
 
-async function fetchSpots(lat: number, lng: number, categories: Category[]) {
+async function fetchSpotsWithDistribution(lat: number, lng: number, categories: Category[]) {
+  // カテゴリーごとのスポット取得を並行実行
   const spotsPromises = categories.map(async (category) => {
     const spots = await fetchNearbyPlaces({
       lat,
@@ -75,20 +76,44 @@ async function fetchSpots(lat: number, lng: number, categories: Category[]) {
     return spots.map((spot) => ({ ...spot, type: category.label }))
   })
 
-  const spotsArrays = await Promise.all(spotsPromises)
-  const allSpots = spotsArrays.flat()
+  try {
+    const spotsArrays = await Promise.all(spotsPromises)
 
-  // スポットが見つからない場合のエラーハンドリング
-  if (allSpots.length === 0) {
-    console.warn("No spots found for any category")
+    // カテゴリーごとの結果を確認
+    spotsArrays.forEach((spots, index) => {
+      console.log(`Category ${categories[index].label}: found ${spots.length} spots`)
+    })
+
+    // 各カテゴリーから少なくとも1つのスポットを確保しつつ、
+    // 合計で最大4つになるように調整
+    let distributedSpots: any[] = []
+    let remainingSpots: any[] = []
+
+    spotsArrays.forEach((categorySpots, index) => {
+      if (categorySpots.length > 0) {
+        // 各カテゴリーから1つ目のスポットを追加
+        distributedSpots.push(categorySpots[0])
+        // 残りのスポットは後で使用するために保存
+        if (categorySpots.length > 1) {
+          remainingSpots = remainingSpots.concat(categorySpots.slice(1))
+        }
+      }
+    })
+
+    // もし4つに満たない場合、残りのスポットからランダムに追加
+    if (distributedSpots.length < 4 && remainingSpots.length > 0) {
+      const shuffledRemaining = shuffleArray(remainingSpots)
+      distributedSpots = distributedSpots.concat(shuffledRemaining.slice(0, 4 - distributedSpots.length))
+    }
+
+    // 結果をシャッフルして返す
+    return shuffleArray(distributedSpots)
+  } catch (error) {
+    console.error("Error fetching spots:", error)
     return []
   }
-
-  // 最大4つのスポットをランダムに選択
-  return shuffleArray(allSpots).slice(0, 4)
 }
 
-// shuffleArray関数を追加
 function shuffleArray<T>(array: T[]): T[] {
   const shuffled = [...array]
   for (let i = shuffled.length - 1; i > 0; i--) {

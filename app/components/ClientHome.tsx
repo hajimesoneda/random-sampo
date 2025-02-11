@@ -222,8 +222,17 @@ export default function ClientHome({ session: initialSession, isGuest }: ClientH
 
   const randomizeCategories = useCallback(() => {
     const shuffled = shuffleArray([...selectedCategories])
-    const numCategories = Math.min(Math.max(2, Math.floor(Math.random() * 4)), shuffled.length) // 2~3個のカテゴリーをランダムに選択
-    setRandomizedCategories(shuffled.slice(0, numCategories))
+    // 2〜4個のカテゴリーを選択（利用可能なカテゴリー数に応じて）
+    const numCategories = Math.min(Math.max(2, Math.floor(Math.random() * 3) + 2), shuffled.length)
+    const randomized = shuffled.slice(0, numCategories)
+
+    // 選択されたカテゴリーをログ出力
+    console.log(
+      "Randomized categories:",
+      randomized.map((cat) => cat.label),
+    )
+
+    setRandomizedCategories(randomized)
   }, [selectedCategories])
 
   useEffect(() => {
