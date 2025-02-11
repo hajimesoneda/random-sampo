@@ -29,15 +29,19 @@ export function SettingsModal({ isOpen, onClose, onCategoryChange, initialCatego
 
   useEffect(() => {
     setCategories(initialCategories)
-    setCustomCategories(initialCategories.filter((cat) => cat.id.startsWith("custom_")))
+    setCustomCategories(
+      initialCategories.filter(
+        (cat) => !Object.values(categoryMapping).some((defaultCat) => defaultCat.label === cat.label),
+      ),
+    )
   }, [initialCategories])
 
-  const handleCategoryChange = (id: string, checked: boolean | string) => {
+  const handleCategoryChange = (label: string, checked: boolean | string) => {
     setCategories((prevCategories) => {
       const updatedCategories = [...prevCategories]
-      const index = updatedCategories.findIndex((cat) => cat.id === id)
+      const index = updatedCategories.findIndex((cat) => cat.label === label)
       if (Boolean(checked) && index === -1) {
-        const category = [...Object.values(categoryMapping), ...customCategories].find((cat) => cat.id === id)
+        const category = [...Object.values(categoryMapping), ...customCategories].find((cat) => cat.label === label)
         if (category) {
           updatedCategories.push(category)
         }
@@ -75,27 +79,27 @@ export function SettingsModal({ isOpen, onClose, onCategoryChange, initialCatego
         </DialogHeader>
         <div className="space-y-4">
           {Object.values(categoryMapping).map((category) => (
-            <div key={category.id} className="flex items-center">
+            <div key={category.label} className="flex items-center">
               <Checkbox
-                id={category.id}
-                checked={categories.some((cat) => cat.id === category.id)}
-                onCheckedChange={(checked) => handleCategoryChange(category.id, checked)}
-                disabled={categories.length >= 6 && !categories.some((cat) => cat.id === category.id)}
+                id={category.label}
+                checked={categories.some((cat) => cat.label === category.label)}
+                onCheckedChange={(checked) => handleCategoryChange(category.label, checked)}
+                disabled={categories.length >= 6 && !categories.some((cat) => cat.label === category.label)}
               />
-              <label htmlFor={category.id} className="ml-2">
+              <label htmlFor={category.label} className="ml-2">
                 {category.label}
               </label>
             </div>
           ))}
           {customCategories.map((category) => (
-            <div key={category.id} className="flex items-center">
+            <div key={category.label} className="flex items-center">
               <Checkbox
-                id={category.id}
-                checked={categories.some((cat) => cat.id === category.id)}
-                onCheckedChange={(checked) => handleCategoryChange(category.id, checked)}
-                disabled={categories.length >= 6 && !categories.some((cat) => cat.id === category.id)}
+                id={category.label}
+                checked={categories.some((cat) => cat.label === category.label)}
+                onCheckedChange={(checked) => handleCategoryChange(category.label, checked)}
+                disabled={categories.length >= 6 && !categories.some((cat) => cat.label === category.label)}
               />
-              <label htmlFor={category.id} className="ml-2">
+              <label htmlFor={category.label} className="ml-2">
                 {category.label}
               </label>
             </div>

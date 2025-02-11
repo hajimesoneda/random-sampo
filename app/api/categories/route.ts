@@ -75,28 +75,32 @@ export async function POST(request: Request) {
       keywords: cat.keywords ? String(cat.keywords) : undefined,
     }))
 
-    // Ensure all categories exist in the database
-    for (const categoryId of categories) {
-      const category = await prisma.category.findUnique({ where: { id: categoryId } })
-      if (!category) {
-        console.error(`Category ${categoryId} not found in the database`)
-        return NextResponse.json({ error: `Category ${categoryId} not found` }, { status: 400 })
-      }
-    }
+    // Fetch all categories from the database
+    const dbCategories = await prisma.category.findMany()
 
     // Update the user's category preference
     const result = await prisma.categoryPreference.upsert({
       where: { userId },
       update: {
         categories: {
-          set: categories.map((id: string) => ({ id })),
+          set: categories
+            .map((label: string) => {
+              const dbCategory = dbCategories.find((cat) => cat.label === label)
+              return dbCategory ? { id: dbCategory.id } : null
+            })
+            .filter(Boolean),
         },
         customCategories: validatedCustomCategories,
       },
       create: {
         userId,
         categories: {
-          connect: categories.map((id: string) => ({ id })),
+          connect: categories
+            .map((label: string) => {
+              const dbCategory = dbCategories.find((cat) => cat.label === label)
+              return dbCategory ? { id: dbCategory.id } : null
+            })
+            .filter(Boolean),
         },
         customCategories: validatedCustomCategories,
       },
@@ -114,12 +118,12 @@ export async function POST(request: Request) {
       throw new Error("Failed to fetch updated categories")
     }
 
-    const dbCategories = updatedPreference.categories.map((cat) => ({
+    const updatedDbCategories = updatedPreference.categories.map((cat) => ({
       ...cat,
       type: cat.type.includes(",") ? cat.type.split(",") : cat.type,
     }))
 
-    const allCategories = [...dbCategories, ...validatedCustomCategories]
+    const allCategories = [...updatedDbCategories, ...validatedCustomCategories]
 
     return NextResponse.json({ success: true, categories: allCategories })
   } catch (error) {
