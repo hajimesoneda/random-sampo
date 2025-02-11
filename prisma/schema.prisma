@@ -60,8 +60,8 @@ model Station {
 model Category {
   id                 String               @id
   label              String
-  type               String              // Store as comma-separated string for array types
-  keywords           String?             // Add optional keywords field
+  type               String
+  keywords           String?
   categoryPreferences CategoryPreference[]
 
   @@map("categories")

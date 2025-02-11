@@ -40,6 +40,7 @@ export async function GET() {
               id: String(cat.id),
               label: String(cat.label),
               type: String(cat.type),
+              keywords: cat.keywords ? String(cat.keywords) : undefined,
             }) as Category,
         )
       : []
@@ -71,6 +72,7 @@ export async function POST(request: Request) {
       id: String(cat.id),
       label: String(cat.label),
       type: String(cat.type),
+      keywords: cat.keywords ? String(cat.keywords) : undefined,
     }))
 
     // Ensure all categories exist in the database
