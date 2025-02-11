@@ -5,72 +5,92 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { AlertCircle } from "lucide-react"
 import Link from "next/link"
 
 export default function RegisterPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
+    setIsLoading(true)
 
-    // Basic email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(email)) {
-      setError("有効なメールアドレスを入力してください")
-      return
+    try {
+      const res = await fetch("/api/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          password,
+        }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data.error || "登録に失敗しました")
+      }
+
+      // Registration successful, redirect to login
+      router.push("/login?registered=true")
+    } catch (error) {
+      console.error("Registration error:", error)
+      setError(error instanceof Error ? error.message : "登録に失敗しました")
+    } finally {
+      setIsLoading(false)
     }
-
-    // Basic password validation (at least 8 characters)
-    if (password.length < 8) {
-      setError("パスワードは8文字以上である必要があります")
-      return
-    }
-
-    // Store form data in sessionStorage
-    sessionStorage.setItem("registrationData", JSON.stringify({ email, password }))
-
-    // Redirect to confirmation page
-    router.push("/register/confirm")
   }
 
   return (
-    <div className="flex justify-center items-center min-h-screen">
+    <div className="flex justify-center items-center min-h-screen p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle>新規登録</CardTitle>
+          <CardTitle className="text-2xl">新規登録</CardTitle>
         </CardHeader>
         <CardContent>
+          {error && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
+            <div className="space-y-2">
               <Input
                 type="email"
                 placeholder="メールアドレス"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                disabled={isLoading}
               />
             </div>
-            <div>
+            <div className="space-y-2">
               <Input
                 type="password"
                 placeholder="パスワード"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                disabled={isLoading}
+                minLength={8}
               />
             </div>
-            {error && <p className="text-red-500">{error}</p>}
-            <Button type="submit" className="w-full">
-              確認画面へ
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? "登録中..." : "登録"}
             </Button>
           </form>
-          <p className="mt-4 text-center">
+          <p className="mt-4 text-center text-sm text-muted-foreground">
             既にアカウントをお持ちですか？{" "}
-            <Link href="/login" className="text-blue-500 hover:underline">
+            <Link href="/login" className="text-primary hover:underline">
               ログイン
             </Link>
           </p>

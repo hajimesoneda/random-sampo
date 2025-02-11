@@ -1,38 +1,20 @@
 import { NextResponse } from "next/server"
-import { pool } from "@/src/db"
+import { db } from "@/src/db"
+import { sql } from "drizzle-orm"
 
 export async function GET() {
   try {
-    const client = await pool.connect()
+    // Execute a simple query to check the connection
+    const result = await db.execute(sql`SELECT 1 as connected`)
 
-    // Get current database name
-    const dbResult = await client.query("SELECT current_database()")
-    const dbName = dbResult.rows[0].current_database
-
-    // Get available tables
-    const tablesResult = await client.query(`
-      SELECT table_name 
-      FROM information_schema.tables 
-      WHERE table_schema = 'public'
-    `)
-    const tables = tablesResult.rows.map((row) => row.table_name)
-
-    client.release()
-
-    return NextResponse.json({
-      success: true,
-      dbName,
-      tables,
-    })
+    if (result[0]?.connected === 1) {
+      return NextResponse.json({ status: "Connected successfully" })
+    } else {
+      throw new Error("Unexpected query result")
+    }
   } catch (error) {
-    console.error("Error connecting to database:", error)
-    return NextResponse.json(
-      {
-        success: false,
-        error: "Failed to connect to the database",
-      },
-      { status: 500 },
-    )
+    console.error("Database connection error:", error)
+    return NextResponse.json({ status: "Connection failed", error: error.message }, { status: 500 })
   }
 }
 

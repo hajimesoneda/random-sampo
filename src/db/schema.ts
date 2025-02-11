@@ -1,16 +1,5 @@
-import pg from "pg"
-import { drizzle } from "drizzle-orm/node-postgres"
 import { pgTable, serial, text, timestamp, integer } from "drizzle-orm/pg-core"
 
-const { Pool } = pg
-
-// データベース接続プールの作成
-export const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false,
-})
-
-// スキーマ定義
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   email: text("email").notNull().unique(),
@@ -34,7 +23,4 @@ export const favorites = pgTable("favorites", {
   stationId: text("station_id").notNull(),
   stationName: text("station_name").notNull(),
 })
-
-// Drizzle ORM インスタンスの作成
-export const db = drizzle(pool)
 

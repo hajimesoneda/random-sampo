@@ -1,3 +1,5 @@
+export type WeatherType = "unknown" | "☀️ 晴れ" | "☁️ 曇り" | "🌧️ 雨" | "❄️ 雪"
+
 export interface Station {
   id: string
   name: string
@@ -23,10 +25,9 @@ export interface Spot {
 export interface VisitInfo {
   stationId: string
   name: string
-  lines: string[]
-  date: string | "unknown"
-  weather: "unknown" | "☀️ 晴れ" | "☁️ 曇り" | "🌧️ 雨" | "❄️ 雪"
-  memo: string
+  date: string
+  weather: WeatherType
+  memo?: string
 }
 
 export interface FavoriteStation {
@@ -34,4 +35,3 @@ export interface FavoriteStation {
   name: string
   lines: string[]
 }
-

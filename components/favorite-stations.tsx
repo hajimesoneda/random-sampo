@@ -1,7 +1,9 @@
-import type { FavoriteStation } from "@/types/station"
-import { Card, CardContent } from "@/components/ui/card"
+import type React from "react"
 import { Button } from "@/components/ui/button"
-import { Train, Star } from "lucide-react"
+import { Card, CardContent } from "@/components/ui/card"
+import { Star, Train } from "lucide-react"
+import type { FavoriteStation } from "@/types/station"
+import { useSession } from "next-auth/react"
 import { toggleFavoriteStation } from "@/app/actions/index"
 
 interface FavoriteStationsProps {
@@ -11,36 +13,47 @@ interface FavoriteStationsProps {
 }
 
 export function FavoriteStations({ favorites, onUpdate, onSelectStation }: FavoriteStationsProps) {
+  const { data: session } = useSession()
+
   const handleToggleFavorite = async (station: FavoriteStation, event: React.MouseEvent) => {
     event.stopPropagation()
-    const updatedFavorites = await toggleFavoriteStation(station)
-    onUpdate(updatedFavorites)
-  }
-
-  if (favorites.length === 0) {
-    return <div className="text-center py-8 text-muted-foreground">お気に入りの駅がありません</div>
+    if (!session?.user?.id) {
+      console.error("User not authenticated")
+      return
+    }
+    try {
+      const updatedFavorites = await toggleFavoriteStation(Number.parseInt(session.user.id), station)
+      onUpdate(updatedFavorites)
+    } catch (error) {
+      console.error("Error toggling favorite:", error)
+    }
   }
 
   return (
     <div className="space-y-4">
-      {favorites.map((station) => (
-        <Card key={station.id} className="cursor-pointer hover:bg-gray-50" onClick={() => onSelectStation(station)}>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <h3 className="font-semibold">{station.name}駅</h3>
-                <div className="flex items-center text-sm text-muted-foreground">
-                  <Train className="w-4 h-4 mr-1" />
-                  <span>{station.lines.join("、")}</span>
-                </div>
+      {favorites.length === 0 ? (
+        <p className="text-center text-muted-foreground">お気に入りの駅はありません</p>
+      ) : (
+        favorites.map((station) => (
+          <Card key={station.id} className="cursor-pointer" onClick={() => onSelectStation(station)}>
+            <CardContent className="p-4 flex justify-between items-center">
+              <div>
+                <h3 className="text-lg font-semibold">{station.name}駅</h3>
+                <p className="text-sm text-muted-foreground">
+                  <Train className="inline-block mr-1" size={16} />
+                  {station.lines.join("、")}
+                </p>
               </div>
-              <Button variant="ghost" size="icon" onClick={(e) => handleToggleFavorite(station, e)}>
-                <Star className="w-5 h-5 fill-current text-yellow-400" />
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+              <div className="space-x-2">
+                <Button variant="outline" size="sm" onClick={(e) => handleToggleFavorite(station, e)}>
+                  <Star className="mr-2 h-4 w-4" />
+                  お気に入り解除
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ))
+      )}
     </div>
   )
 }
