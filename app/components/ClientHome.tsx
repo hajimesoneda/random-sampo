@@ -21,7 +21,7 @@ import {
   getFavoritesFromLocalStorage,
 } from "@/src/utils/localStorage"
 import type { Session } from "next-auth"
-import { VisitedStations } from "@/components/visited-stations"
+import VisitedStations from "@/components/visited-stations"
 
 interface ClientHomeProps {
   session?: Session | null
