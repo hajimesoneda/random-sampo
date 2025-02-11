@@ -4,6 +4,7 @@ import prisma from "@/lib/prisma"
 import type { Category } from "@/types/category"
 import { isValidCategory } from "@/types/category"
 import type { Spot } from "@/types/station"
+import { shuffleArray } from "@/utils/array-utils"
 
 export async function GET(request: Request, { params }: { params: { id: string } }) {
   const stationId = params.id
@@ -12,7 +13,6 @@ export async function GET(request: Request, { params }: { params: { id: string }
   const categories: string[] = categoriesParam ? JSON.parse(categoriesParam) : []
 
   try {
-    // Get station coordinates from the database
     const station = await prisma.station.findUnique({
       where: { id: stationId },
       select: { lat: true, lng: true },
@@ -22,25 +22,21 @@ export async function GET(request: Request, { params }: { params: { id: string }
       return NextResponse.json({ error: "Station not found" }, { status: 404 })
     }
 
-    // Fetch categories from the database
     const dbCategories = await prisma.category.findMany({
       where: { id: { in: categories } },
     })
 
-    // Fetch custom categories from user preferences
     const customCategoriesResult = await prisma.categoryPreference.findFirst({
       where: { categories: { some: { id: { in: categories } } } },
       select: { customCategories: true },
     })
 
-    // Parse and validate custom categories
     const customCategories: Category[] = customCategoriesResult?.customCategories
       ? (JSON.parse(customCategoriesResult.customCategories as string) as unknown[])
           .filter(isValidCategory)
           .filter((cat) => categories.includes(cat.id))
       : []
 
-    // Combine database categories and custom categories
     const allCategories: Category[] = [
       ...dbCategories.map((cat) => ({
         ...cat,
@@ -49,47 +45,50 @@ export async function GET(request: Request, { params }: { params: { id: string }
       ...customCategories,
     ]
 
-    // Fetch spots for each category in parallel
     const spotsPromises = allCategories.map(async (category) => {
       const spots = await fetchNearbyPlaces({
         lat: station.lat,
         lng: station.lng,
         type: category.id,
-        radius: 1000, // 1km radius
+        radius: 1000,
       })
       return { category, spots }
     })
 
     const categoryResults = await Promise.all(spotsPromises)
 
-    // Ensure at least one spot from each category if available
-    const selectedSpots: Spot[] = []
-    const remainingSpots: Spot[] = []
-
-    // First pass: Select one spot from each category
-    for (const { category, spots } of categoryResults) {
+    // カテゴリーごとのスポットを保持
+    const spotsByCategory: { [key: string]: Spot[] } = {}
+    categoryResults.forEach(({ category, spots }) => {
       if (spots.length > 0) {
-        // Randomly select one spot from this category
-        const randomIndex = Math.floor(Math.random() * spots.length)
-        selectedSpots.push(spots[randomIndex])
-        // Add remaining spots to the pool
-        remainingSpots.push(...spots.slice(0, randomIndex), ...spots.slice(randomIndex + 1))
+        spotsByCategory[category.id] = spots
+      }
+    })
+
+    const selectedSpots: Spot[] = []
+    const categoryIds = Object.keys(spotsByCategory)
+
+    // 各カテゴリーから1つずつスポットを選択
+    while (selectedSpots.length < 4 && categoryIds.length > 0) {
+      for (let i = 0; i < categoryIds.length && selectedSpots.length < 4; i++) {
+        const categoryId = categoryIds[i]
+        if (spotsByCategory[categoryId].length > 0) {
+          const randomIndex = Math.floor(Math.random() * spotsByCategory[categoryId].length)
+          const spot = spotsByCategory[categoryId][randomIndex]
+          if (!selectedSpots.some((s) => s.lat === spot.lat && s.lng === spot.lng)) {
+            selectedSpots.push(spot)
+            spotsByCategory[categoryId].splice(randomIndex, 1)
+          }
+        }
+        if (spotsByCategory[categoryId].length === 0) {
+          categoryIds.splice(i, 1)
+          i--
+        }
       }
     }
 
-    // Second pass: Fill remaining slots randomly from the pool
-    while (selectedSpots.length < 4 && remainingSpots.length > 0) {
-      const randomIndex = Math.floor(Math.random() * remainingSpots.length)
-      const spot = remainingSpots[randomIndex]
-      // Check if we already have a spot at this location
-      if (!selectedSpots.some((s) => s.lat === spot.lat && s.lng === spot.lng)) {
-        selectedSpots.push(spot)
-      }
-      remainingSpots.splice(randomIndex, 1)
-    }
-
-    // Shuffle the final selection to randomize the order
-    const shuffledSpots = selectedSpots.sort(() => Math.random() - 0.5)
+    // 選択されたスポットの順番をシャッフル
+    const shuffledSpots = shuffleArray(selectedSpots)
 
     return NextResponse.json({ spots: shuffledSpots })
   } catch (error) {
