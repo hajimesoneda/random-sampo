@@ -174,8 +174,13 @@ export default function ClientHome({ session: initialSession, isGuest }: ClientH
     setIsSettingsOpen(true)
   }
 
-  const handleLogout = () => {
-    signOut({ callbackUrl: "/login" })
+  const handleLogout = async () => {
+    try {
+      await signOut({ callbackUrl: "/login", redirect: true })
+    } catch (error) {
+      console.error("Logout error:", error)
+      setError("ログアウトに失敗しました")
+    }
   }
 
   const handleCategoryChange = async (newCategories: { id: string; label: string; type: string }[]) => {

@@ -12,7 +12,7 @@ export async function saveVisit(info: VisitInfo, userId: number) {
       data: {
         userId,
         stationId: info.stationId,
-        stationName: info.name,
+        stationName: info.name, // Ensure this is correctly passed
         date: new Date(info.date),
         weather: info.weather,
         memo: info.memo || "",
