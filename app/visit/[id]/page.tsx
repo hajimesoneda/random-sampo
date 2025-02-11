@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { saveVisitWithSession } from "@/app/actions"
-import { saveVisitToLocalStorage } from "@/src/utils/localStorage"
 import type { WeatherType } from "@/types/station"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { AlertCircle } from "lucide-react"
@@ -26,20 +25,24 @@ export default function VisitPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
-    fetchStationName()
-  }, []) // Removed unnecessary dependency 'id'
+    if (status === "unauthenticated") {
+      router.push("/login")
+    } else if (status === "authenticated") {
+      fetchStationName()
+    }
+  }, [status, router])
 
   const fetchStationName = async () => {
     try {
       const response = await fetch(`/api/station/${id}`)
       if (!response.ok) {
-        throw new Error("Failed to fetch station data")
+        throw new Error("駅データの取得に失敗しました")
       }
       const data = await response.json()
       setStationName(data.name)
     } catch (error) {
       console.error("Error fetching station name:", error)
-      setError("Failed to fetch station data")
+      setError("駅データの取得に失敗しました")
     } finally {
       setLoading(false)
     }
@@ -51,19 +54,25 @@ export default function VisitPage() {
     setIsSubmitting(true)
 
     try {
-      const visitInfo = {
+      if (!session?.user?.id) {
+        throw new Error("ログインが必要です")
+      }
+
+      if (!date) {
+        throw new Error("日付を入力してください")
+      }
+
+      if (!stationName) {
+        throw new Error("駅データの取得に失敗しました")
+      }
+
+      await saveVisitWithSession({
         stationId: id,
         name: stationName,
         date,
         weather,
         memo,
-      }
-
-      if (status === "authenticated" && session?.user?.id) {
-        await saveVisitWithSession(visitInfo)
-      } else {
-        saveVisitToLocalStorage(visitInfo)
-      }
+      })
 
       router.push("/")
     } catch (error) {

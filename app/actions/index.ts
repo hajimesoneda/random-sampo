@@ -1,10 +1,9 @@
 "use server"
+
 import type { VisitInfo, FavoriteStation, WeatherType } from "@/types/station"
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/app/api/auth/[...nextauth]/auth-options"
-import { PrismaClient } from "@prisma/client"
-
-const prisma = new PrismaClient()
+import prisma from "@/lib/prisma"
 
 export async function saveVisit(info: VisitInfo, userId: number) {
   console.log("Saving visit:", info, "for user:", userId)
@@ -23,7 +22,7 @@ export async function saveVisit(info: VisitInfo, userId: number) {
     return result
   } catch (error) {
     console.error("Error saving visit:", error)
-    throw new Error("Failed to save visit")
+    throw new Error("訪問の保存に失敗しました")
   }
 }
 
@@ -34,7 +33,7 @@ export async function saveVisitWithSession(info: VisitInfo) {
 
   if (!session?.user?.id) {
     console.error("No user ID in session:", session)
-    throw new Error("User not authenticated")
+    throw new Error("ログインが必要です")
   }
 
   try {
@@ -43,7 +42,7 @@ export async function saveVisitWithSession(info: VisitInfo) {
     return await saveVisit(info, userId)
   } catch (error) {
     console.error("Error in saveVisitWithSession:", error)
-    throw error
+    throw error instanceof Error ? error : new Error("訪問の保存に失敗しました")
   }
 }
 
@@ -57,14 +56,12 @@ export async function toggleFavoriteStation(userId: number, station: FavoriteSta
     })
 
     if (existingFavorite) {
-      // If the station is already a favorite, remove it
       await prisma.favorite.delete({
         where: {
           id: existingFavorite.id,
         },
       })
     } else {
-      // If the station is not a favorite, add it
       await prisma.favorite.create({
         data: {
           userId,
@@ -74,51 +71,50 @@ export async function toggleFavoriteStation(userId: number, station: FavoriteSta
       })
     }
 
-    // Return updated list of favorites
     return getFavoriteStations(userId)
   } catch (error) {
     console.error("Error toggling favorite station:", error)
-    throw new Error("Failed to toggle favorite station")
+    throw new Error("お気に入りの更新に失敗しました")
   }
 }
 
 export async function getFavoriteStations(userId: number): Promise<FavoriteStation[]> {
   try {
-    const favoriteStations = await prisma.favorite.findMany({
+    const favorites = await prisma.favorite.findMany({
       where: { userId },
       include: {
         station: true,
       },
     })
 
-    return favoriteStations.map((favorite) => ({
+    return favorites.map((favorite) => ({
       id: favorite.stationId,
       name: favorite.stationName,
       lines: favorite.station.lines,
     }))
   } catch (error) {
     console.error("Error fetching favorite stations:", error)
-    throw new Error("Failed to fetch favorite stations")
+    throw new Error("お気に入りの取得に失敗しました")
   }
 }
 
 export async function getVisitedStations(userId: number): Promise<VisitInfo[]> {
   try {
-    const visitedStations = await prisma.visit.findMany({
+    const visits = await prisma.visit.findMany({
       where: { userId },
-      orderBy: { date: "asc" },
+      orderBy: { date: "desc" },
     })
 
-    return visitedStations.map((visit) => ({
+    return visits.map((visit) => ({
       stationId: visit.stationId,
       name: visit.stationName,
-      date: visit.date.toISOString().split("T")[0], // Convert Date to YYYY-MM-DD string
-      weather: visit.weather as WeatherType, // Cast weather to WeatherType
+      date: visit.date.toISOString().split("T")[0],
+      weather: visit.weather as WeatherType,
       memo: visit.memo || "",
     }))
   } catch (error) {
     console.error("Error fetching visited stations:", error)
-    throw new Error("Failed to fetch visited stations")
+    throw new Error("訪問履歴の取得に失敗しました")
   }
 }
 
