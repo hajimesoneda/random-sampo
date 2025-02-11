@@ -25,9 +25,10 @@ import { VisitedStations } from "@/components/visited-stations"
 
 interface ClientHomeProps {
   session?: Session | null
+  isGuest: boolean
 }
 
-export default function ClientHome({ session: initialSession }: ClientHomeProps) {
+export default function ClientHome({ session: initialSession, isGuest }: ClientHomeProps) {
   const [station, setStation] = useState<Station | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -171,6 +172,14 @@ export default function ClientHome({ session: initialSession }: ClientHomeProps)
     updateStationSpots(newCategories)
   }
 
+  const handleVisitRecord = () => {
+    if (status === "authenticated" || isGuest) {
+      router.push(`/visit/${encodeURIComponent(station!.id)}`)
+    } else {
+      router.push("/login")
+    }
+  }
+
   useEffect(() => {
     setIsMounted(true)
   }, [])
@@ -259,8 +268,10 @@ export default function ClientHome({ session: initialSession }: ClientHomeProps)
 
       {session?.user?.email ? (
         <p className="mb-4">ようこそ、{session.user.email}さん</p>
-      ) : (
+      ) : isGuest ? (
         <p className="mb-4">ゲストとして利用中</p>
+      ) : (
+        <p className="mb-4">ログインしていません</p>
       )}
 
       {error && (
@@ -347,9 +358,9 @@ export default function ClientHome({ session: initialSession }: ClientHomeProps)
                   </Button>
                 </div>
                 <div className="mt-4">
-                  <Link href={`/visit/${encodeURIComponent(station.id)}`}>
-                    <Button className="w-full">訪問を記録</Button>
-                  </Link>
+                  <Button className="w-full" onClick={handleVisitRecord}>
+                    訪問を記録
+                  </Button>
                 </div>
               </CardContent>
             </Card>

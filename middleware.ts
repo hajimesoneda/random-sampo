@@ -8,9 +8,10 @@ export async function middleware(request: NextRequest) {
 
   const isAuthPage = request.nextUrl.pathname.startsWith("/login") || request.nextUrl.pathname.startsWith("/register")
   const isApiRoute = request.nextUrl.pathname.startsWith("/api")
+  const isGuestAccess = request.nextUrl.searchParams.get("guest") === "true"
 
-  // Allow access to public routes and API routes
-  if (request.nextUrl.pathname === "/" || isApiRoute) {
+  // Allow access to public routes, API routes, and guest access to home page
+  if (request.nextUrl.pathname === "/" || isApiRoute || (request.nextUrl.pathname === "/" && isGuestAccess)) {
     return NextResponse.next()
   }
 

@@ -52,6 +52,11 @@ export default function LoginPage() {
     }
   }
 
+  const handleGuestAccess = (e: React.MouseEvent) => {
+    e.preventDefault()
+    router.push("/?guest=true")
+  }
+
   if (status === "loading") {
     return <div>Loading...</div>
   }
@@ -107,9 +112,9 @@ export default function LoginPage() {
           <div className="mt-4 text-center">
             <p className="text-sm text-muted-foreground">
               アカウントがなくても使用できます。{" "}
-              <Link href="/" className="text-primary hover:underline">
+              <a href="#" onClick={handleGuestAccess} className="text-primary hover:underline">
                 ゲストとして使用
-              </Link>
+              </a>
             </p>
           </div>
         </CardContent>
