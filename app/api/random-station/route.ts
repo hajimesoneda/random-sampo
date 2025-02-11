@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { db } from "@/src/db"
 import { stations } from "@/src/db/schema"
 import { sql } from "drizzle-orm"
+import { fetchNearbyPlaces } from "@/lib/google-places"
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
@@ -19,8 +20,19 @@ export async function GET(request: Request) {
 
     const randomStation = randomStations[0]
 
-    // Fetch spots for the station
-    const spots = await fetchSpots(randomStation.id, categories)
+    // Fetch spots for each category
+    const spotsPromises = categories.map(async (category: string) => {
+      const spots = await fetchNearbyPlaces({
+        lat: randomStation.lat,
+        lng: randomStation.lng,
+        type: category,
+        radius: 1000, // 1km radius
+      })
+      return spots.map((spot) => ({ ...spot, type: category }))
+    })
+
+    const spotsArrays = await Promise.all(spotsPromises)
+    const spots = spotsArrays.flat().slice(0, 4) // Limit to 4 spots total
 
     return NextResponse.json({
       id: randomStation.id,
@@ -36,18 +48,6 @@ export async function GET(request: Request) {
       { error: "サーバーエラーが発生しました。しばらく待ってから再度お試しください。" },
       { status: 500 },
     )
-  }
-}
-
-async function fetchSpots(stationId: string, categories: string[]) {
-  try {
-    // Implement spot fetching logic here
-    // This is a placeholder that returns an empty array
-    // You should implement the actual spot fetching logic based on your requirements
-    return []
-  } catch (error) {
-    console.error("Error fetching spots:", error)
-    return []
   }
 }
 
