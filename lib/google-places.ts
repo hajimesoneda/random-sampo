@@ -24,6 +24,8 @@ interface PlacesResponse {
     }>
     types: string[]
   }>
+  status: string
+  error_message?: string
 }
 
 export async function fetchNearbyPlaces({
@@ -42,6 +44,8 @@ export async function fetchNearbyPlaces({
     : [getCategoryType(type) as string]
   const keywords = getCategoryKeywords(type)
 
+  console.log(`Fetching places for type: ${type}, types: ${types.join(",")}, keywords: ${keywords}`)
+
   // Fetch places for each type
   const allResults = await Promise.all(
     types.map(async (placeType) => {
@@ -56,12 +60,21 @@ export async function fetchNearbyPlaces({
       url.searchParams.append("language", "ja")
       url.searchParams.append("region", "jp")
 
+      console.log(`Fetching from URL: ${url.toString()}`)
+
       const response = await fetch(url.toString())
       if (!response.ok) {
         throw new Error(`Failed to fetch nearby places: ${response.statusText}`)
       }
 
       const data: PlacesResponse = await response.json()
+
+      if (data.status !== "OK") {
+        console.error(`Places API error: ${data.status}`, data.error_message)
+        return []
+      }
+
+      console.log(`Found ${data.results.length} results for type ${placeType}`)
       return data.results
     }),
   )
@@ -79,10 +92,14 @@ export async function fetchNearbyPlaces({
         )
       : mergedResults
 
+  console.log(`Filtered to ${filteredResults.length} results`)
+
   // Remove duplicates based on place_id
   const uniqueResults = filteredResults.filter(
     (place, index, self) => index === self.findIndex((p) => p.place_id === place.place_id),
   )
+
+  console.log(`Final unique results: ${uniqueResults.length}`)
 
   return uniqueResults.map((place) => ({
     id: place.place_id,

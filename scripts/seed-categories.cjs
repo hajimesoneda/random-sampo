@@ -5,7 +5,7 @@ const prisma = new PrismaClient()
 const predefinedCategories = [
   { id: "cafe", label: "カフェ", type: "cafe" },
   { id: "restaurant", label: "レストラン", type: "restaurant" },
-  { id: "public_bath", label: "銭湯", type: "spa" },
+  { id: "public_bath", label: "銭湯", type: ["spa", "onsen"] },
   { id: "tourist_attraction", label: "観光スポット", type: "tourist_attraction" },
   { id: "park", label: "公園", type: "park" },
   { id: "museum", label: "美術館・博物館", type: "museum" },
@@ -18,8 +18,15 @@ async function main() {
   for (const category of predefinedCategories) {
     await prisma.category.upsert({
       where: { id: category.id },
-      update: category,
-      create: category,
+      update: {
+        label: category.label,
+        type: Array.isArray(category.type) ? category.type.join(",") : category.type,
+      },
+      create: {
+        id: category.id,
+        label: category.label,
+        type: Array.isArray(category.type) ? category.type.join(",") : category.type,
+      },
     })
   }
   console.log("Seeding completed.")

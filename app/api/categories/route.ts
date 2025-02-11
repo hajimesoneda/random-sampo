@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "../auth/[...nextauth]/auth-options"
 import prisma from "@/lib/prisma"
+import type { Category } from "@/types/category"
 
 export async function GET() {
   const session = await getServerSession(authOptions)
@@ -25,10 +26,25 @@ export async function GET() {
       return NextResponse.json({ categories: defaultCategories })
     }
 
-    const categories = [
-      ...userPreference.categories,
-      ...((userPreference.customCategories as { id: string; label: string; type: string }[]) || []),
-    ]
+    // Convert database categories to Category type
+    const dbCategories = userPreference.categories.map((cat) => ({
+      ...cat,
+      type: cat.type.includes(",") ? cat.type.split(",") : cat.type,
+    }))
+
+    // Parse and validate custom categories
+    const customCategories = userPreference.customCategories
+      ? (userPreference.customCategories as any[]).map(
+          (cat) =>
+            ({
+              id: String(cat.id),
+              label: String(cat.label),
+              type: String(cat.type),
+            }) as Category,
+        )
+      : []
+
+    const categories = [...dbCategories, ...customCategories]
 
     return NextResponse.json({ categories })
   } catch (error) {
@@ -50,43 +66,60 @@ export async function POST(request: Request) {
   console.log("Received data:", { userId, categories, customCategories })
 
   try {
+    // Validate custom categories structure
+    const validatedCustomCategories = (customCategories || []).map((cat: any) => ({
+      id: String(cat.id),
+      label: String(cat.label),
+      type: String(cat.type),
+    }))
+
     // Ensure all categories exist in the database
     for (const categoryId of categories) {
-      await prisma.category.upsert({
-        where: { id: categoryId },
-        update: {},
-        create: { id: categoryId, label: categoryId, type: categoryId },
-      })
+      const category = await prisma.category.findUnique({ where: { id: categoryId } })
+      if (!category) {
+        console.error(`Category ${categoryId} not found in the database`)
+        return NextResponse.json({ error: `Category ${categoryId} not found` }, { status: 400 })
+      }
     }
-
-    // Fetch existing categories to ensure they're valid
-    const existingCategories = await prisma.category.findMany({
-      where: { id: { in: categories } },
-    })
-
-    const validCategoryIds = existingCategories.map((cat) => cat.id)
 
     // Update the user's category preference
     const result = await prisma.categoryPreference.upsert({
       where: { userId },
       update: {
         categories: {
-          set: validCategoryIds.map((id) => ({ id })),
+          set: categories.map((id: string) => ({ id })),
         },
-        customCategories: customCategories || [],
+        customCategories: validatedCustomCategories,
       },
       create: {
         userId,
         categories: {
-          connect: validCategoryIds.map((id) => ({ id })),
+          connect: categories.map((id: string) => ({ id })),
         },
-        customCategories: customCategories || [],
+        customCategories: validatedCustomCategories,
       },
     })
 
     console.log("Upsert result:", result)
 
-    return NextResponse.json({ success: true, result })
+    // Fetch updated categories to return
+    const updatedPreference = await prisma.categoryPreference.findUnique({
+      where: { userId },
+      include: { categories: true },
+    })
+
+    if (!updatedPreference) {
+      throw new Error("Failed to fetch updated categories")
+    }
+
+    const dbCategories = updatedPreference.categories.map((cat) => ({
+      ...cat,
+      type: cat.type.includes(",") ? cat.type.split(",") : cat.type,
+    }))
+
+    const allCategories = [...dbCategories, ...validatedCustomCategories]
+
+    return NextResponse.json({ success: true, categories: allCategories })
   } catch (error) {
     console.error("Error updating categories:", error)
     return NextResponse.json({ error: "Failed to update categories", details: error }, { status: 500 })

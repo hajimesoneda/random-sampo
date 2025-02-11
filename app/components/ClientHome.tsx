@@ -98,7 +98,7 @@ export default function ClientHome({ session: initialSession, isGuest }: ClientH
   )
 
   const updateStationSpots = useCallback(
-    async (categories: { id: string; label: string; type: string }[]) => {
+    async (categories: Category[]) => {
       if (!station) return
 
       try {
@@ -213,7 +213,7 @@ export default function ClientHome({ session: initialSession, isGuest }: ClientH
     } else {
       localStorage.setItem("selectedSpotCategories", JSON.stringify(newCategories))
     }
-    updateStationSpots(newCategories as { id: string; label: string; type: string }[])
+    updateStationSpots(newCategories)
   }
 
   useEffect(() => {
