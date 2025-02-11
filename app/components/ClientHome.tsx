@@ -22,6 +22,7 @@ import {
 } from "@/src/utils/localStorage"
 import type { Session } from "next-auth"
 import { VisitedStations } from "@/components/visited-stations"
+import { categoryMapping } from "@/lib/category-mapping"
 
 interface ClientHomeProps {
   session?: Session | null
@@ -37,7 +38,7 @@ export default function ClientHome({ session: initialSession, isGuest }: ClientH
   const [selectedSpot, setSelectedSpot] = useState<Station["spots"][0] | null>(null)
   const [stationKey, setStationKey] = useState<string>("")
   const [isMounted, setIsMounted] = useState(false)
-  const [selectedCategories, setSelectedCategories] = useState<{ id: string; label: string }[]>([])
+  const [selectedCategories, setSelectedCategories] = useState<{ id: string; label: string; type: string }[]>([])
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [visitedStations, setVisitedStations] = useState<VisitInfo[]>([])
   const { data: session, status } = useSession()
@@ -96,7 +97,7 @@ export default function ClientHome({ session: initialSession, isGuest }: ClientH
   )
 
   const updateStationSpots = useCallback(
-    async (categories: { id: string; label: string }[]) => {
+    async (categories: { id: string; label: string; type: string }[]) => {
       if (!station) return
 
       try {
@@ -177,9 +178,30 @@ export default function ClientHome({ session: initialSession, isGuest }: ClientH
     // Implement logout logic here
   }
 
-  const handleCategoryChange = (newCategories: { id: string; label: string }[]) => {
+  const handleCategoryChange = async (newCategories: { id: string; label: string; type: string }[]) => {
     setSelectedCategories(newCategories)
-    localStorage.setItem("selectedSpotCategories", JSON.stringify(newCategories))
+    if (status === "authenticated") {
+      try {
+        const response = await fetch("/api/categories", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            categories: newCategories.filter((cat) => !cat.id.startsWith("custom_")).map((cat) => cat.id),
+            customCategories: newCategories.filter((cat) => cat.id.startsWith("custom_")),
+          }),
+        })
+        if (!response.ok) {
+          throw new Error("Failed to update categories")
+        }
+      } catch (error) {
+        console.error("Error updating categories:", error)
+        setError("カテゴリーの更新に失敗しました")
+      }
+    } else {
+      localStorage.setItem("selectedSpotCategories", JSON.stringify(newCategories))
+    }
     updateStationSpots(newCategories)
   }
 
@@ -200,22 +222,34 @@ export default function ClientHome({ session: initialSession, isGuest }: ClientH
   }, [isMounted, pickStation, loadFavorites])
 
   useEffect(() => {
-    const defaultCategories = [
-      { id: "cafe", label: "カフェ" },
-      { id: "restaurant", label: "レストラン" },
-      { id: "public_bath", label: "銭湯" },
-      { id: "tourist_attraction", label: "観光スポット" },
-    ]
-
-    const storedCategories = localStorage.getItem("selectedSpotCategories")
-    if (storedCategories) {
-      const parsedCategories = JSON.parse(storedCategories)
-      setSelectedCategories(parsedCategories)
-    } else {
-      setSelectedCategories(defaultCategories)
-      localStorage.setItem("selectedSpotCategories", JSON.stringify(defaultCategories))
+    const fetchCategories = async () => {
+      if (status === "authenticated") {
+        try {
+          const response = await fetch("/api/categories")
+          if (response.ok) {
+            const data = await response.json()
+            setSelectedCategories(data.categories)
+          } else {
+            throw new Error("Failed to fetch categories")
+          }
+        } catch (error) {
+          console.error("Error fetching categories:", error)
+          setError("カテゴリーの取得に失敗しました")
+        }
+      } else {
+        const storedCategories = localStorage.getItem("selectedSpotCategories")
+        if (storedCategories) {
+          setSelectedCategories(JSON.parse(storedCategories))
+        } else {
+          const defaultCategories = Object.values(categoryMapping).slice(0, 4)
+          setSelectedCategories(defaultCategories)
+          localStorage.setItem("selectedSpotCategories", JSON.stringify(defaultCategories))
+        }
+      }
     }
-  }, [])
+
+    fetchCategories()
+  }, [status])
 
   useEffect(() => {
     const loadVisitedStations = async () => {

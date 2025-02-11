@@ -9,7 +9,7 @@
     "lint": "next lint",
     "setup-db": "node --loader ts-node/esm scripts/setup-db.ts",
     "setup-stations-db": "node scripts/setup-stations-db.js",
-    "seed": "node scripts/seed-stations.cjs",
+    "seed": "node scripts/seed-stations.cjs && node scripts/seed-categories.cjs",
     "prisma:generate": "prisma generate"
   },
   "dependencies": {
