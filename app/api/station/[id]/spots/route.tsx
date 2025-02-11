@@ -52,38 +52,53 @@ export async function GET(request: Request, { params }: { params: { id: string }
         type: category.id,
         radius: 1000,
       })
-      return { category, spots }
+      return spots.map((spot) => ({ ...spot, categoryId: category.id }))
     })
 
-    const categoryResults = await Promise.all(spotsPromises)
+    const allSpots = (await Promise.all(spotsPromises)).flat()
 
-    // カテゴリーごとのスポットを保持
+    // カテゴリーごとにスポットを分類
     const spotsByCategory: { [key: string]: Spot[] } = {}
-    categoryResults.forEach(({ category, spots }) => {
-      if (spots.length > 0) {
-        spotsByCategory[category.id] = spots
+    allSpots.forEach((spot) => {
+      if (!spotsByCategory[spot.categoryId]) {
+        spotsByCategory[spot.categoryId] = []
       }
+      spotsByCategory[spot.categoryId].push(spot)
     })
 
     const selectedSpots: Spot[] = []
-    const categoryIds = Object.keys(spotsByCategory)
+    const availableCategories = Object.keys(spotsByCategory)
 
-    // 各カテゴリーから1つずつスポットを選択
-    while (selectedSpots.length < 4 && categoryIds.length > 0) {
-      for (let i = 0; i < categoryIds.length && selectedSpots.length < 4; i++) {
-        const categoryId = categoryIds[i]
-        if (spotsByCategory[categoryId].length > 0) {
-          const randomIndex = Math.floor(Math.random() * spotsByCategory[categoryId].length)
-          const spot = spotsByCategory[categoryId][randomIndex]
-          if (!selectedSpots.some((s) => s.lat === spot.lat && s.lng === spot.lng)) {
-            selectedSpots.push(spot)
-            spotsByCategory[categoryId].splice(randomIndex, 1)
-          }
+    // できるだけ多様なカテゴリーから選択
+    while (selectedSpots.length < 4 && availableCategories.length > 0) {
+      const categoryIndex = Math.floor(Math.random() * availableCategories.length)
+      const categoryId = availableCategories[categoryIndex]
+      const categorySpots = spotsByCategory[categoryId]
+
+      if (categorySpots.length > 0) {
+        const spotIndex = Math.floor(Math.random() * categorySpots.length)
+        const selectedSpot = categorySpots[spotIndex]
+
+        if (!selectedSpots.some((spot) => spot.id === selectedSpot.id)) {
+          selectedSpots.push(selectedSpot)
+          categorySpots.splice(spotIndex, 1)
         }
-        if (spotsByCategory[categoryId].length === 0) {
-          categoryIds.splice(i, 1)
-          i--
+
+        if (categorySpots.length === 0) {
+          availableCategories.splice(categoryIndex, 1)
         }
+      } else {
+        availableCategories.splice(categoryIndex, 1)
+      }
+    }
+
+    // 4つのスポットが選択されていない場合、残りのスポットからランダムに選択
+    if (selectedSpots.length < 4) {
+      const remainingSpots = allSpots.filter((spot) => !selectedSpots.some((s) => s.id === spot.id))
+      while (selectedSpots.length < 4 && remainingSpots.length > 0) {
+        const index = Math.floor(Math.random() * remainingSpots.length)
+        selectedSpots.push(remainingSpots[index])
+        remainingSpots.splice(index, 1)
       }
     }
 
