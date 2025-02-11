@@ -1,4 +1,4 @@
-import { pgTable, serial, text, timestamp, integer } from "drizzle-orm/pg-core"
+import { pgTable, serial, text, doublePrecision, varchar, timestamp, integer } from "drizzle-orm/pg-core"
 
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
@@ -22,5 +22,13 @@ export const favorites = pgTable("favorites", {
   userId: integer("user_id").references(() => users.id),
   stationId: text("station_id").notNull(),
   stationName: text("station_name").notNull(),
+})
+
+export const stations = pgTable("stations", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  lat: doublePrecision("lat").notNull(),
+  lng: doublePrecision("lng").notNull(),
+  lines: varchar("lines", { length: 255 }).array().notNull(),
 })
 

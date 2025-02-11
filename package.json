@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "setup-db": "node --loader ts-node/esm scripts/setup-db.ts"
+    "setup-db": "node --loader ts-node/esm scripts/setup-db.ts",
+    "setup-stations-db": "node scripts/setup-stations-db.js"
   },
   "dependencies": {
     "@googlemaps/js-api-loader": "^1.16.2",
@@ -20,7 +21,6 @@
     "@radix-ui/react-separator": "^1.0.3",
     "@radix-ui/react-slot": "^1.0.2",
     "@radix-ui/react-tabs": "^1.0.4",
-    "@types/node": "^18.15.11",
     "@types/pg": "^8.6.6",
     "bcryptjs": "^2.4.3",
     "class-variance-authority": "^0.7.0",
@@ -36,11 +36,10 @@
     "react-day-picker": "^8.9.1",
     "react-dom": "^18.2.0",
     "tailwind-merge": "^2.1.0",
-    "tailwindcss-animate": "^1.0.7",
-    "ts-node": "^10.9.1"
+    "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
-    "@types/node": "^20.17.16",
+    "@types/node": "^20.17.17",
     "@types/pg": "^8.6.6",
     "@types/react": "^18.2.42",
     "@types/react-dom": "^18.2.17",
@@ -55,8 +54,8 @@
     "pg": "^8.10.0",
     "postcss": "^8.4.32",
     "tailwindcss": "^3.3.6",
-    "ts-node": "^10.9.1",
-    "typescript": "^5.3.2"
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.3"
   },
   "type": "module"
 }
