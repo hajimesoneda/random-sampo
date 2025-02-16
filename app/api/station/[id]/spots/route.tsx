@@ -47,61 +47,74 @@ export async function GET(request: Request, { params }: { params: { id: string }
       ...customCategories,
     ]
 
-    console.log("Fetching spots for categories:", allCategories)
+    // カテゴリーごとにスポットを取得
+    const categorySpots = await Promise.all(
+      allCategories.map(async (category) => {
+        const spots = await fetchNearbyPlaces({
+          lat: station.lat,
+          lng: station.lng,
+          type: category.id,
+          radius: 1000,
+        })
+        return {
+          categoryId: category.id,
+          spots: spots,
+        }
+      }),
+    )
 
-    // カテゴリーごとのスポットを取得
-    const spotsPromises = allCategories.map(async (category) => {
-      const spots = await fetchNearbyPlaces({
-        lat: station.lat,
-        lng: station.lng,
-        type: category.id,
-        radius: 1000,
-      })
-      return { categoryId: category.id, spots }
-    })
+    // 有効なスポットがあるカテゴリーのみをフィルタリング
+    const validCategories = categorySpots.filter((category) => category.spots.length > 0)
 
-    const results = await Promise.all(spotsPromises)
-    const validResults = results.filter((result) => result.spots.length > 0)
-
-    if (validResults.length === 0) {
+    if (validCategories.length === 0) {
       return NextResponse.json({ spots: [] })
     }
 
-    // ここからがシャッフルと選択のロジック
+    // スポット選択アルゴリズム
     const selectedSpots: Spot[] = []
+    const maxSpots = 4
 
-    // 1. まず、各カテゴリーの結果をシャッフル
-    const shuffledCategories = shuffleArray([...validResults])
-
-    // 2. 各カテゴリーから最低1つのスポットを選択（可能な場合）
+    // Step 1: 各カテゴリーから最低1つのスポットを選択（可能な場合）
+    const shuffledCategories = shuffleArray([...validCategories])
     for (const category of shuffledCategories) {
-      if (selectedSpots.length >= 4) break
+      if (selectedSpots.length >= maxSpots) break
 
-      const shuffledSpots = shuffleArray([...category.spots])
-      const spot = shuffledSpots[0]
-
-      if (spot && !selectedSpots.some((s) => s.id === spot.id)) {
-        selectedSpots.push(spot)
+      const availableSpots = category.spots.filter((spot) => !selectedSpots.some((selected) => selected.id === spot.id))
+      if (availableSpots.length > 0) {
+        const randomSpot = availableSpots[Math.floor(Math.random() * availableSpots.length)]
+        selectedSpots.push(randomSpot)
       }
     }
 
-    // 3. まだ4つに満たない場合、残りのスポットからランダムに追加
-    if (selectedSpots.length < 4) {
-      const remainingSpots = shuffledCategories
+    // Step 2: 残りのスロットを埋める（カテゴリーの重複を最小限に）
+    const remainingSlots = maxSpots - selectedSpots.length
+    if (remainingSlots > 0) {
+      // 使用済みのカテゴリーを追跡
+      const usedCategories = new Set(selectedSpots.map((spot) => spot.type))
+
+      // 未使用のカテゴリーを優先
+      const remainingSpots = validCategories
         .flatMap((category) => category.spots)
-        .filter((spot) => !selectedSpots.some((s) => s.id === spot.id))
+        .filter((spot) => !selectedSpots.some((selected) => selected.id === spot.id))
 
-      const shuffledRemaining = shuffleArray(remainingSpots)
+      const prioritizedSpots = shuffleArray(remainingSpots).sort((a, b) => {
+        const aUsed = usedCategories.has(a.type)
+        const bUsed = usedCategories.has(b.type)
+        if (aUsed && !bUsed) return 1
+        if (!aUsed && bUsed) return -1
+        return 0
+      })
 
-      for (const spot of shuffledRemaining) {
-        if (selectedSpots.length >= 4) break
-        if (!selectedSpots.some((s) => s.id === spot.id)) {
+      for (const spot of prioritizedSpots) {
+        if (selectedSpots.length >= maxSpots) break
+        if (!selectedSpots.some((selected) => selected.id === spot.id)) {
           selectedSpots.push(spot)
+          usedCategories.add(spot.type)
         }
       }
     }
 
-    // 4. 最終的な結果をシャッフル
+    // 最終的なスポットリストをシャッフル
     const finalSpots = shuffleArray(selectedSpots)
 
     return NextResponse.json({ spots: finalSpots })
