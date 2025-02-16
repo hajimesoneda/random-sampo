@@ -25,7 +25,6 @@ import { VisitedStations } from "@/components/visited-stations"
 import { categoryMapping } from "@/lib/category-mapping"
 import type { Category } from "@/types/category"
 import { shuffleArray } from "@/utils/array-utils"
-import { Badge } from "@/components/ui/badge"
 
 interface ClientHomeProps {
   session?: Session | null
@@ -71,23 +70,76 @@ export default function ClientHome({ session: initialSession, isGuest }: ClientH
     }
   }, [])
 
+  // スポットを1つ取得する関数を追加
+  async function fetchSingleSpot(stationId: string, categories: Category[], excludeIds: string[]) {
+    try {
+      const categoriesParam = encodeURIComponent(JSON.stringify(categories.map((cat) => cat.id)))
+      const excludeParam = excludeIds.join(",")
+      const response = await fetch(
+        `/api/station/${stationId}/spot?categories=${categoriesParam}&exclude=${excludeParam}`,
+      )
+      if (!response.ok) {
+        throw new Error("Failed to fetch spot")
+      }
+      const data = await response.json()
+      return data.spot
+    } catch (error) {
+      console.error("Error fetching single spot:", error)
+      return null
+    }
+  }
+
+  // ClientHomeコンポーネント内で、スポット取得ロジックを更新
+  const loadSpotsProgressively = useCallback(
+    async (stationId: string) => {
+      setLoading(true) // 全体のローディング状態を解除
+      setSelectedSpot(null)
+
+      // 4つの空のスポットスロットを作成
+      const spotSlots = Array(4).fill(null)
+      setStation((prev) => (prev ? { ...prev, spots: spotSlots } : null))
+
+      const fetchedSpotIds = new Set<string>()
+
+      // 各スポットスロットに対して順次スポットを取得
+      for (let i = 0; i < 4; i++) {
+        const spot = await fetchSingleSpot(stationId, selectedCategories, Array.from(fetchedSpotIds))
+
+        if (spot) {
+          fetchedSpotIds.add(spot.id)
+          setStation((prev) => {
+            if (!prev) return null
+            const newSpots = [...(prev.spots || [])]
+            newSpots[i] = spot
+            return { ...prev, spots: newSpots }
+          })
+        }
+      }
+      setLoading(false)
+    },
+    [fetchSingleSpot, selectedCategories],
+  )
+
+  // pickStation関数を更新
   const pickStation = useCallback(
     async (stationId?: string) => {
       setLoading(true)
       setStation(null)
       setSelectedSpot(null)
       setError(null)
+
       try {
-        // ランダム化されたカテゴリーが空の場合、すべてのカテゴリーを使用
-        const categoriesToUse = randomizedCategories.length > 0 ? randomizedCategories : selectedCategories
-        const categoriesParam = encodeURIComponent(JSON.stringify(categoriesToUse.map((cat) => cat.id)))
+        const categoriesParam = encodeURIComponent(JSON.stringify(selectedCategories.map((cat) => cat.id)))
         const url = stationId
           ? `/api/station/${encodeURIComponent(stationId)}?categories=${categoriesParam}`
           : `/api/random-station?categories=${categoriesParam}`
 
         const newStation = await fetchStation(url)
-        setStation(newStation)
+        setStation({ ...newStation, spots: Array(4).fill(null) })
         setStationKey(Date.now().toString())
+
+        // プログレッシブにスポットを読み込む
+        loadSpotsProgressively(newStation.id)
       } catch (error) {
         console.error("駅の取得エラー:", error)
         setError(
@@ -95,11 +147,10 @@ export default function ClientHome({ session: initialSession, isGuest }: ClientH
             ? error.message
             : "駅の取得中にエラーが発生しました。しばらく待ってから再度お試しください。",
         )
-      } finally {
         setLoading(false)
       }
     },
-    [randomizedCategories, selectedCategories, fetchStation],
+    [fetchStation, selectedCategories, loadSpotsProgressively],
   )
 
   const updateStationSpots = useCallback(
@@ -413,20 +464,21 @@ export default function ClientHome({ session: initialSession, isGuest }: ClientH
                 >
                   Google Mapで開く
                 </Button>
-                <div className="mt-4 grid grid-cols-2 gap-4">
-                  {station?.spots && station.spots.length > 0 ? (
-                    station.spots.map((spot, index) => (
-                      <div key={`${spot.id}-${index}`} className="relative">
-                        <SpotCard {...spot} onClick={() => setSelectedSpot(spot)} />
-                        <Badge className="absolute top-2 right-2 z-10">{getCategoryLabel(spot.type)}</Badge>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="col-span-2 text-center text-muted-foreground">
-                      選択したカテゴリーのスポットが見つかりません
-                    </p>
-                  )}
-                </div>
+                {station?.spots ? (
+                  <div className="mt-4 grid grid-cols-2 gap-4">
+                    {Array(4)
+                      .fill(null)
+                      .map((_, index) => (
+                        <SpotCard
+                          key={`spot-${index}`}
+                          {...(station.spots[index] || {})}
+                          isLoading={!station.spots[index]}
+                          index={index}
+                          onClick={() => station.spots[index] && setSelectedSpot(station.spots[index])}
+                        />
+                      ))}
+                  </div>
+                ) : null}
                 <div className="mt-4 flex justify-between">
                   <Button onClick={() => pickStation()}>別の駅を選ぶ</Button>
                   <Button variant="outline" onClick={handleToggleFavorite}>

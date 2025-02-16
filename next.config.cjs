@@ -35,6 +35,7 @@ const nextConfig = {
     // Add support for @ imports
     config.resolve.alias = {
       ...config.resolve.alias,
+			"framer-motion": "framer-motion/dist/framer-motion",
       "@": ".",
     }
     return config
