@@ -21,27 +21,31 @@ export const categoryMapping: Record<string, Category> = {
     id: "tourist_attraction",
     label: "観光スポット",
     type: "tourist_attraction",
-    keywords: "観光地,名所,観光スポット",
+    keywords: "観光地,名所,観光スポット,神社,寺,史跡",
   },
   park: {
     id: "park",
     label: "公園",
     type: "park",
+    keywords: "公園,庭園",
   },
   museum: {
     id: "museum",
     label: "美術館・博物館",
     type: "museum",
+    keywords: "美術館,博物館,資料館",
   },
   shopping_mall: {
     id: "shopping_mall",
     label: "ショッピングモール",
     type: "shopping_mall",
+    keywords: "ショッピングモール,商業施設,ショッピングセンター",
   },
   amusement_park: {
     id: "amusement_park",
     label: "遊園地",
     type: "amusement_park",
+    keywords: "遊園地,テーマパーク",
   },
 }
 
