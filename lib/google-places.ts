@@ -45,44 +45,23 @@ export async function fetchNearbyPlaces({
   const isCustom = isCustomCategory(type)
 
   // カスタムカテゴリー用の検索戦略
-  const customSearchStrategies = [
-    // 戦略1: Text Search APIでキーワード検索
-    async () => {
-      const url = new URL("https://maps.googleapis.com/maps/api/place/textsearch/json")
-      const query = `${encodeURIComponent(keywords)} 近く`
-      url.searchParams.append("query", query)
-      url.searchParams.append("location", `${lat},${lng}`)
-      url.searchParams.append("radius", radius.toString())
-      url.searchParams.append("key", GOOGLE_MAPS_API_KEY)
-      url.searchParams.append("language", "ja")
-      url.searchParams.append("region", "jp")
+  const customSearchStrategy = async () => {
+    const url = new URL("https://maps.googleapis.com/maps/api/place/nearbysearch/json")
+    url.searchParams.append("location", `${lat},${lng}`)
+    url.searchParams.append("radius", radius.toString())
+    url.searchParams.append("keyword", encodeURIComponent(keywords))
+    url.searchParams.append("key", GOOGLE_MAPS_API_KEY)
+    url.searchParams.append("language", "ja")
+    url.searchParams.append("region", "jp")
+    url.searchParams.append("rankby", "prominence")
 
-      console.log(`Trying Text Search for custom category "${type}" with URL: ${url.toString()}`)
-      const response = await fetch(url.toString())
-      if (!response.ok) {
-        throw new Error(`Text Search failed: ${response.statusText}`)
-      }
-      return response.json()
-    },
-    // 戦略2: Nearby Search APIでキーワードのみ使用
-    async () => {
-      const url = new URL("https://maps.googleapis.com/maps/api/place/nearbysearch/json")
-      url.searchParams.append("location", `${lat},${lng}`)
-      url.searchParams.append("radius", radius.toString())
-      url.searchParams.append("keyword", encodeURIComponent(keywords))
-      url.searchParams.append("key", GOOGLE_MAPS_API_KEY)
-      url.searchParams.append("language", "ja")
-      url.searchParams.append("region", "jp")
-      url.searchParams.append("rankby", "prominence")
-
-      console.log(`Trying Nearby Search for custom category with URL: ${url.toString()}`)
-      const response = await fetch(url.toString())
-      if (!response.ok) {
-        throw new Error(`Nearby Search failed: ${response.statusText}`)
-      }
-      return response.json()
-    },
-  ]
+    console.log(`Trying Nearby Search for custom category with URL: ${url.toString()}`)
+    const response = await fetch(url.toString())
+    if (!response.ok) {
+      throw new Error(`Nearby Search failed: ${response.statusText}`)
+    }
+    return response.json()
+  }
 
   // 通常カテゴリー用の検索戦略
   const standardSearchStrategies = [
@@ -112,41 +91,39 @@ export async function fetchNearbyPlaces({
   ]
 
   // カテゴリータイプに応じて適切な検索戦略を選択
-  const searchStrategies = isCustom ? customSearchStrategies : standardSearchStrategies
+  const searchStrategy = isCustom ? customSearchStrategy : standardSearchStrategies[0]
 
-  // 各戦略を順番に試す
-  for (const strategy of searchStrategies) {
-    try {
-      const data: PlacesResponse = await strategy()
+  // 検索戦略を実行
+  try {
+    const data: PlacesResponse = await searchStrategy()
 
-      if (data.status === "OK" && data.results.length > 0) {
-        // 結果をフィルタリング：指定された半径内のスポットのみを取得
-        const filteredResults = data.results.filter((place) => {
-          const distance = calculateDistance(lat, lng, place.geometry.location.lat, place.geometry.location.lng)
-          return distance <= radius / 1000 // radiusはメートル単位なので、kmに変換
-        })
+    if (data.status === "OK" && data.results.length > 0) {
+      // 結果をフィルタリング：指定された半径内のスポットのみを取得
+      const filteredResults = data.results.filter((place) => {
+        const distance = calculateDistance(lat, lng, place.geometry.location.lat, place.geometry.location.lng)
+        return distance <= radius / 1000 // radiusはメートル単位なので、kmに変換
+      })
 
-        if (filteredResults.length > 0) {
-          console.log(`Found ${filteredResults.length} places for category ${type}`)
-          return filteredResults.map((place) => ({
-            id: place.place_id,
-            name: place.name,
-            lat: place.geometry.location.lat,
-            lng: place.geometry.location.lng,
-            type: type,
-            categoryId: type,
-            photo: place.photos?.[0]?.photo_reference || getCategoryPlaceholder(type),
-          }))
-        }
+      if (filteredResults.length > 0) {
+        console.log(`Found ${filteredResults.length} places for category ${type}`)
+        return filteredResults.map((place) => ({
+          id: place.place_id,
+          name: place.name,
+          lat: place.geometry.location.lat,
+          lng: place.geometry.location.lng,
+          type: type,
+          categoryId: type,
+          photo: place.photos?.[0]?.photo_reference || getCategoryPlaceholder(type),
+        }))
       }
-
-      console.log(`No results found with status: ${data.status}`)
-    } catch (error) {
-      console.error(`Strategy failed for category ${type}:`, error)
     }
+
+    console.log(`No results found with status: ${data.status}`)
+  } catch (error) {
+    console.error(`Strategy failed for category ${type}:`, error)
   }
 
-  console.log(`No results found for category ${type} after trying all strategies`)
+  console.log(`No results found for category ${type} after trying the search strategy`)
   return []
 }
 
