@@ -50,7 +50,7 @@ export default function ClientHome({ session: initialSession, isGuest }: ClientH
       categoryMapping.restaurant,
       categoryMapping.public_bath,
       categoryMapping.tourist_attraction,
-    ].slice(0, 4) // 最大4つに制限
+    ]
     setSelectedCategories(defaultCategories)
     return defaultCategories
   }, [])
