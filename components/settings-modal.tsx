@@ -65,13 +65,13 @@ export function SettingsModal({ isOpen, onClose, onCategoryChange, initialCatego
     }
   }
 
-  const handleSave = () => {
+  const handleClose = () => {
     onCategoryChange(categories)
     onClose()
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>設定</DialogTitle>
@@ -119,8 +119,7 @@ export function SettingsModal({ isOpen, onClose, onCategoryChange, initialCatego
           )}
         </div>
         <DialogFooter>
-          <Button onClick={onClose}>キャンセル</Button>
-          <Button onClick={handleSave}>保存</Button>
+          <Button onClick={handleClose}>保存</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
