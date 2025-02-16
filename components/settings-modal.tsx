@@ -14,6 +14,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { categoryMapping } from "@/lib/category-mapping"
 import type { Category } from "@/types/category"
+import { useSession } from "next-auth/react"
 
 interface SettingsModalProps {
   isOpen: boolean
@@ -26,6 +27,7 @@ export function SettingsModal({ isOpen, onClose, onCategoryChange, initialCatego
   const [categories, setCategories] = useState<Category[]>(initialCategories)
   const [customCategories, setCustomCategories] = useState<Category[]>([])
   const [newCategoryLabel, setNewCategoryLabel] = useState("")
+  const { status } = useSession()
 
   useEffect(() => {
     setCategories(initialCategories)
@@ -55,9 +57,9 @@ export function SettingsModal({ isOpen, onClose, onCategoryChange, initialCatego
   const handleAddCustomCategory = () => {
     if (newCategoryLabel.trim() && customCategories.length < 1) {
       const newCategory: Category = {
-        id: newCategoryLabel.trim(), // IDとしてラベルを使用
+        id: `custom_${Date.now()}`, // ユニークなIDを生成
         label: newCategoryLabel.trim(),
-        type: "point_of_interest", // カスタムカテゴリーのデフォルトタイプ
+        type: "point_of_interest",
       }
       setCustomCategories((prev) => [...prev, newCategory])
       setCategories((prev) => [...prev, newCategory])
@@ -65,11 +67,35 @@ export function SettingsModal({ isOpen, onClose, onCategoryChange, initialCatego
     }
   }
 
-  const handleClose = () => {
-    // カテゴリーが変更されている場合のみonCategoryChangeを呼び出す
+  const handleClose = async () => {
+    // カテゴリーが変更されている場合のみ更新を実行
     const hasChanges = JSON.stringify(categories) !== JSON.stringify(initialCategories)
     if (hasChanges) {
-      onCategoryChange(categories)
+      if (status === "authenticated") {
+        try {
+          const response = await fetch("/api/categories", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              categories: categories.map((cat) => cat.id),
+              customCategories: customCategories,
+            }),
+          })
+
+          if (!response.ok) {
+            throw new Error("Failed to save categories")
+          }
+
+          const data = await response.json()
+          onCategoryChange(data.categories)
+        } catch (error) {
+          console.error("Error saving categories:", error)
+        }
+      } else {
+        onCategoryChange(categories)
+      }
     }
     onClose()
   }

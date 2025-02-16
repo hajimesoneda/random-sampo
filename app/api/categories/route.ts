@@ -9,7 +9,14 @@ export async function GET() {
   const session = await getServerSession(authOptions)
 
   if (!session?.user?.id) {
-    return NextResponse.json({ categories: [] }, { status: 401 })
+    // ログインしていない場合はデフォルトのカテゴリーを返す
+    const defaultCategories = [
+      categoryMapping.cafe,
+      categoryMapping.restaurant,
+      categoryMapping.public_bath,
+      categoryMapping.tourist_attraction,
+    ]
+    return NextResponse.json({ categories: defaultCategories })
   }
 
   const userId = Number.parseInt(session.user.id)
@@ -21,6 +28,7 @@ export async function GET() {
     })
 
     if (!userPreference) {
+      // ユーザー設定が存在しない場合はデフォルトのカテゴリーを返す
       const defaultCategories = [
         categoryMapping.cafe,
         categoryMapping.restaurant,
@@ -30,28 +38,21 @@ export async function GET() {
       return NextResponse.json({ categories: defaultCategories })
     }
 
-    // Convert database categories to Category type
+    // データベースのカテゴリーをCategory型に変換
     const dbCategories = userPreference.categories.map((cat) => ({
       ...cat,
       type: cat.type.includes(",") ? cat.type.split(",") : cat.type,
     }))
 
-    // Parse and validate custom categories
+    // カスタムカテゴリーを解析して検証
     const customCategories = userPreference.customCategories
-      ? (userPreference.customCategories as any[]).map(
-          (cat) =>
-            ({
-              id: String(cat.id),
-              label: String(cat.label),
-              type: String(cat.type),
-              keywords: cat.keywords ? String(cat.keywords) : undefined,
-            }) as Category,
-        )
+      ? (JSON.parse(userPreference.customCategories as string) as Category[])
       : []
 
-    const categories = [...dbCategories, ...customCategories]
+    // すべてのカテゴリーを結合
+    const allCategories = [...dbCategories, ...customCategories]
 
-    return NextResponse.json({ categories })
+    return NextResponse.json({ categories: allCategories })
   } catch (error) {
     console.error("Error fetching categories:", error)
     return NextResponse.json({ error: "Failed to fetch categories" }, { status: 500 })
@@ -68,22 +69,19 @@ export async function POST(request: Request) {
   const userId = Number.parseInt(session.user.id)
   const { categories, customCategories } = await request.json()
 
-  console.log("Received data:", { userId, categories, customCategories })
-
   try {
-    // Validate custom categories structure
-    const validatedCustomCategories = (customCategories || []).map((cat: any) => ({
+    // カスタムカテゴリーの構造を検証
+    const validatedCustomCategories = customCategories.map((cat: Category) => ({
       id: String(cat.id),
       label: String(cat.label),
       type: String(cat.type),
-      keywords: cat.keywords ? String(cat.keywords) : undefined,
     }))
 
-    // Fetch all categories from the database
+    // データベースからすべてのカテゴリーを取得
     const dbCategories = await prisma.category.findMany()
 
-    // Update the user's category preference
-    const result = await prisma.categoryPreference.upsert({
+    // ユーザーのカテゴリー設定を更新
+    await prisma.categoryPreference.upsert({
       where: { userId },
       update: {
         categories: {
@@ -94,7 +92,7 @@ export async function POST(request: Request) {
             })
             .filter(Boolean),
         },
-        customCategories: validatedCustomCategories,
+        customCategories: JSON.stringify(validatedCustomCategories),
       },
       create: {
         userId,
@@ -106,13 +104,11 @@ export async function POST(request: Request) {
             })
             .filter(Boolean),
         },
-        customCategories: validatedCustomCategories,
+        customCategories: JSON.stringify(validatedCustomCategories),
       },
     })
 
-    console.log("Upsert result:", result)
-
-    // Fetch updated categories to return
+    // 更新されたカテゴリーを取得して返す
     const updatedPreference = await prisma.categoryPreference.findUnique({
       where: { userId },
       include: { categories: true },
@@ -127,12 +123,16 @@ export async function POST(request: Request) {
       type: cat.type.includes(",") ? cat.type.split(",") : cat.type,
     }))
 
-    const allCategories = [...updatedDbCategories, ...validatedCustomCategories]
+    const updatedCustomCategories = updatedPreference.customCategories
+      ? (JSON.parse(updatedPreference.customCategories as string) as Category[])
+      : []
+
+    const allCategories = [...updatedDbCategories, ...updatedCustomCategories]
 
     return NextResponse.json({ success: true, categories: allCategories })
   } catch (error) {
     console.error("Error updating categories:", error)
-    return NextResponse.json({ error: "Failed to update categories", details: error }, { status: 500 })
+    return NextResponse.json({ error: "Failed to update categories" }, { status: 500 })
   }
 }
 
