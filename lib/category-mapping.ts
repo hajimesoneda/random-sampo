@@ -5,11 +5,13 @@ export const categoryMapping: Record<string, Category> = {
     id: "cafe",
     label: "カフェ",
     type: "cafe",
+    keywords: "カフェ,喫茶店",
   },
   restaurant: {
     id: "restaurant",
     label: "レストラン",
     type: "restaurant",
+    keywords: "レストラン,食事処",
   },
   public_bath: {
     id: "public_bath",
@@ -23,6 +25,18 @@ export const categoryMapping: Record<string, Category> = {
     type: "tourist_attraction",
     keywords: "観光地,名所,観光スポット,神社,寺,史跡",
   },
+  hotel: {
+    id: "hotel",
+    label: "ホテル",
+    type: "lodging",
+    keywords: "ホテル,旅館",
+  },
+  shopping: {
+    id: "shopping",
+    label: "ショッピング",
+    type: "shopping_mall",
+    keywords: "商店街,ショッピング,市場",
+  },
   park: {
     id: "park",
     label: "公園",
@@ -35,41 +49,10 @@ export const categoryMapping: Record<string, Category> = {
     type: "museum",
     keywords: "美術館,博物館,資料館",
   },
-  shopping_mall: {
-    id: "shopping_mall",
-    label: "ショッピングモール",
-    type: "shopping_mall",
-    keywords: "ショッピングモール,商業施設,ショッピングセンター",
-  },
-  amusement_park: {
-    id: "amusement_park",
-    label: "遊園地",
-    type: "amusement_park",
-    keywords: "遊園地,テーマパーク",
-  },
 }
 
-export type CategoryId = keyof typeof categoryMapping
-
-export function isCustomCategory(type: string): boolean {
-  return !Object.values(categoryMapping).some((cat) => cat.id === type)
-}
-
-export function getCategoryType(label: string): string | string[] {
-  const category = Object.values(categoryMapping).find((cat) => cat.id === label || cat.label === label)
-  if (category) {
-    return category.type
-  }
-  // カスタムカテゴリーの場合、point_of_interestを返す
-  return "point_of_interest"
-}
-
-export function getCategoryKeywords(label: string): string {
-  const category = Object.values(categoryMapping).find((cat) => cat.id === label || cat.label === label)
-  if (category?.keywords) {
-    return category.keywords
-  }
-  // カスタムカテゴリーの場合、ラベルをそのままキーワードとして使用
-  return label
+export function getCategoryKeywords(type: string): string {
+  const category = Object.values(categoryMapping).find((cat) => cat.id === type)
+  return category?.keywords || type
 }
 

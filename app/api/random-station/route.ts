@@ -4,6 +4,7 @@ import { stations } from "@/src/db/schema"
 import { sql } from "drizzle-orm"
 import { fetchNearbyPlaces } from "@/lib/google-places"
 import { shuffleArray } from "@/utils/array-utils"
+import type { Spot } from "@/types/station"
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
@@ -22,27 +23,39 @@ export async function GET(request: Request) {
     const randomStation = randomStations[0]
 
     // カテゴリーごとのスポットを取得
-    const spotsPromises = categories.map(async (category: string) => {
+    const spotsPromises = categories.map(async (categoryId: string) => {
       const spots = await fetchNearbyPlaces({
         lat: randomStation.lat,
         lng: randomStation.lng,
-        type: category,
+        type: categoryId,
         radius: 1000,
       })
-      return { categoryId: category, spots }
+      return { categoryId, spots }
     })
 
     const results = await Promise.all(spotsPromises)
-    const validResults = results.filter((result) => result.spots.length > 0)
 
     // カテゴリーごとに1つのスポットを選択
-    const selectedSpots = validResults
-      .map(({ categoryId, spots }) => {
+    const selectedSpots: Spot[] = []
+
+    for (const { categoryId, spots } of results) {
+      if (spots.length > 0) {
         const shuffledSpots = shuffleArray([...spots])
-        const spot = shuffledSpots[0]
-        return spot ? { ...spot, type: categoryId } : null
-      })
-      .filter((spot): spot is NonNullable<typeof spot> => spot !== null)
+        // 既に選択されていない場所から1つを選択
+        const uniqueSpot = shuffledSpots.find(
+          (spot) => !selectedSpots.some((selected) => selected.lat === spot.lat && selected.lng === spot.lng),
+        )
+        if (uniqueSpot) {
+          selectedSpots.push({
+            ...uniqueSpot,
+            type: categoryId,
+          })
+        }
+      }
+    }
+
+    // 最大4つまでのスポットをランダムに選択
+    const finalSpots = shuffleArray(selectedSpots).slice(0, 4)
 
     return NextResponse.json({
       id: randomStation.id,
@@ -50,7 +63,7 @@ export async function GET(request: Request) {
       lat: randomStation.lat,
       lng: randomStation.lng,
       lines: randomStation.lines,
-      spots: selectedSpots,
+      spots: finalSpots,
     })
   } catch (error) {
     console.error("Error in random-station route:", error)
