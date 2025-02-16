@@ -15,16 +15,12 @@ import { SpotCard } from "@/components/spot-card"
 import { FavoriteStations } from "@/components/favorite-stations"
 import { SettingsModal } from "@/components/settings-modal"
 import type { VisitInfo } from "@/types/station"
-import {
-  getVisitsFromLocalStorage,
-  saveFavoriteToLocalStorage,
-  getFavoritesFromLocalStorage,
-} from "@/src/utils/localStorage"
+import { getVisitsFromLocalStorage, getFavoritesFromLocalStorage } from "@/src/utils/localStorage"
 import type { Session } from "next-auth"
 import { VisitedStations } from "@/components/visited-stations"
 import { categoryMapping } from "@/lib/category-mapping"
 import type { Category } from "@/types/category"
-import { shuffleArray } from "@/utils/array-utils"
+import { Badge } from "@/components/ui/badge"
 
 interface ClientHomeProps {
   session?: Session | null
@@ -47,10 +43,17 @@ export default function ClientHome({ session: initialSession, isGuest }: ClientH
   const { data: session, status } = useSession()
   const router = useRouter()
 
-  const handleTabChange = (value: string) => {
-    setActiveTabState(value)
-    router.push(`/?tab=${value}`, { scroll: false })
-  }
+  // 初期化時のデフォルトカテゴリー設定
+  const initializeDefaultCategories = useCallback(() => {
+    const defaultCategories = [
+      categoryMapping.cafe,
+      categoryMapping.restaurant,
+      categoryMapping.public_bath,
+      categoryMapping.tourist_attraction,
+    ]
+    setSelectedCategories(defaultCategories)
+    return defaultCategories
+  }, [])
 
   const fetchStation = useCallback(async (url: string) => {
     try {
@@ -70,57 +73,6 @@ export default function ClientHome({ session: initialSession, isGuest }: ClientH
     }
   }, [])
 
-  // スポットを1つ取得する関数を追加
-  async function fetchSingleSpot(stationId: string, categories: Category[], excludeIds: string[]) {
-    try {
-      const categoriesParam = encodeURIComponent(JSON.stringify(categories.map((cat) => cat.id)))
-      const excludeParam = excludeIds.join(",")
-      const response = await fetch(
-        `/api/station/${stationId}/spot?categories=${categoriesParam}&exclude=${excludeParam}`,
-      )
-      if (!response.ok) {
-        throw new Error("Failed to fetch spot")
-      }
-      const data = await response.json()
-      return data.spot
-    } catch (error) {
-      console.error("Error fetching single spot:", error)
-      return null
-    }
-  }
-
-  // ClientHomeコンポーネント内で、スポット取得ロジックを更新
-  const loadSpotsProgressively = useCallback(
-    async (stationId: string) => {
-      setLoading(true) // 全体のローディング状態を解除
-      setSelectedSpot(null)
-
-      // 4つの空のスポットスロットを作成
-      const spotSlots = Array(4).fill(null)
-      setStation((prev) => (prev ? { ...prev, spots: spotSlots } : null))
-
-      const fetchedSpotIds = new Set<string>()
-
-      // 各スポットスロットに対して順次スポットを取得
-      for (let i = 0; i < 4; i++) {
-        const spot = await fetchSingleSpot(stationId, selectedCategories, Array.from(fetchedSpotIds))
-
-        if (spot) {
-          fetchedSpotIds.add(spot.id)
-          setStation((prev) => {
-            if (!prev) return null
-            const newSpots = [...(prev.spots || [])]
-            newSpots[i] = spot
-            return { ...prev, spots: newSpots }
-          })
-        }
-      }
-      setLoading(false)
-    },
-    [fetchSingleSpot, selectedCategories],
-  )
-
-  // pickStation関数を更新
   const pickStation = useCallback(
     async (stationId?: string) => {
       setLoading(true)
@@ -129,17 +81,22 @@ export default function ClientHome({ session: initialSession, isGuest }: ClientH
       setError(null)
 
       try {
-        const categoriesParam = encodeURIComponent(JSON.stringify(selectedCategories.map((cat) => cat.id)))
+        // カテゴリーが設定されていない場合はデフォルトを使用
+        const categoriesToUse =
+          randomizedCategories.length > 0
+            ? randomizedCategories
+            : selectedCategories.length > 0
+              ? selectedCategories
+              : initializeDefaultCategories()
+
+        const categoriesParam = encodeURIComponent(JSON.stringify(categoriesToUse.map((cat) => cat.id)))
         const url = stationId
           ? `/api/station/${encodeURIComponent(stationId)}?categories=${categoriesParam}`
           : `/api/random-station?categories=${categoriesParam}`
 
         const newStation = await fetchStation(url)
-        setStation({ ...newStation, spots: Array(4).fill(null) })
+        setStation(newStation)
         setStationKey(Date.now().toString())
-
-        // プログレッシブにスポットを読み込む
-        loadSpotsProgressively(newStation.id)
       } catch (error) {
         console.error("駅の取得エラー:", error)
         setError(
@@ -147,162 +104,14 @@ export default function ClientHome({ session: initialSession, isGuest }: ClientH
             ? error.message
             : "駅の取得中にエラーが発生しました。しばらく待ってから再度お試しください。",
         )
+      } finally {
         setLoading(false)
       }
     },
-    [fetchStation, selectedCategories, loadSpotsProgressively],
+    [randomizedCategories, selectedCategories, fetchStation, initializeDefaultCategories],
   )
 
-  const updateStationSpots = useCallback(
-    async (categories: Category[]) => {
-      if (!station) return
-
-      try {
-        const categoriesParam = encodeURIComponent(JSON.stringify(categories.map((cat) => cat.id)))
-        const url = `/api/station/${encodeURIComponent(station.id)}/spots?categories=${categoriesParam}`
-
-        const response = await fetch(url)
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`)
-        }
-        const data = await response.json()
-        setStation((prevStation) => (prevStation ? { ...prevStation, spots: data.spots } : null))
-        setStationKey(Date.now().toString())
-      } catch (error) {
-        console.error("スポットの更新エラー:", error)
-        setError(error instanceof Error ? error.message : "スポットの更新に失敗しました")
-        // Set empty spots array to prevent undefined errors
-        setStation((prevStation) => (prevStation ? { ...prevStation, spots: [] } : null))
-      }
-    },
-    [station],
-  )
-
-  const loadFavorites = useCallback(async () => {
-    if (status === "authenticated" && session?.user?.id) {
-      try {
-        const favs = await getFavoriteStations(Number.parseInt(session.user.id))
-        setFavorites(favs)
-      } catch (error) {
-        console.error("お気に入りの取得エラー:", error)
-        setError("お気に入りの取得に失敗しました")
-      }
-    } else {
-      // Guest mode
-      const guestFavorites = getFavoritesFromLocalStorage()
-      setFavorites(guestFavorites)
-    }
-  }, [status, session?.user?.id])
-
-  const handleToggleFavorite = async () => {
-    if (!station) return
-
-    if (status === "authenticated" && session?.user?.id) {
-      try {
-        const favoriteStation: FavoriteStation = {
-          id: station.id,
-          name: station.name,
-          lines: station.lines || [],
-        }
-        const updatedFavorites = await toggleFavoriteStation(Number.parseInt(session.user.id), favoriteStation)
-        setFavorites(updatedFavorites)
-      } catch (error) {
-        console.error("お気に入りの更新エラー:", error)
-        setError("お気に入りの更新に失敗しました")
-      }
-    } else {
-      // Guest mode
-      const favoriteStation: FavoriteStation = {
-        id: station.id,
-        name: station.name,
-        lines: station.lines || [],
-      }
-      saveFavoriteToLocalStorage(favoriteStation)
-      loadFavorites()
-    }
-  }
-
-  const handleSelectFavorite = (selectedStation: FavoriteStation) => {
-    handleTabChange("picker")
-    pickStation(selectedStation.id)
-  }
-
-  const handleSettingsClick = () => {
-    setIsSettingsOpen(true)
-  }
-
-  const handleLogout = async () => {
-    try {
-      await signOut({ callbackUrl: "/login", redirect: true })
-    } catch (error) {
-      console.error("Logout error:", error)
-      setError("ログアウトに失敗しました")
-    }
-  }
-
-  const handleCategoryChange = async (newCategories: Category[]) => {
-    setSelectedCategories(newCategories)
-    if (status === "authenticated") {
-      try {
-        console.log("Sending categories update:", newCategories)
-        const response = await fetch("/api/categories", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            categories: newCategories.filter((cat) => !cat.id.startsWith("custom_")).map((cat) => cat.id),
-            customCategories: newCategories.filter((cat) => cat.id.startsWith("custom_")),
-          }),
-        })
-        if (!response.ok) {
-          const errorData = await response.json()
-          console.error("Error response:", errorData)
-          throw new Error(errorData.error || "Failed to update categories")
-        }
-        const result = await response.json()
-        console.log("Category update result:", result)
-      } catch (error) {
-        console.error("Error updating categories:", error)
-        setError("カテゴリーの更新に失敗しました")
-      }
-    } else {
-      localStorage.setItem("selectedSpotCategories", JSON.stringify(newCategories))
-    }
-    updateStationSpots(newCategories)
-  }
-
-  const randomizeCategories = useCallback(() => {
-    const shuffled = shuffleArray([...selectedCategories])
-    // 2〜4個のカテゴリーを選択（利用可能なカテゴリー数に応じて）
-    const numCategories = Math.min(Math.max(2, Math.floor(Math.random() * 3) + 2), shuffled.length)
-    const randomized = shuffled.slice(0, numCategories)
-
-    // 選択されたカテゴリーをログ出力
-    console.log(
-      "Randomized categories:",
-      randomized.map((cat) => cat.label),
-    )
-
-    setRandomizedCategories(randomized)
-  }, [selectedCategories])
-
-  useEffect(() => {
-    setIsMounted(true)
-  }, [])
-
-  useEffect(() => {
-    if (isMounted) {
-      const urlParams = new URLSearchParams(window.location.search)
-      const tabParam = urlParams.get("tab")
-      if (tabParam && ["picker", "visited", "favorites"].includes(tabParam)) {
-        setActiveTabState(tabParam)
-      }
-      pickStation()
-      loadFavorites()
-    }
-  }, [isMounted, pickStation, loadFavorites])
-
+  // カテゴリーの初期化と取得
   useEffect(() => {
     const fetchCategories = async () => {
       if (status === "authenticated") {
@@ -310,72 +119,111 @@ export default function ClientHome({ session: initialSession, isGuest }: ClientH
           const response = await fetch("/api/categories")
           if (response.ok) {
             const data = await response.json()
-            setSelectedCategories(data.categories)
+            if (data.categories && data.categories.length > 0) {
+              setSelectedCategories(data.categories)
+            } else {
+              // サーバーから空の配列が返された場合はデフォルトを設定
+              initializeDefaultCategories()
+            }
           } else {
             throw new Error("Failed to fetch categories")
           }
         } catch (error) {
           console.error("Error fetching categories:", error)
-          setError("カテゴリーの取得に失敗しました")
-          // エラー時はデフォルトカテゴリーを設定
-          setDefaultCategories()
+          initializeDefaultCategories()
         }
-      } else {
+      } else if (isGuest) {
         const storedCategories = localStorage.getItem("selectedSpotCategories")
         if (storedCategories) {
           setSelectedCategories(JSON.parse(storedCategories))
         } else {
-          setDefaultCategories()
+          initializeDefaultCategories()
         }
       }
     }
 
-    fetchCategories()
-  }, [status])
+    if (isMounted) {
+      fetchCategories()
+    }
+  }, [status, isGuest, isMounted, initializeDefaultCategories])
 
-  const setDefaultCategories = () => {
-    const defaultCategories = [
-      categoryMapping.cafe,
-      categoryMapping.restaurant,
-      categoryMapping.public_bath,
-      categoryMapping.tourist_attraction,
-    ]
-    setSelectedCategories(defaultCategories)
-    localStorage.setItem("selectedSpotCategories", JSON.stringify(defaultCategories))
+  // コンポーネントのマウント時の初期化
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
+
+  const loadFavorites = useCallback(async () => {
+    if (status === "authenticated") {
+      const favorites = await getFavoriteStations()
+      setFavorites(favorites)
+    } else if (isGuest) {
+      const favorites = getFavoritesFromLocalStorage()
+      setFavorites(favorites)
+    }
+  }, [status, isGuest])
+
+  // 初期データの読み込み
+  useEffect(() => {
+    if (isMounted && (status === "authenticated" || isGuest)) {
+      const urlParams = new URLSearchParams(window.location.search)
+      const tabParam = urlParams.get("tab")
+      if (tabParam && ["picker", "visited", "favorites"].includes(tabParam)) {
+        setActiveTabState(tabParam)
+      }
+
+      // カテゴリーが設定されている場合のみpickStationを実行
+      if (selectedCategories.length > 0 || randomizedCategories.length > 0) {
+        pickStation()
+      }
+
+      loadFavorites()
+    }
+  }, [isMounted, status, isGuest, pickStation, loadFavorites, selectedCategories, randomizedCategories])
+
+  useEffect(() => {
+    if (isMounted && (status === "authenticated" || isGuest)) {
+      const visits = status === "authenticated" ? await getVisitedStations() : getVisitsFromLocalStorage()
+      setVisitedStations(visits)
+    }
+  }, [isMounted, status, isGuest])
+
+  const handleSettingsClick = () => setIsSettingsOpen(true)
+  const handleLogout = () => signOut()
+
+  const handleTabChange = (value: string) => {
+    setActiveTabState(value)
   }
 
-  useEffect(() => {
-    randomizeCategories()
-  }, [selectedCategories, randomizeCategories])
-
-  useEffect(() => {
-    const loadVisitedStations = async () => {
-      if (status === "authenticated" && session?.user?.id) {
-        try {
-          const stations = await getVisitedStations(Number.parseInt(session.user.id))
-          setVisitedStations(stations)
-        } catch (error) {
-          console.error("Error fetching visited stations:", error)
-          setError("Failed to fetch visited stations")
-        }
-      } else {
-        // Guest mode
-        const guestVisits = getVisitsFromLocalStorage()
-        setVisitedStations(guestVisits)
-      }
+  const handleToggleFavorite = async () => {
+    if (!station) return
+    const isFavorited = favorites.some((fav) => fav.id === station.id)
+    if (isFavorited) {
+      await toggleFavoriteStation(station.id, false)
+      setFavorites((prev) => prev.filter((fav) => fav.id !== station.id))
+    } else {
+      await toggleFavoriteStation(station.id, true)
+      setFavorites((prev) => [...prev, { id: station.id, name: station.name }])
     }
-    loadVisitedStations()
-  }, [status, session?.user?.id])
+  }
+
+  const handleSelectFavorite = async (stationId: string) => {
+    setActiveTabState("picker")
+    await pickStation(stationId)
+  }
+
+  const handleCategoryChange = (categories: Category[]) => {
+    setSelectedCategories(categories)
+    localStorage.setItem("selectedSpotCategories", JSON.stringify(categories))
+    pickStation()
+  }
 
   if (!isMounted) {
     return <div>Loading...</div>
   }
 
   const isFavorite = station ? favorites.some((fav) => fav.id === station.id) : false
-
   const Map = dynamic(() => import("@/components/map"), { ssr: false })
 
-  // カテゴリーIDからラベルを取得する関数
   function getCategoryLabel(categoryId: string): string {
     const category = Object.values(categoryMapping).find((cat) => cat.id === categoryId)
     return category ? category.label : categoryId
@@ -464,21 +312,20 @@ export default function ClientHome({ session: initialSession, isGuest }: ClientH
                 >
                   Google Mapで開く
                 </Button>
-                {station?.spots ? (
-                  <div className="mt-4 grid grid-cols-2 gap-4">
-                    {Array(4)
-                      .fill(null)
-                      .map((_, index) => (
-                        <SpotCard
-                          key={`spot-${index}`}
-                          {...(station.spots[index] || {})}
-                          isLoading={!station.spots[index]}
-                          index={index}
-                          onClick={() => station.spots[index] && setSelectedSpot(station.spots[index])}
-                        />
-                      ))}
-                  </div>
-                ) : null}
+                <div className="mt-4 grid grid-cols-2 gap-4">
+                  {station?.spots && station.spots.length > 0 ? (
+                    station.spots.map((spot, index) => (
+                      <div key={`${spot.id}-${index}`} className="relative">
+                        <SpotCard {...spot} onClick={() => setSelectedSpot(spot)} />
+                        <Badge className="absolute top-2 right-2 z-10">{getCategoryLabel(spot.type)}</Badge>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="col-span-2 text-center text-muted-foreground">
+                      選択したカテゴリーのスポットが見つかりません
+                    </p>
+                  )}
+                </div>
                 <div className="mt-4 flex justify-between">
                   <Button onClick={() => pickStation()}>別の駅を選ぶ</Button>
                   <Button variant="outline" onClick={handleToggleFavorite}>
