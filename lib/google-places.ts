@@ -67,7 +67,9 @@ export async function fetchNearbyPlaces({
       if (!response.ok) {
         throw new Error(`Nearby Search failed: ${response.statusText}`)
       }
-      return response.json()
+      const data = await response.json()
+      console.log(`Nearby Search results for ${type}:`, data) // デバッグログを追加
+      return data
     },
     // 戦略2: Text Search APIを使用（より詳細な検索）
     async () => {
@@ -84,7 +86,9 @@ export async function fetchNearbyPlaces({
       if (!response.ok) {
         throw new Error(`Text Search failed: ${response.statusText}`)
       }
-      return response.json()
+      const data = await response.json()
+      console.log(`Text Search results for ${type}:`, data) // デバッグログを追加
+      return data
     },
   ]
 
@@ -102,15 +106,23 @@ export async function fetchNearbyPlaces({
 
         if (filteredResults.length > 0) {
           console.log(`Found ${filteredResults.length} places for category ${type}`)
-          return filteredResults.map((place) => ({
-            id: place.place_id,
-            name: place.name,
-            lat: place.geometry.location.lat,
-            lng: place.geometry.location.lng,
-            type: type,
-            categoryId: type,
-            photo: place.photos?.[0]?.photo_reference || "/placeholder.svg?height=400&width=400",
-          }))
+          return filteredResults.map((place) => {
+            // 写真の参照が存在しない場合のデバッグログ
+            if (!place.photos || place.photos.length === 0) {
+              console.log(`No photos found for place: ${place.name} (${type})`)
+            }
+
+            return {
+              id: place.place_id,
+              name: place.name,
+              lat: place.geometry.location.lat,
+              lng: place.geometry.location.lng,
+              type: type,
+              categoryId: type,
+              // 写真の参照が存在しない場合は、カテゴリー固有のプレースホルダー画像を使用
+              photo: place.photos?.[0]?.photo_reference || getCategoryPlaceholder(type),
+            }
+          })
         }
       }
 
@@ -122,6 +134,22 @@ export async function fetchNearbyPlaces({
 
   console.log(`No results found for category ${type} after trying all strategies`)
   return []
+}
+
+// カテゴリーごとのプレースホルダー画像を返す関数
+function getCategoryPlaceholder(type: string): string {
+  const placeholders: Record<string, string> = {
+    shopping_mall: "/placeholder-images/shopping-mall.svg",
+    tourist_attraction: "/placeholder-images/tourist-attraction.svg",
+    restaurant: "/placeholder-images/restaurant.svg",
+    cafe: "/placeholder-images/cafe.svg",
+    public_bath: "/placeholder-images/public-bath.svg",
+    park: "/placeholder-images/park.svg",
+    museum: "/placeholder-images/museum.svg",
+    amusement_park: "/placeholder-images/amusement-park.svg",
+  }
+
+  return placeholders[type] || "/placeholder.svg?height=400&width=400"
 }
 
 // 2点間の距離をキロメートル単位で計算するヘルパー関数

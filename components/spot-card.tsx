@@ -22,23 +22,43 @@ export function SpotCard({ name, photo, type, onClick, index }: SpotCardProps) {
   const categoryLabel = category?.label || type
 
   const handleImageError = () => {
-    console.error("Image failed to load:", photo)
+    console.error(`Image failed to load for ${name} (${type}):`, photo)
     setImageError(true)
   }
 
-  const imageUrl =
-    photo.startsWith("http") || photo.startsWith("/placeholder.svg")
-      ? photo
-      : `/api/place-photo?reference=${encodeURIComponent(photo)}`
+  // 画像URLの生成ロジックを改善
+  const getImageUrl = () => {
+    if (imageError) {
+      return `/placeholder.svg?height=400&width=400`
+    }
 
-  console.log(`Rendering SpotCard ${index !== undefined ? index + 1 : ""} with image URL:`, imageUrl)
+    if (photo.startsWith("http") || photo.startsWith("/")) {
+      return photo
+    }
+
+    try {
+      // photo_referenceが有効な文字列かチェック
+      if (typeof photo !== "string" || photo.trim() === "") {
+        console.error(`Invalid photo reference for ${name} (${type})`)
+        return `/placeholder.svg?height=400&width=400`
+      }
+
+      return `/api/place-photo?reference=${encodeURIComponent(photo)}`
+    } catch (error) {
+      console.error(`Error creating image URL for ${name} (${type}):`, error)
+      return `/placeholder.svg?height=400&width=400`
+    }
+  }
+
+  const imageUrl = getImageUrl()
+  console.log(`Rendering SpotCard for ${name} (${type}) with image URL:`, imageUrl)
 
   return (
     <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={onClick}>
       <CardContent className="p-3">
         <div className="aspect-square relative mb-2">
           <Image
-            src={imageError ? "/placeholder.svg?height=400&width=400" : imageUrl}
+            src={imageUrl || "/placeholder.svg"}
             alt={name}
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
