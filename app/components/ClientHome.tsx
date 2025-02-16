@@ -50,7 +50,7 @@ export default function ClientHome({ session: initialSession, isGuest }: ClientH
       categoryMapping.restaurant,
       categoryMapping.public_bath,
       categoryMapping.tourist_attraction,
-    ]
+    ].slice(0, 4) // 最大4つに制限
     setSelectedCategories(defaultCategories)
     return defaultCategories
   }, [])
@@ -330,12 +330,17 @@ export default function ClientHome({ session: initialSession, isGuest }: ClientH
                 </Button>
                 <div className="mt-4 grid grid-cols-2 gap-4">
                   {station?.spots && station.spots.length > 0 ? (
-                    station.spots.map((spot, index) => (
-                      <div key={`${spot.id}-${index}`} className="relative">
-                        <SpotCard {...spot} onClick={() => setSelectedSpot(spot)} index={index} />
-                        <Badge className="absolute top-2 right-2 z-10">{getCategoryLabel(spot.type)}</Badge>
-                      </div>
-                    ))
+                    station.spots.slice(0, 4).map(
+                      (
+                        spot,
+                        index, // 最大4つのスポットに制限
+                      ) => (
+                        <div key={`${spot.id}-${index}`} className="relative">
+                          <SpotCard {...spot} onClick={() => setSelectedSpot(spot)} index={index} />
+                          <Badge className="absolute top-2 right-2 z-10">{getCategoryLabel(spot.type)}</Badge>
+                        </div>
+                      ),
+                    )
                   ) : (
                     <p className="col-span-2 text-center text-muted-foreground">
                       選択したカテゴリーのスポットが見つかりません

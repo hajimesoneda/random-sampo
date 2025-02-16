@@ -53,7 +53,7 @@ export function SettingsModal({ isOpen, onClose, onCategoryChange, initialCatego
   }
 
   const handleAddCustomCategory = () => {
-    if (newCategoryLabel.trim() && customCategories.length < 2) {
+    if (newCategoryLabel.trim() && customCategories.length < 1) {
       const newCategory: Category = {
         id: newCategoryLabel.trim(), // IDとしてラベルを使用
         label: newCategoryLabel.trim(),
@@ -79,7 +79,7 @@ export function SettingsModal({ isOpen, onClose, onCategoryChange, initialCatego
       <DialogContent>
         <DialogHeader>
           <DialogTitle>設定</DialogTitle>
-          <DialogDescription>スポットのカテゴリーを選択してください（最大6つ）</DialogDescription>
+          <DialogDescription>スポットのカテゴリーを選択してください（最大4つ）</DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
           {Object.values(categoryMapping).map((category) => (
@@ -88,7 +88,7 @@ export function SettingsModal({ isOpen, onClose, onCategoryChange, initialCatego
                 id={category.label}
                 checked={categories.some((cat) => cat.label === category.label)}
                 onCheckedChange={(checked) => handleCategoryChange(category.label, checked)}
-                disabled={categories.length >= 6 && !categories.some((cat) => cat.label === category.label)}
+                disabled={categories.length >= 4 && !categories.some((cat) => cat.label === category.label)}
               />
               <label htmlFor={category.label} className="ml-2">
                 {category.label}
@@ -101,14 +101,14 @@ export function SettingsModal({ isOpen, onClose, onCategoryChange, initialCatego
                 id={category.label}
                 checked={categories.some((cat) => cat.label === category.label)}
                 onCheckedChange={(checked) => handleCategoryChange(category.label, checked)}
-                disabled={categories.length >= 6 && !categories.some((cat) => cat.label === category.label)}
+                disabled={categories.length >= 4 && !categories.some((cat) => cat.label === category.label)}
               />
               <label htmlFor={category.label} className="ml-2">
                 {category.label}
               </label>
             </div>
           ))}
-          {customCategories.length < 2 && (
+          {customCategories.length < 1 && (
             <div className="flex items-center space-x-2">
               <Input
                 type="text"
@@ -116,7 +116,7 @@ export function SettingsModal({ isOpen, onClose, onCategoryChange, initialCatego
                 value={newCategoryLabel}
                 onChange={(e) => setNewCategoryLabel(e.target.value)}
               />
-              <Button onClick={handleAddCustomCategory} disabled={!newCategoryLabel.trim() || categories.length >= 6}>
+              <Button onClick={handleAddCustomCategory} disabled={!newCategoryLabel.trim() || categories.length >= 4}>
                 追加
               </Button>
             </div>
