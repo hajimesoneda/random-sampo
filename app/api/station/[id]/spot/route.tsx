@@ -3,23 +3,18 @@ import { fetchNearbyPlaces } from "@/lib/google-places"
 import prisma from "@/lib/prisma"
 import type { Category } from "@/types/category"
 import { isValidCategory } from "@/types/category"
+import type { Spot } from "@/types/station"
 import { shuffleArray } from "@/utils/array-utils"
 
 export async function GET(request: Request, { params }: { params: { id: string } }) {
   const stationId = params.id
   const { searchParams } = new URL(request.url)
   const categoriesParam = searchParams.get("categories")
-  const excludeIds = searchParams.get("exclude")?.split(",") || []
-
-  let categories: string[] = []
-  try {
-    categories = categoriesParam ? JSON.parse(categoriesParam) : []
-  } catch (error) {
-    console.error("Failed to parse categories parameter:", error)
-    return NextResponse.json({ error: "Invalid categories parameter" }, { status: 400 })
-  }
+  const categories: string[] = categoriesParam ? JSON.parse(categoriesParam) : []
 
   try {
+    console.log(`Fetching spots for station ${stationId} with categories:`, categories)
+
     const station = await prisma.station.findUnique({
       where: { id: stationId },
       select: { lat: true, lng: true },
@@ -29,65 +24,71 @@ export async function GET(request: Request, { params }: { params: { id: string }
       return NextResponse.json({ error: "Station not found" }, { status: 404 })
     }
 
-    // カテゴリーをランダムに1つ選択
-    const shuffledCategories = shuffleArray(categories)
-    const selectedCategory = shuffledCategories[0]
-
-    if (!selectedCategory) {
-      return NextResponse.json({ error: "No categories available" }, { status: 400 })
-    }
-
-    // 選択されたカテゴリーの情報を取得
-    const category = await prisma.category.findUnique({
-      where: { id: selectedCategory },
+    const dbCategories = await prisma.category.findMany({
+      where: { id: { in: categories } },
     })
 
-    if (!category) {
-      // カスタムカテゴリーの場合
-      const customCategoryPreference = await prisma.categoryPreference.findFirst({
-        where: { categories: { some: { id: { in: [selectedCategory] } } } },
-        select: { customCategories: true },
+    const customCategoriesResult = await prisma.categoryPreference.findFirst({
+      where: { categories: { some: { id: { in: categories } } } },
+      select: { customCategories: true },
+    })
+
+    const customCategories: Category[] = customCategoriesResult?.customCategories
+      ? (JSON.parse(customCategoriesResult.customCategories as string) as unknown[])
+          .filter(isValidCategory)
+          .filter((cat) => categories.includes(cat.id))
+      : []
+
+    const allCategories: Category[] = [
+      ...dbCategories.map((cat) => ({
+        ...cat,
+        type: cat.type.includes(",") ? cat.type.split(",") : cat.type,
+      })),
+      ...customCategories,
+    ]
+
+    console.log("Fetching spots for categories:", allCategories)
+
+    // カテゴリーごとのスポットを取得
+    const spotsPromises = allCategories.map(async (category) => {
+      const spots = await fetchNearbyPlaces({
+        lat: station.lat,
+        lng: station.lng,
+        type: category.id,
+        radius: 1000,
       })
+      return { categoryId: category.id, spots }
+    })
 
-      const customCategories: Category[] = customCategoryPreference?.customCategories
-        ? (JSON.parse(customCategoryPreference.customCategories as string) as unknown[])
-            .filter(isValidCategory)
-            .filter((cat) => cat.id === selectedCategory)
-        : []
+    const results = await Promise.all(spotsPromises)
+    const validResults = results.filter((result) => result.spots.length > 0)
 
-      if (customCategories.length === 0) {
-        return NextResponse.json({ error: "Category not found" }, { status: 404 })
+    if (validResults.length === 0) {
+      return NextResponse.json({ spots: [] })
+    }
+
+    // カテゴリーごとに1つのスポットを選択
+    const selectedSpots: Spot[] = []
+
+    // 各カテゴリーからランダムに1つのスポットを選択
+    for (const { categoryId, spots } of validResults) {
+      const shuffledSpots = shuffleArray([...spots])
+      const spot = shuffledSpots[0]
+      if (spot) {
+        selectedSpots.push({
+          ...spot,
+          type: categoryId, // カテゴリーIDを設定
+        })
       }
     }
 
-    // スポットを取得
-    const spots = await fetchNearbyPlaces({
-      lat: station.lat,
-      lng: station.lng,
-      type: selectedCategory,
-      radius: 1000,
-    })
+    // 最終的な結果をシャッフル
+    const finalSpots = shuffleArray(selectedSpots)
 
-    // 除外IDを考慮してスポットをフィルタリング
-    const availableSpots = spots.filter((spot) => !excludeIds.includes(spot.id))
-
-    if (availableSpots.length === 0) {
-      return NextResponse.json({ spot: null })
-    }
-
-    // ランダムに1つのスポットを選択
-    const selectedSpot = availableSpots[Math.floor(Math.random() * availableSpots.length)]
-
-    return NextResponse.json({ spot: selectedSpot })
+    return NextResponse.json({ spots: finalSpots })
   } catch (error) {
-    console.error("Error fetching spot:", error)
-    return NextResponse.json(
-      {
-        error: "スポットの取得中にエラーが発生しました。",
-        details: error instanceof Error ? error.message : "Unknown error",
-      },
-      { status: 500 },
-    )
+    console.error("Error fetching spots:", error)
+    return NextResponse.json({ error: "スポットの取得中にエラーが発生しました。" }, { status: 500 })
   }
 }
 

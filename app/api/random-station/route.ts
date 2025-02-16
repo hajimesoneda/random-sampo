@@ -3,6 +3,7 @@ import { db } from "@/src/db"
 import { stations } from "@/src/db/schema"
 import { sql } from "drizzle-orm"
 import { fetchNearbyPlaces } from "@/lib/google-places"
+import { shuffleArray } from "@/utils/array-utils"
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
@@ -20,19 +21,28 @@ export async function GET(request: Request) {
 
     const randomStation = randomStations[0]
 
-    // Fetch spots for each category
+    // カテゴリーごとのスポットを取得
     const spotsPromises = categories.map(async (category: string) => {
       const spots = await fetchNearbyPlaces({
         lat: randomStation.lat,
         lng: randomStation.lng,
         type: category,
-        radius: 1000, // 1km radius
+        radius: 1000,
       })
-      return spots.map((spot) => ({ ...spot, type: category }))
+      return { categoryId: category, spots }
     })
 
-    const spotsArrays = await Promise.all(spotsPromises)
-    const spots = spotsArrays.flat().slice(0, 4) // Limit to 4 spots total
+    const results = await Promise.all(spotsPromises)
+    const validResults = results.filter((result) => result.spots.length > 0)
+
+    // カテゴリーごとに1つのスポットを選択
+    const selectedSpots = validResults
+      .map(({ categoryId, spots }) => {
+        const shuffledSpots = shuffleArray([...spots])
+        const spot = shuffledSpots[0]
+        return spot ? { ...spot, type: categoryId } : null
+      })
+      .filter((spot): spot is NonNullable<typeof spot> => spot !== null)
 
     return NextResponse.json({
       id: randomStation.id,
@@ -40,7 +50,7 @@ export async function GET(request: Request) {
       lat: randomStation.lat,
       lng: randomStation.lng,
       lines: randomStation.lines,
-      spots: spots,
+      spots: selectedSpots,
     })
   } catch (error) {
     console.error("Error in random-station route:", error)
