@@ -5,77 +5,104 @@ import prisma from "@/lib/prisma"
 import type { Category } from "@/types/category"
 import { categoryMapping } from "@/lib/category-mapping"
 
+// デフォルトのカテゴリー
+const defaultCategories = [
+  categoryMapping.cafe,
+  categoryMapping.restaurant,
+  categoryMapping.public_bath,
+  categoryMapping.tourist_attraction,
+]
+
 export async function GET() {
-  const session = await getServerSession(authOptions)
-
-  if (!session?.user?.id) {
-    // ログインしていない場合はデフォルトのカテゴリーを返す
-    const defaultCategories = [
-      categoryMapping.cafe,
-      categoryMapping.restaurant,
-      categoryMapping.public_bath,
-      categoryMapping.tourist_attraction,
-    ]
-    return NextResponse.json({ categories: defaultCategories })
-  }
-
-  const userId = Number.parseInt(session.user.id)
-
   try {
+    const session = await getServerSession(authOptions)
+
+    // ログインしていない場合はデフォルトのカテゴリーを返す
+    if (!session?.user?.id) {
+      return NextResponse.json({ categories: defaultCategories })
+    }
+
+    const userId = Number.parseInt(session.user.id)
+
     const userPreference = await prisma.categoryPreference.findUnique({
       where: { userId },
       include: { categories: true },
     })
 
+    // ユーザー設定が存在しない場合はデフォルトのカテゴリーを返す
     if (!userPreference) {
-      // ユーザー設定が存在しない場合はデフォルトのカテゴリーを返す
-      const defaultCategories = [
-        categoryMapping.cafe,
-        categoryMapping.restaurant,
-        categoryMapping.public_bath,
-        categoryMapping.tourist_attraction,
-      ]
       return NextResponse.json({ categories: defaultCategories })
     }
 
     // データベースのカテゴリーをCategory型に変換
     const dbCategories = userPreference.categories.map((cat) => ({
-      ...cat,
+      id: cat.id,
+      label: cat.label,
       type: cat.type.includes(",") ? cat.type.split(",") : cat.type,
+      keywords: cat.keywords || undefined,
     }))
 
-    // カスタムカテゴリーを解析して検証
-    const customCategories = userPreference.customCategories
-      ? (JSON.parse(userPreference.customCategories as string) as Category[])
-      : []
+    // カスタムカテゴリーを解析
+    let customCategories: Category[] = []
+    if (userPreference.customCategories) {
+      try {
+        const parsed = JSON.parse(userPreference.customCategories as string)
+        if (Array.isArray(parsed)) {
+          customCategories = parsed.map((cat) => ({
+            id: String(cat.id),
+            label: String(cat.label),
+            type: Array.isArray(cat.type) ? cat.type : String(cat.type),
+            keywords: cat.keywords ? String(cat.keywords) : undefined,
+          }))
+        }
+      } catch (error) {
+        console.error("Error parsing custom categories:", error)
+        customCategories = []
+      }
+    }
 
     // すべてのカテゴリーを結合
     const allCategories = [...dbCategories, ...customCategories]
 
+    // カテゴリーが空の場合はデフォルトを返す
+    if (allCategories.length === 0) {
+      return NextResponse.json({ categories: defaultCategories })
+    }
+
     return NextResponse.json({ categories: allCategories })
   } catch (error) {
     console.error("Error fetching categories:", error)
-    return NextResponse.json({ error: "Failed to fetch categories" }, { status: 500 })
+    // エラーが発生した場合はデフォルトのカテゴリーを返す
+    return NextResponse.json({ categories: defaultCategories })
   }
 }
 
 export async function POST(request: Request) {
-  const session = await getServerSession(authOptions)
-
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  }
-
-  const userId = Number.parseInt(session.user.id)
-  const { categories, customCategories } = await request.json()
-
   try {
+    const session = await getServerSession(authOptions)
+
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    const userId = Number.parseInt(session.user.id)
+    const body = await request.json()
+
+    if (!body || !Array.isArray(body.categories)) {
+      return NextResponse.json({ error: "Invalid request body" }, { status: 400 })
+    }
+
+    const { categories, customCategories } = body
+
     // カスタムカテゴリーの構造を検証
-    const validatedCustomCategories = customCategories.map((cat: Category) => ({
-      id: String(cat.label),
-      label: String(cat.label),
-      type: String(cat.type),
-    }))
+    const validatedCustomCategories = Array.isArray(customCategories)
+      ? customCategories.map((cat: any) => ({
+          id: String(cat.label),
+          label: String(cat.label),
+          type: String(cat.type),
+          keywords: cat.keywords ? String(cat.keywords) : undefined,
+        }))
+      : []
 
     // データベースからすべてのカテゴリーを取得
     const dbCategories = await prisma.category.findMany()
@@ -119,12 +146,14 @@ export async function POST(request: Request) {
     }
 
     const updatedDbCategories = updatedPreference.categories.map((cat) => ({
-      ...cat,
+      id: cat.id,
+      label: cat.label,
       type: cat.type.includes(",") ? cat.type.split(",") : cat.type,
+      keywords: cat.keywords || undefined,
     }))
 
     const updatedCustomCategories = updatedPreference.customCategories
-      ? (JSON.parse(updatedPreference.customCategories as string) as Category[])
+      ? JSON.parse(updatedPreference.customCategories as string)
       : []
 
     const allCategories = [...updatedDbCategories, ...updatedCustomCategories]
