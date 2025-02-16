@@ -1,5 +1,5 @@
 import type { Spot } from "@/types/station"
-import { getCategoryType, getCategoryKeywords, isCustomCategory } from "./category-mapping"
+import { getCategoryKeywords, isCustomCategory } from "./category-mapping"
 
 const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY
 
@@ -28,103 +28,20 @@ interface PlacesResponse {
   error_message?: string
 }
 
-export async function fetchNearbyPlaces({
-  lat,
-  lng,
-  type,
-  radius,
-}: {
-  lat: number
-  lng: number
-  type: string
-  radius: number
-}): Promise<Spot[]> {
-  console.log(`Fetching places for category: ${type}, keywords: ${getCategoryKeywords(type)}`)
-  const apiType = getCategoryType(type)
-  const keywords = getCategoryKeywords(type)
-  const isCustom = isCustomCategory(type)
+const textSearchStrategy = async (lat: number, lng: number, keywords: string, radius: number) => {
+  const url = new URL("https://maps.googleapis.com/maps/api/place/textsearch/json")
+  url.searchParams.append("query", `${encodeURIComponent(keywords)} near ${lat},${lng}`)
+  url.searchParams.append("radius", radius.toString())
+  url.searchParams.append("key", GOOGLE_MAPS_API_KEY)
+  url.searchParams.append("language", "ja")
+  url.searchParams.append("region", "jp")
 
-  // カスタムカテゴリー用の検索戦略
-  const customSearchStrategy = async () => {
-    const url = new URL("https://maps.googleapis.com/maps/api/place/nearbysearch/json")
-    url.searchParams.append("location", `${lat},${lng}`)
-    url.searchParams.append("radius", radius.toString())
-    url.searchParams.append("keyword", encodeURIComponent(keywords))
-    url.searchParams.append("key", GOOGLE_MAPS_API_KEY)
-    url.searchParams.append("language", "ja")
-    url.searchParams.append("region", "jp")
-    url.searchParams.append("rankby", "prominence")
-
-    console.log(`Trying Nearby Search for custom category with URL: ${url.toString()}`)
-    const response = await fetch(url.toString())
-    if (!response.ok) {
-      throw new Error(`Nearby Search failed: ${response.statusText}`)
-    }
-    return response.json()
+  console.log(`Trying Text Search with URL: ${url.toString()}`)
+  const response = await fetch(url.toString())
+  if (!response.ok) {
+    throw new Error(`Text Search failed: ${response.statusText}`)
   }
-
-  // 通常カテゴリー用の検索戦略
-  const standardSearchStrategies = [
-    // 戦略1: Nearby Search APIを使用（タイプとキーワードの組み合わせ）
-    async () => {
-      const url = new URL("https://maps.googleapis.com/maps/api/place/nearbysearch/json")
-      url.searchParams.append("location", `${lat},${lng}`)
-      url.searchParams.append("radius", radius.toString())
-      url.searchParams.append("keyword", keywords)
-      if (Array.isArray(apiType)) {
-        url.searchParams.append("type", apiType[0])
-      } else if (typeof apiType === "string") {
-        url.searchParams.append("type", apiType)
-      }
-      url.searchParams.append("key", GOOGLE_MAPS_API_KEY)
-      url.searchParams.append("language", "ja")
-      url.searchParams.append("region", "jp")
-      url.searchParams.append("rankby", "prominence")
-
-      console.log(`Trying Nearby Search with URL: ${url.toString()}`)
-      const response = await fetch(url.toString())
-      if (!response.ok) {
-        throw new Error(`Nearby Search failed: ${response.statusText}`)
-      }
-      return response.json()
-    },
-  ]
-
-  // カテゴリータイプに応じて適切な検索戦略を選択
-  const searchStrategy = isCustom ? customSearchStrategy : standardSearchStrategies[0]
-
-  // 検索戦略を実行
-  try {
-    const data: PlacesResponse = await searchStrategy()
-
-    if (data.status === "OK" && data.results.length > 0) {
-      // 結果をフィルタリング：指定された半径内のスポットのみを取得
-      const filteredResults = data.results.filter((place) => {
-        const distance = calculateDistance(lat, lng, place.geometry.location.lat, place.geometry.location.lng)
-        return distance <= radius / 1000 // radiusはメートル単位なので、kmに変換
-      })
-
-      if (filteredResults.length > 0) {
-        console.log(`Found ${filteredResults.length} places for category ${type}`)
-        return filteredResults.map((place) => ({
-          id: place.place_id,
-          name: place.name,
-          lat: place.geometry.location.lat,
-          lng: place.geometry.location.lng,
-          type: type,
-          categoryId: type,
-          photo: place.photos?.[0]?.photo_reference || getCategoryPlaceholder(type),
-        }))
-      }
-    }
-
-    console.log(`No results found with status: ${data.status}`)
-  } catch (error) {
-    console.error(`Strategy failed for category ${type}:`, error)
-  }
-
-  console.log(`No results found for category ${type} after trying the search strategy`)
-  return []
+  return response.json()
 }
 
 function getCategoryPlaceholder(type: string): string {
@@ -155,5 +72,95 @@ function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
 
 function toRad(degrees: number): number {
   return degrees * (Math.PI / 180)
+}
+
+export async function fetchNearbyPlaces({
+  lat,
+  lng,
+  type,
+  radius: providedRadius,
+}: {
+  lat: number
+  lng: number
+  type: string
+  radius: number
+}): Promise<Spot[]> {
+  console.log(`Fetching places for category: ${type}`)
+  const keywords = getCategoryKeywords(type)
+  const isCustom = isCustomCategory(type)
+
+  const MAX_RADIUS = 5000 // 最大5km
+  const radius = Math.min(providedRadius, MAX_RADIUS)
+
+  const textSearchStrategy = async () => {
+    const url = new URL("https://maps.googleapis.com/maps/api/place/textsearch/json")
+    url.searchParams.append("query", `${encodeURIComponent(keywords)} near`)
+    url.searchParams.append("location", `${lat},${lng}`)
+    url.searchParams.append("radius", radius.toString())
+    url.searchParams.append("key", GOOGLE_MAPS_API_KEY)
+    url.searchParams.append("language", "ja")
+    url.searchParams.append("region", "jp")
+
+    console.log(`Trying Text Search with URL: ${url.toString()}`)
+    const response = await fetch(url.toString())
+    if (!response.ok) {
+      throw new Error(`Text Search failed: ${response.statusText}`)
+    }
+    return response.json()
+  }
+
+  const nearbySearchStrategy = async () => {
+    const url = new URL("https://maps.googleapis.com/maps/api/place/nearbysearch/json")
+    url.searchParams.append("location", `${lat},${lng}`)
+    url.searchParams.append("radius", radius.toString())
+    url.searchParams.append("keyword", encodeURIComponent(keywords))
+    url.searchParams.append("key", GOOGLE_MAPS_API_KEY)
+    url.searchParams.append("language", "ja")
+    url.searchParams.append("region", "jp")
+
+    console.log(`Trying Nearby Search with URL: ${url.toString()}`)
+    const response = await fetch(url.toString())
+    if (!response.ok) {
+      throw new Error(`Nearby Search failed: ${response.statusText}`)
+    }
+    return response.json()
+  }
+
+  const searchStrategies = [textSearchStrategy, nearbySearchStrategy]
+
+  let results: PlacesResponse | null = null
+  for (const strategy of searchStrategies) {
+    try {
+      results = await strategy()
+      if (results.status === "OK" && results.results.length > 0) {
+        break
+      }
+    } catch (error) {
+      console.error("Search strategy failed:", error)
+    }
+  }
+
+  if (results && results.status === "OK" && results.results.length > 0) {
+    const filteredResults = results.results.filter((place) => {
+      const distance = calculateDistance(lat, lng, place.geometry.location.lat, place.geometry.location.lng)
+      return distance <= radius / 1000
+    })
+
+    if (filteredResults.length > 0) {
+      console.log(`Found ${filteredResults.length} places for category ${type}`)
+      return filteredResults.map((place) => ({
+        id: place.place_id,
+        name: place.name,
+        lat: place.geometry.location.lat,
+        lng: place.geometry.location.lng,
+        type: type,
+        categoryId: type,
+        photo: place.photos?.[0]?.photo_reference || getCategoryPlaceholder(type),
+      }))
+    }
+  }
+
+  console.log(`No results found with status: ${results?.status}`)
+  return []
 }
 
