@@ -58,7 +58,7 @@ export function SettingsModal({ isOpen, onClose, onCategoryChange, initialCatego
   const handleAddCustomCategory = () => {
     if (newCategoryLabel.trim() && customCategories.length < 4) {
       const newCategory: Category = {
-        id: `custom_${Date.now()}`,
+        id: newCategoryLabel.trim(),
         label: newCategoryLabel.trim(),
         type: "point_of_interest",
       }

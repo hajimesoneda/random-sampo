@@ -72,7 +72,7 @@ export async function POST(request: Request) {
   try {
     // カスタムカテゴリーの構造を検証
     const validatedCustomCategories = customCategories.map((cat: Category) => ({
-      id: String(cat.id),
+      id: String(cat.label),
       label: String(cat.label),
       type: String(cat.type),
     }))
