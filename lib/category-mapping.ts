@@ -51,12 +51,16 @@ export const categoryMapping: Record<string, Category> = {
 
 export type CategoryId = keyof typeof categoryMapping
 
+export function isCustomCategory(type: string): boolean {
+  return !Object.values(categoryMapping).some((cat) => cat.id === type)
+}
+
 export function getCategoryType(label: string): string | string[] {
   const category = Object.values(categoryMapping).find((cat) => cat.label === label)
   if (category) {
     return category.type
   }
-  // カスタムカテゴリーの場合、デフォルトのタイプを返す
+  // カスタムカテゴリーの場合、point_of_interestを返す
   return "point_of_interest"
 }
 

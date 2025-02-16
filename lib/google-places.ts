@@ -1,5 +1,5 @@
 import type { Spot } from "@/types/station"
-import { getCategoryType, getCategoryKeywords } from "./category-mapping"
+import { getCategoryType, getCategoryKeywords, isCustomCategory } from "./category-mapping"
 
 const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY
 
@@ -42,24 +42,62 @@ export async function fetchNearbyPlaces({
   console.log(`Fetching places for category: ${type}`)
   const apiType = getCategoryType(type)
   const keywords = getCategoryKeywords(type) || type
+  const isCustom = isCustomCategory(type)
 
-  // 検索戦略を配列として定義
-  const searchStrategies = [
-    // 戦略1: Nearby Search APIを使用（日本語キーワード優先）
+  // カスタムカテゴリー用の検索戦略
+  const customSearchStrategies = [
+    // 戦略1: Text Search APIでキーワード検索
+    async () => {
+      const url = new URL("https://maps.googleapis.com/maps/api/place/textsearch/json")
+      url.searchParams.append("query", `${keywords} ${lat},${lng}`)
+      url.searchParams.append("radius", radius.toString())
+      url.searchParams.append("key", GOOGLE_MAPS_API_KEY)
+      url.searchParams.append("language", "ja")
+      url.searchParams.append("region", "jp")
+
+      console.log(`Trying Text Search for custom category with URL: ${url.toString()}`)
+      const response = await fetch(url.toString())
+      if (!response.ok) {
+        throw new Error(`Text Search failed: ${response.statusText}`)
+      }
+      return response.json()
+    },
+    // 戦略2: Nearby Search APIでキーワードのみ使用
+    async () => {
+      const url = new URL("https://maps.googleapis.com/maps/api/place/nearbysearch/json")
+      url.searchParams.append("location", `${lat},${lng}`)
+      url.searchParams.append("radius", radius.toString())
+      url.searchParams.append("keyword", keywords)
+      url.searchParams.append("key", GOOGLE_MAPS_API_KEY)
+      url.searchParams.append("language", "ja")
+      url.searchParams.append("region", "jp")
+      url.searchParams.append("rankby", "prominence")
+
+      console.log(`Trying Nearby Search for custom category with URL: ${url.toString()}`)
+      const response = await fetch(url.toString())
+      if (!response.ok) {
+        throw new Error(`Nearby Search failed: ${response.statusText}`)
+      }
+      return response.json()
+    },
+  ]
+
+  // 通常カテゴリー用の検索戦略
+  const standardSearchStrategies = [
+    // 戦略1: Nearby Search APIを使用（タイプとキーワードの組み合わせ）
     async () => {
       const url = new URL("https://maps.googleapis.com/maps/api/place/nearbysearch/json")
       url.searchParams.append("location", `${lat},${lng}`)
       url.searchParams.append("radius", radius.toString())
       url.searchParams.append("keyword", keywords)
       if (Array.isArray(apiType)) {
-        url.searchParams.append("type", apiType[0]) // 最初のタイプを使用
+        url.searchParams.append("type", apiType[0])
       } else if (typeof apiType === "string") {
         url.searchParams.append("type", apiType)
       }
       url.searchParams.append("key", GOOGLE_MAPS_API_KEY)
       url.searchParams.append("language", "ja")
       url.searchParams.append("region", "jp")
-      // rankbyをprominenceに設定して、より関連性の高い結果を取得
       url.searchParams.append("rankby", "prominence")
 
       console.log(`Trying Nearby Search with URL: ${url.toString()}`)
@@ -67,30 +105,12 @@ export async function fetchNearbyPlaces({
       if (!response.ok) {
         throw new Error(`Nearby Search failed: ${response.statusText}`)
       }
-      const data = await response.json()
-      console.log(`Nearby Search results for ${type}:`, data) // デバッグログを追加
-      return data
-    },
-    // 戦略2: Text Search APIを使用（より詳細な検索）
-    async () => {
-      const url = new URL("https://maps.googleapis.com/maps/api/place/textsearch/json")
-      // 日本語のロケーション情報を追加
-      url.searchParams.append("query", `${keywords} 近く ${lat},${lng}`)
-      url.searchParams.append("radius", radius.toString())
-      url.searchParams.append("key", GOOGLE_MAPS_API_KEY)
-      url.searchParams.append("language", "ja")
-      url.searchParams.append("region", "jp")
-
-      console.log(`Trying Text Search with URL: ${url.toString()}`)
-      const response = await fetch(url.toString())
-      if (!response.ok) {
-        throw new Error(`Text Search failed: ${response.statusText}`)
-      }
-      const data = await response.json()
-      console.log(`Text Search results for ${type}:`, data) // デバッグログを追加
-      return data
+      return response.json()
     },
   ]
+
+  // カテゴリータイプに応じて適切な検索戦略を選択
+  const searchStrategies = isCustom ? customSearchStrategies : standardSearchStrategies
 
   // 各戦略を順番に試す
   for (const strategy of searchStrategies) {
@@ -106,23 +126,15 @@ export async function fetchNearbyPlaces({
 
         if (filteredResults.length > 0) {
           console.log(`Found ${filteredResults.length} places for category ${type}`)
-          return filteredResults.map((place) => {
-            // 写真の参照が存在しない場合のデバッグログ
-            if (!place.photos || place.photos.length === 0) {
-              console.log(`No photos found for place: ${place.name} (${type})`)
-            }
-
-            return {
-              id: place.place_id,
-              name: place.name,
-              lat: place.geometry.location.lat,
-              lng: place.geometry.location.lng,
-              type: type,
-              categoryId: type,
-              // 写真の参照が存在しない場合は、カテゴリー固有のプレースホルダー画像を使用
-              photo: place.photos?.[0]?.photo_reference || getCategoryPlaceholder(type),
-            }
-          })
+          return filteredResults.map((place) => ({
+            id: place.place_id,
+            name: place.name,
+            lat: place.geometry.location.lat,
+            lng: place.geometry.location.lng,
+            type: type,
+            categoryId: type,
+            photo: place.photos?.[0]?.photo_reference || getCategoryPlaceholder(type),
+          }))
         }
       }
 
@@ -136,7 +148,6 @@ export async function fetchNearbyPlaces({
   return []
 }
 
-// カテゴリーごとのプレースホルダー画像を返す関数
 function getCategoryPlaceholder(type: string): string {
   const placeholders: Record<string, string> = {
     shopping_mall: "/placeholder-images/shopping-mall.svg",
@@ -152,7 +163,6 @@ function getCategoryPlaceholder(type: string): string {
   return placeholders[type] || "/placeholder.svg?height=400&width=400"
 }
 
-// 2点間の距離をキロメートル単位で計算するヘルパー関数
 function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371 // 地球の半径（キロメートル）
   const dLat = toRad(lat2 - lat1)
