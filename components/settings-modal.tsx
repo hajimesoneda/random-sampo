@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input"
 import { categoryMapping } from "@/lib/category-mapping"
 import type { Category } from "@/types/category"
 import { useSession } from "next-auth/react"
+import { X } from "lucide-react"
 
 interface SettingsModalProps {
   isOpen: boolean
@@ -55,9 +56,9 @@ export function SettingsModal({ isOpen, onClose, onCategoryChange, initialCatego
   }
 
   const handleAddCustomCategory = () => {
-    if (newCategoryLabel.trim() && customCategories.length < 1) {
+    if (newCategoryLabel.trim() && customCategories.length < 4) {
       const newCategory: Category = {
-        id: `custom_${Date.now()}`, // ユニークなIDを生成
+        id: `custom_${Date.now()}`,
         label: newCategoryLabel.trim(),
         type: "point_of_interest",
       }
@@ -67,8 +68,12 @@ export function SettingsModal({ isOpen, onClose, onCategoryChange, initialCatego
     }
   }
 
+  const handleRemoveCustomCategory = (categoryId: string) => {
+    setCustomCategories((prev) => prev.filter((cat) => cat.id !== categoryId))
+    setCategories((prev) => prev.filter((cat) => cat.id !== categoryId))
+  }
+
   const handleClose = async () => {
-    // カテゴリーが変更されている場合のみ更新を実行
     const hasChanges = JSON.stringify(categories) !== JSON.stringify(initialCategories)
     if (hasChanges) {
       if (status === "authenticated") {
@@ -122,19 +127,29 @@ export function SettingsModal({ isOpen, onClose, onCategoryChange, initialCatego
             </div>
           ))}
           {customCategories.map((category) => (
-            <div key={category.label} className="flex items-center">
-              <Checkbox
-                id={category.label}
-                checked={categories.some((cat) => cat.label === category.label)}
-                onCheckedChange={(checked) => handleCategoryChange(category.label, checked)}
-                disabled={categories.length >= 4 && !categories.some((cat) => cat.label === category.label)}
-              />
-              <label htmlFor={category.label} className="ml-2">
-                {category.label}
-              </label>
+            <div key={category.id} className="flex items-center justify-between">
+              <div className="flex items-center">
+                <Checkbox
+                  id={category.label}
+                  checked={categories.some((cat) => cat.id === category.id)}
+                  onCheckedChange={(checked) => handleCategoryChange(category.label, checked)}
+                  disabled={categories.length >= 4 && !categories.some((cat) => cat.id === category.id)}
+                />
+                <label htmlFor={category.label} className="ml-2">
+                  {category.label}
+                </label>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleRemoveCustomCategory(category.id)}
+                aria-label={`Remove ${category.label} category`}
+              >
+                <X className="h-4 w-4" />
+              </Button>
             </div>
           ))}
-          {customCategories.length < 1 && (
+          {customCategories.length < 4 && (
             <div className="flex items-center space-x-2">
               <Input
                 type="text"
