@@ -54,7 +54,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
       const spots = await fetchNearbyPlaces({
         lat: station.lat,
         lng: station.lng,
-        type: category.id,
+        type: category.label, // ここをidからlabelに変更
         radius: 1000,
       })
       return { categoryId: category.id, spots }
