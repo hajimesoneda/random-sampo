@@ -28,50 +28,15 @@ interface PlacesResponse {
   error_message?: string
 }
 
-const textSearchStrategy = async (lat: number, lng: number, keywords: string, radius: number) => {
-  const url = new URL("https://maps.googleapis.com/maps/api/place/textsearch/json")
-  url.searchParams.append("query", `${encodeURIComponent(keywords)} near ${lat},${lng}`)
-  url.searchParams.append("radius", radius.toString())
-  url.searchParams.append("key", GOOGLE_MAPS_API_KEY)
-  url.searchParams.append("language", "ja")
-  url.searchParams.append("region", "jp")
-
-  console.log(`Trying Text Search with URL: ${url.toString()}`)
+async function fetchPlaces(url: URL): Promise<PlacesResponse> {
+  console.log(`Fetching places with URL: ${url.toString()}`)
   const response = await fetch(url.toString())
   if (!response.ok) {
-    throw new Error(`Text Search failed: ${response.statusText}`)
+    throw new Error(`Places API request failed: ${response.statusText}`)
   }
-  return response.json()
-}
-
-function getCategoryPlaceholder(type: string): string {
-  const placeholders: Record<string, string> = {
-    shopping_mall: "/placeholder-images/shopping-mall.svg",
-    tourist_attraction: "/placeholder-images/tourist-attraction.svg",
-    restaurant: "/placeholder-images/restaurant.svg",
-    cafe: "/placeholder-images/cafe.svg",
-    public_bath: "/placeholder-images/public-bath.svg",
-    park: "/placeholder-images/park.svg",
-    museum: "/placeholder-images/museum.svg",
-    amusement_park: "/placeholder-images/amusement-park.svg",
-  }
-
-  return placeholders[type] || "/placeholder.svg?height=400&width=400"
-}
-
-function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const R = 6371 // 地球の半径（キロメートル）
-  const dLat = toRad(lat2 - lat1)
-  const dLon = toRad(lon2 - lon1)
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2)
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-  return R * c
-}
-
-function toRad(degrees: number): number {
-  return degrees * (Math.PI / 180)
+  const data: PlacesResponse = await response.json()
+  console.log(`API Response Status: ${data.status}, Results count: ${data.results.length}`)
+  return data
 }
 
 export async function fetchNearbyPlaces({
@@ -92,41 +57,41 @@ export async function fetchNearbyPlaces({
   const MAX_RADIUS = 5000 // 最大5km
   const radius = Math.min(providedRadius, MAX_RADIUS)
 
-  const textSearchStrategy = async () => {
-    const url = new URL("https://maps.googleapis.com/maps/api/place/textsearch/json")
-    url.searchParams.append("query", `${encodeURIComponent(keywords)} near`)
-    url.searchParams.append("location", `${lat},${lng}`)
-    url.searchParams.append("radius", radius.toString())
-    url.searchParams.append("key", GOOGLE_MAPS_API_KEY)
-    url.searchParams.append("language", "ja")
-    url.searchParams.append("region", "jp")
-
-    console.log(`Trying Text Search with URL: ${url.toString()}`)
-    const response = await fetch(url.toString())
-    if (!response.ok) {
-      throw new Error(`Text Search failed: ${response.statusText}`)
-    }
-    return response.json()
-  }
-
-  const nearbySearchStrategy = async () => {
-    const url = new URL("https://maps.googleapis.com/maps/api/place/nearbysearch/json")
-    url.searchParams.append("location", `${lat},${lng}`)
-    url.searchParams.append("radius", radius.toString())
-    url.searchParams.append("keyword", encodeURIComponent(keywords))
-    url.searchParams.append("key", GOOGLE_MAPS_API_KEY)
-    url.searchParams.append("language", "ja")
-    url.searchParams.append("region", "jp")
-
-    console.log(`Trying Nearby Search with URL: ${url.toString()}`)
-    const response = await fetch(url.toString())
-    if (!response.ok) {
-      throw new Error(`Nearby Search failed: ${response.statusText}`)
-    }
-    return response.json()
-  }
-
-  const searchStrategies = [textSearchStrategy, nearbySearchStrategy]
+  const searchStrategies = [
+    // Text Search API
+    async () => {
+      const url = new URL("https://maps.googleapis.com/maps/api/place/textsearch/json")
+      url.searchParams.append("query", `${encodeURIComponent(keywords)} near`)
+      url.searchParams.append("location", `${lat},${lng}`)
+      url.searchParams.append("radius", radius.toString())
+      url.searchParams.append("key", GOOGLE_MAPS_API_KEY)
+      url.searchParams.append("language", "ja")
+      url.searchParams.append("region", "jp")
+      return await fetchPlaces(url)
+    },
+    // Nearby Search API
+    async () => {
+      const url = new URL("https://maps.googleapis.com/maps/api/place/nearbysearch/json")
+      url.searchParams.append("location", `${lat},${lng}`)
+      url.searchParams.append("radius", radius.toString())
+      url.searchParams.append("keyword", encodeURIComponent(keywords))
+      url.searchParams.append("key", GOOGLE_MAPS_API_KEY)
+      url.searchParams.append("language", "ja")
+      url.searchParams.append("region", "jp")
+      return await fetchPlaces(url)
+    },
+    // Find Place API (for very specific searches)
+    async () => {
+      const url = new URL("https://maps.googleapis.com/maps/api/place/findplacefromtext/json")
+      url.searchParams.append("input", encodeURIComponent(keywords))
+      url.searchParams.append("inputtype", "textquery")
+      url.searchParams.append("locationbias", `circle:${radius}@${lat},${lng}`)
+      url.searchParams.append("fields", "place_id,name,geometry,photos,types")
+      url.searchParams.append("key", GOOGLE_MAPS_API_KEY)
+      url.searchParams.append("language", "ja")
+      return await fetchPlaces(url)
+    },
+  ]
 
   let results: PlacesResponse | null = null
   for (const strategy of searchStrategies) {
@@ -162,5 +127,35 @@ export async function fetchNearbyPlaces({
 
   console.log(`No results found with status: ${results?.status}`)
   return []
+}
+
+function getCategoryPlaceholder(type: string): string {
+  const placeholders: Record<string, string> = {
+    shopping_mall: "/placeholder-images/shopping-mall.svg",
+    tourist_attraction: "/placeholder-images/tourist-attraction.svg",
+    restaurant: "/placeholder-images/restaurant.svg",
+    cafe: "/placeholder-images/cafe.svg",
+    public_bath: "/placeholder-images/public-bath.svg",
+    park: "/placeholder-images/park.svg",
+    museum: "/placeholder-images/museum.svg",
+    amusement_park: "/placeholder-images/amusement-park.svg",
+  }
+
+  return placeholders[type] || "/placeholder.svg?height=400&width=400"
+}
+
+function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371 // 地球の半径（キロメートル）
+  const dLat = toRad(lat2 - lat1)
+  const dLon = toRad(lon2 - lon1)
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2)
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+  return R * c
+}
+
+function toRad(degrees: number): number {
+  return degrees * (Math.PI / 180)
 }
 
