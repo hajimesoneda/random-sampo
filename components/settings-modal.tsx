@@ -66,7 +66,11 @@ export function SettingsModal({ isOpen, onClose, onCategoryChange, initialCatego
   }
 
   const handleClose = () => {
-    onCategoryChange(categories)
+    // カテゴリーが変更されている場合のみonCategoryChangeを呼び出す
+    const hasChanges = JSON.stringify(categories) !== JSON.stringify(initialCategories)
+    if (hasChanges) {
+      onCategoryChange(categories)
+    }
     onClose()
   }
 

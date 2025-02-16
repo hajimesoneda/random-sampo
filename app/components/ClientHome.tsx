@@ -230,7 +230,7 @@ export default function ClientHome({ session: initialSession, isGuest }: ClientH
   const handleCategoryChange = (categories: Category[]) => {
     setSelectedCategories(categories)
     localStorage.setItem("selectedSpotCategories", JSON.stringify(categories))
-    pickStation()
+    // pickStation()の呼び出しを削除
   }
 
   if (!isMounted) {
