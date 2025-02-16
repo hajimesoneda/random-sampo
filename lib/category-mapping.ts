@@ -56,7 +56,7 @@ export function isCustomCategory(type: string): boolean {
 }
 
 export function getCategoryType(label: string): string | string[] {
-  const category = Object.values(categoryMapping).find((cat) => cat.label === label)
+  const category = Object.values(categoryMapping).find((cat) => cat.id === label || cat.label === label)
   if (category) {
     return category.type
   }
@@ -64,8 +64,8 @@ export function getCategoryType(label: string): string | string[] {
   return "point_of_interest"
 }
 
-export function getCategoryKeywords(label: string): string | undefined {
-  const category = Object.values(categoryMapping).find((cat) => cat.label === label)
+export function getCategoryKeywords(label: string): string {
+  const category = Object.values(categoryMapping).find((cat) => cat.id === label || cat.label === label)
   if (category?.keywords) {
     return category.keywords
   }

@@ -41,7 +41,7 @@ export async function fetchNearbyPlaces({
 }): Promise<Spot[]> {
   console.log(`Fetching places for category: ${type}`)
   const apiType = getCategoryType(type)
-  const keywords = getCategoryKeywords(type) || type
+  const keywords = getCategoryKeywords(type)
   const isCustom = isCustomCategory(type)
 
   // カスタムカテゴリー用の検索戦略
@@ -49,13 +49,13 @@ export async function fetchNearbyPlaces({
     // 戦略1: Text Search APIでキーワード検索
     async () => {
       const url = new URL("https://maps.googleapis.com/maps/api/place/textsearch/json")
-      url.searchParams.append("query", `${keywords} ${lat},${lng}`)
+      url.searchParams.append("query", `${keywords} 近く ${lat},${lng}`)
       url.searchParams.append("radius", radius.toString())
       url.searchParams.append("key", GOOGLE_MAPS_API_KEY)
       url.searchParams.append("language", "ja")
       url.searchParams.append("region", "jp")
 
-      console.log(`Trying Text Search for custom category with URL: ${url.toString()}`)
+      console.log(`Trying Text Search for custom category "${type}" with URL: ${url.toString()}`)
       const response = await fetch(url.toString())
       if (!response.ok) {
         throw new Error(`Text Search failed: ${response.statusText}`)

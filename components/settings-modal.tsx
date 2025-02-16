@@ -55,9 +55,9 @@ export function SettingsModal({ isOpen, onClose, onCategoryChange, initialCatego
   const handleAddCustomCategory = () => {
     if (newCategoryLabel.trim() && customCategories.length < 2) {
       const newCategory: Category = {
-        id: `custom_${Date.now()}`,
+        id: newCategoryLabel.trim(), // IDとしてラベルを使用
         label: newCategoryLabel.trim(),
-        type: newCategoryLabel.trim().toLowerCase().replace(/\s+/g, "_"),
+        type: "point_of_interest", // カスタムカテゴリーのデフォルトタイプ
       }
       setCustomCategories((prev) => [...prev, newCategory])
       setCategories((prev) => [...prev, newCategory])
