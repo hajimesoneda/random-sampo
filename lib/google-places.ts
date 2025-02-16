@@ -39,7 +39,7 @@ export async function fetchNearbyPlaces({
   type: string
   radius: number
 }): Promise<Spot[]> {
-  console.log(`Fetching places for category: ${type}`)
+  console.log(`Fetching places for category: ${type}, keywords: ${getCategoryKeywords(type)}`)
   const apiType = getCategoryType(type)
   const keywords = getCategoryKeywords(type)
   const isCustom = isCustomCategory(type)
@@ -49,7 +49,9 @@ export async function fetchNearbyPlaces({
     // 戦略1: Text Search APIでキーワード検索
     async () => {
       const url = new URL("https://maps.googleapis.com/maps/api/place/textsearch/json")
-      url.searchParams.append("query", `${keywords} 近く ${lat},${lng}`)
+      const query = `${encodeURIComponent(keywords)} 近く`
+      url.searchParams.append("query", query)
+      url.searchParams.append("location", `${lat},${lng}`)
       url.searchParams.append("radius", radius.toString())
       url.searchParams.append("key", GOOGLE_MAPS_API_KEY)
       url.searchParams.append("language", "ja")
@@ -67,7 +69,7 @@ export async function fetchNearbyPlaces({
       const url = new URL("https://maps.googleapis.com/maps/api/place/nearbysearch/json")
       url.searchParams.append("location", `${lat},${lng}`)
       url.searchParams.append("radius", radius.toString())
-      url.searchParams.append("keyword", keywords)
+      url.searchParams.append("keyword", encodeURIComponent(keywords))
       url.searchParams.append("key", GOOGLE_MAPS_API_KEY)
       url.searchParams.append("language", "ja")
       url.searchParams.append("region", "jp")
