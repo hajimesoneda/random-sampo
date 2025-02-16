@@ -5,6 +5,7 @@ import { sql } from "drizzle-orm"
 import { fetchNearbyPlaces } from "@/lib/google-places"
 import { shuffleArray } from "@/utils/array-utils"
 import type { Spot } from "@/types/station"
+import { getCustomCategories } from "@/lib/categories"
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
@@ -14,7 +15,6 @@ export async function GET(request: Request) {
   console.log("Requested categories:", categories)
 
   try {
-    // Get random station with error handling
     const randomStations = await db.select().from(stations).orderBy(sql`RANDOM()`).limit(1)
 
     if (!randomStations || randomStations.length === 0) {
@@ -25,8 +25,11 @@ export async function GET(request: Request) {
     const randomStation = randomStations[0]
     console.log("Selected random station:", randomStation)
 
+    const customCategories = await getCustomCategories(1)
+    const allCategories = [...categories, ...customCategories]
+
     // カテゴリーごとのスポットを取得
-    const spotsPromises = categories.map(async (categoryId: string) => {
+    const spotsPromises = allCategories.map(async (categoryId: string) => {
       const spots = await fetchNearbyPlaces({
         lat: randomStation.lat,
         lng: randomStation.lng,
@@ -39,31 +42,32 @@ export async function GET(request: Request) {
     const results = await Promise.all(spotsPromises)
     console.log("Fetched spots results:", JSON.stringify(results, null, 2))
 
-    // カテゴリーごとに1つのスポットを選択
+    // スポットの選択
     const selectedSpots: Spot[] = []
 
+    // カテゴリーごとに1つのスポットを選択
     for (const { categoryId, spots } of results) {
       if (spots.length > 0) {
         const shuffledSpots = shuffleArray([...spots])
-        // 既に選択されていない場所から1つを選択
-        const uniqueSpot = shuffledSpots.find(
+        const categorySpot = shuffledSpots.find(
           (spot) => !selectedSpots.some((selected) => selected.lat === spot.lat && selected.lng === spot.lng),
         )
-        if (uniqueSpot) {
-          selectedSpots.push({
-            ...uniqueSpot,
-            type: categoryId,
-          })
+        if (categorySpot) {
+          selectedSpots.push({ ...categorySpot, type: categoryId })
         }
       }
     }
 
-    console.log("Selected spots:", JSON.stringify(selectedSpots, null, 2))
+    // 残りのスロットをランダムに埋める（最大4つまで）
+    const remainingSpots = results
+      .flatMap(({ spots }) => spots)
+      .filter((spot) => !selectedSpots.some((selected) => selected.lat === spot.lat && selected.lng === spot.lng))
 
-    // 最大4つまでのスポットをランダムに選択
-    const finalSpots = shuffleArray(selectedSpots).slice(0, 4)
-
-    console.log("Final spots:", JSON.stringify(finalSpots, null, 2))
+    while (selectedSpots.length < 4 && remainingSpots.length > 0) {
+      const randomIndex = Math.floor(Math.random() * remainingSpots.length)
+      selectedSpots.push(remainingSpots[randomIndex])
+      remainingSpots.splice(randomIndex, 1)
+    }
 
     return NextResponse.json({
       id: randomStation.id,
@@ -71,7 +75,7 @@ export async function GET(request: Request) {
       lat: randomStation.lat,
       lng: randomStation.lng,
       lines: randomStation.lines,
-      spots: finalSpots,
+      spots: selectedSpots,
     })
   } catch (error) {
     console.error("Error in random-station route:", error)

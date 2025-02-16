@@ -27,24 +27,22 @@ interface SettingsModalProps {
 export function SettingsModal({ isOpen, onClose, onCategoryChange, initialCategories }: SettingsModalProps) {
   const [categories, setCategories] = useState<Category[]>(initialCategories)
   const [customCategories, setCustomCategories] = useState<Category[]>([])
-  const [newCategoryLabel, setNewCategoryLabel] = useState("")
+  const [newCategoryId, setNewCategoryId] = useState("")
   const { status } = useSession()
 
   useEffect(() => {
     setCategories(initialCategories)
     setCustomCategories(
-      initialCategories.filter(
-        (cat) => !Object.values(categoryMapping).some((defaultCat) => defaultCat.label === cat.label),
-      ),
+      initialCategories.filter((cat) => !Object.values(categoryMapping).some((defaultCat) => defaultCat.id === cat.id)),
     )
   }, [initialCategories])
 
-  const handleCategoryChange = (label: string, checked: boolean | string) => {
+  const handleCategoryChange = (id: string, checked: boolean | string) => {
     setCategories((prevCategories) => {
       const updatedCategories = [...prevCategories]
-      const index = updatedCategories.findIndex((cat) => cat.label === label)
+      const index = updatedCategories.findIndex((cat) => cat.id === id)
       if (Boolean(checked) && index === -1) {
-        const category = [...Object.values(categoryMapping), ...customCategories].find((cat) => cat.label === label)
+        const category = [...Object.values(categoryMapping), ...customCategories].find((cat) => cat.id === id)
         if (category) {
           updatedCategories.push(category)
         }
@@ -56,15 +54,11 @@ export function SettingsModal({ isOpen, onClose, onCategoryChange, initialCatego
   }
 
   const handleAddCustomCategory = () => {
-    if (newCategoryLabel.trim() && customCategories.length < 4) {
-      const newCategory: Category = {
-        id: newCategoryLabel.trim(),
-        label: newCategoryLabel.trim(),
-        type: "point_of_interest",
-      }
+    if (newCategoryId.trim() && customCategories.length < 4) {
+      const newCategory: Category = { id: newCategoryId.trim() }
       setCustomCategories((prev) => [...prev, newCategory])
       setCategories((prev) => [...prev, newCategory])
-      setNewCategoryLabel("")
+      setNewCategoryId("")
     }
   }
 
@@ -116,15 +110,15 @@ export function SettingsModal({ isOpen, onClose, onCategoryChange, initialCatego
         </DialogHeader>
         <div className="space-y-4">
           {Object.values(categoryMapping).map((category) => (
-            <div key={category.label} className="flex items-center">
+            <div key={category.id} className="flex items-center">
               <Checkbox
-                id={category.label}
-                checked={categories.some((cat) => cat.label === category.label)}
-                onCheckedChange={(checked) => handleCategoryChange(category.label, checked)}
-                disabled={categories.length >= 4 && !categories.some((cat) => cat.label === category.label)}
+                id={category.id}
+                checked={categories.some((cat) => cat.id === category.id)}
+                onCheckedChange={(checked) => handleCategoryChange(category.id, checked)}
+                disabled={categories.length >= 4 && !categories.some((cat) => cat.id === category.id)}
               />
-              <label htmlFor={category.label} className="ml-2">
-                {category.label}
+              <label htmlFor={category.id} className="ml-2">
+                {category.id}
               </label>
             </div>
           ))}
@@ -132,20 +126,20 @@ export function SettingsModal({ isOpen, onClose, onCategoryChange, initialCatego
             <div key={category.id} className="flex items-center justify-between">
               <div className="flex items-center">
                 <Checkbox
-                  id={category.label}
+                  id={category.id}
                   checked={categories.some((cat) => cat.id === category.id)}
-                  onCheckedChange={(checked) => handleCategoryChange(category.label, checked)}
+                  onCheckedChange={(checked) => handleCategoryChange(category.id, checked)}
                   disabled={categories.length >= 4 && !categories.some((cat) => cat.id === category.id)}
                 />
-                <label htmlFor={category.label} className="ml-2">
-                  {category.label}
+                <label htmlFor={category.id} className="ml-2">
+                  {category.id}
                 </label>
               </div>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => handleRemoveCustomCategory(category.id)}
-                aria-label={`Remove ${category.label} category`}
+                aria-label={`Remove ${category.id} category`}
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -156,10 +150,10 @@ export function SettingsModal({ isOpen, onClose, onCategoryChange, initialCatego
               <Input
                 type="text"
                 placeholder="カスタムカテゴリー"
-                value={newCategoryLabel}
-                onChange={(e) => setNewCategoryLabel(e.target.value)}
+                value={newCategoryId}
+                onChange={(e) => setNewCategoryId(e.target.value)}
               />
-              <Button onClick={handleAddCustomCategory} disabled={!newCategoryLabel.trim() || categories.length >= 4}>
+              <Button onClick={handleAddCustomCategory} disabled={!newCategoryId.trim() || categories.length >= 4}>
                 追加
               </Button>
             </div>

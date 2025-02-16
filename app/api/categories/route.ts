@@ -37,27 +37,15 @@ export async function GET() {
     // データベースのカテゴリーをCategory型に変換
     const dbCategories = userPreference.categories.map((cat) => ({
       id: cat.id,
-      label: cat.label,
-      type: cat.type.includes(",") ? cat.type.split(",") : cat.type,
-      keywords: cat.keywords || undefined,
     }))
 
     // カスタムカテゴリーを解析
     let customCategories: Category[] = []
     if (userPreference.customCategories) {
       try {
-        const parsed = JSON.parse(userPreference.customCategories as string)
-        if (Array.isArray(parsed)) {
-          customCategories = parsed.map((cat) => ({
-            id: String(cat.id),
-            label: String(cat.label),
-            type: Array.isArray(cat.type) ? cat.type : String(cat.type),
-            keywords: cat.keywords ? String(cat.keywords) : undefined,
-          }))
-        }
+        customCategories = JSON.parse(userPreference.customCategories as string)
       } catch (error) {
         console.error("Error parsing custom categories:", error)
-        customCategories = []
       }
     }
 
@@ -94,16 +82,6 @@ export async function POST(request: Request) {
 
     const { categories, customCategories } = body
 
-    // カスタムカテゴリーの構造を検証
-    const validatedCustomCategories = Array.isArray(customCategories)
-      ? customCategories.map((cat: any) => ({
-          id: String(cat.label),
-          label: String(cat.label),
-          type: String(cat.type),
-          keywords: cat.keywords ? String(cat.keywords) : undefined,
-        }))
-      : []
-
     // データベースからすべてのカテゴリーを取得
     const dbCategories = await prisma.category.findMany()
 
@@ -119,7 +97,7 @@ export async function POST(request: Request) {
             })
             .filter(Boolean),
         },
-        customCategories: JSON.stringify(validatedCustomCategories),
+        customCategories: JSON.stringify(customCategories),
       },
       create: {
         userId,
@@ -131,7 +109,7 @@ export async function POST(request: Request) {
             })
             .filter(Boolean),
         },
-        customCategories: JSON.stringify(validatedCustomCategories),
+        customCategories: JSON.stringify(customCategories),
       },
     })
 
@@ -147,9 +125,6 @@ export async function POST(request: Request) {
 
     const updatedDbCategories = updatedPreference.categories.map((cat) => ({
       id: cat.id,
-      label: cat.label,
-      type: cat.type.includes(",") ? cat.type.split(",") : cat.type,
-      keywords: cat.keywords || undefined,
     }))
 
     const updatedCustomCategories = updatedPreference.customCategories

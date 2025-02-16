@@ -243,7 +243,7 @@ export default function ClientHome({ session: initialSession, isGuest }: ClientH
 
   function getCategoryLabel(categoryId: string): string {
     const category = Object.values(categoryMapping).find((cat) => cat.id === categoryId)
-    return category ? category.label : categoryId
+    return category ? category.id: categoryId
   }
 
   return (

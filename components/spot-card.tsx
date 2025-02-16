@@ -19,7 +19,7 @@ interface SpotCardProps {
 export function SpotCard({ name, photo, type, onClick, index }: SpotCardProps) {
   const [imageError, setImageError] = useState(false)
   const category = Object.values(categoryMapping).find((cat) => cat.id === type)
-  const categoryLabel = category?.label || type
+  const categoryLabel = category?.id || type
 
   const handleImageError = () => {
     console.error(`Image failed to load for ${name} (${type}):`, photo)
