@@ -52,7 +52,7 @@ export async function fetchNearbyPlaces({
       url.searchParams.append("radius", radius.toString())
       url.searchParams.append("keyword", keywords)
       if (Array.isArray(apiType)) {
-        url.searchParams.append("type", apiType[0]) // 最初のタイプを使用
+        url.searchParams.append("type", apiType[0])
       } else if (typeof apiType === "string") {
         url.searchParams.append("type", apiType)
       }
@@ -61,10 +61,18 @@ export async function fetchNearbyPlaces({
 
       console.log(`Trying Nearby Search with URL: ${url.toString()}`)
       const response = await fetch(url.toString())
+
       if (!response.ok) {
-        throw new Error(`Nearby Search failed: ${response.statusText}`)
+        throw new Error(`Nearby Search failed with status: ${response.status}`)
       }
-      return response.json()
+
+      const text = await response.text()
+      try {
+        return JSON.parse(text)
+      } catch (error) {
+        console.error("Failed to parse Nearby Search response:", text)
+        throw new Error("Invalid JSON response from Nearby Search")
+      }
     },
     // 戦略2: Text Search APIを使用
     async () => {
@@ -76,10 +84,18 @@ export async function fetchNearbyPlaces({
 
       console.log(`Trying Text Search with URL: ${url.toString()}`)
       const response = await fetch(url.toString())
+
       if (!response.ok) {
-        throw new Error(`Text Search failed: ${response.statusText}`)
+        throw new Error(`Text Search failed with status: ${response.status}`)
       }
-      return response.json()
+
+      const text = await response.text()
+      try {
+        return JSON.parse(text)
+      } catch (error) {
+        console.error("Failed to parse Text Search response:", text)
+        throw new Error("Invalid JSON response from Text Search")
+      }
     },
   ]
 
@@ -99,6 +115,10 @@ export async function fetchNearbyPlaces({
           categoryId: type,
           photo: place.photos?.[0]?.photo_reference || "/placeholder.svg?height=400&width=400",
         }))
+      }
+
+      if (data.error_message) {
+        console.error(`API error for category ${type}:`, data.error_message)
       }
 
       console.log(`No results found with status: ${data.status}`)

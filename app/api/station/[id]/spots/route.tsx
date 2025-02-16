@@ -10,7 +10,14 @@ export async function GET(request: Request, { params }: { params: { id: string }
   const stationId = params.id
   const { searchParams } = new URL(request.url)
   const categoriesParam = searchParams.get("categories")
-  const categories: string[] = categoriesParam ? JSON.parse(categoriesParam) : []
+
+  let categories: string[] = []
+  try {
+    categories = categoriesParam ? JSON.parse(categoriesParam) : []
+  } catch (error) {
+    console.error("Failed to parse categories parameter:", error)
+    return NextResponse.json({ error: "Invalid categories parameter" }, { status: 400 })
+  }
 
   try {
     console.log(`Fetching spots for station ${stationId} with categories:`, categories)
@@ -48,32 +55,40 @@ export async function GET(request: Request, { params }: { params: { id: string }
       ...customCategories,
     ]
 
-    // 各カテゴリーから1つずつスポットを取得
-    const spotsByCategory = await Promise.all(
-      allCategories.map(async (category) => {
-        const spots = await fetchNearbyPlaces({
-          lat: station.lat,
-          lng: station.lng,
-          type: category.id,
-          radius: 1000,
-        })
+    console.log("Processing categories:", allCategories)
 
-        if (spots.length > 0) {
-          // 各カテゴリーからランダムに1つのスポットを選択
-          const randomSpot = spots[Math.floor(Math.random() * spots.length)]
-          return {
-            categoryId: category.id,
-            spot: randomSpot,
+    // 各カテゴリーから1つずつスポットを取得
+    const categorySpots = await Promise.all(
+      allCategories.map(async (category) => {
+        try {
+          const spots = await fetchNearbyPlaces({
+            lat: station.lat,
+            lng: station.lng,
+            type: category.id,
+            radius: 1000,
+          })
+
+          if (spots && spots.length > 0) {
+            // 各カテゴリーからランダムに1つのスポットを選択
+            const randomSpot = spots[Math.floor(Math.random() * spots.length)]
+            return {
+              categoryId: category.id,
+              spot: randomSpot,
+            }
           }
+        } catch (error) {
+          console.error(`Error fetching spots for category ${category.id}:`, error)
         }
         return null
       }),
     )
 
     // nullを除外し、有効なスポットのみを取得
-    const validSpots = spotsByCategory
-      .filter((item): item is { categoryId: string; spot: Spot } => item !== null)
+    const validSpots = categorySpots
+      .filter((item): item is { categoryId: string; spot: Spot } => item !== null && item.spot !== undefined)
       .map((item) => item.spot)
+
+    console.log(`Found ${validSpots.length} valid spots across all categories`)
 
     if (validSpots.length === 0) {
       return NextResponse.json({ spots: [] })
@@ -81,11 +96,18 @@ export async function GET(request: Request, { params }: { params: { id: string }
 
     // 取得したスポットをシャッフルし、最大4つを選択
     const selectedSpots = shuffleArray(validSpots).slice(0, 4)
+    console.log(`Selected ${selectedSpots.length} spots to display`)
 
     return NextResponse.json({ spots: selectedSpots })
   } catch (error) {
     console.error("Error fetching spots:", error)
-    return NextResponse.json({ error: "スポットの取得中にエラーが発生しました。" }, { status: 500 })
+    return NextResponse.json(
+      {
+        error: "スポットの取得中にエラーが発生しました。",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 },
+    )
   }
 }
 
