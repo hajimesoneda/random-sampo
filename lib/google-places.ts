@@ -28,16 +28,6 @@ interface PlacesResponse {
   error_message?: string
 }
 
-// キャッシュのインターフェース
-interface CacheItem {
-  timestamp: number
-  data: Spot[]
-}
-
-// メモリ内キャッシュ
-const cache: { [key: string]: CacheItem } = {}
-const CACHE_EXPIRATION = 24 * 60 * 60 * 1000 // 24時間
-
 async function fetchPlaces(url: URL): Promise<PlacesResponse> {
   console.log(`Fetching places with URL: ${url.toString()}`)
   const response = await fetch(url.toString())
@@ -52,30 +42,26 @@ async function fetchPlaces(url: URL): Promise<PlacesResponse> {
 export async function fetchNearbyPlaces({
   lat,
   lng,
-  types,
+  type,
+  radius: providedRadius,
 }: {
   lat: number
   lng: number
-  types: string[]
-}): Promise<Record<string, Spot[]>> {
-  const radius = 5000 // 5km
-  const results: Record<string, Spot[]> = {}
-  const combinedKeywords = types.map((type) => getCategoryKeywords(type)).join("|")
+  type: string
+  radius: number
+}): Promise<Spot[]> {
+  console.log(`Fetching places for category: ${type}`)
+  const keywords = getCategoryKeywords(type)
+  const isCustom = isCustomCategory(type)
 
-  // キャッシュキーの生成
-  const cacheKey = `${lat},${lng},${combinedKeywords}`
-
-  // キャッシュチェック
-  if (cache[cacheKey] && Date.now() - cache[cacheKey].timestamp < CACHE_EXPIRATION) {
-    console.log("Returning cached results")
-    return groupSpotsByType(cache[cacheKey].data, types)
-  }
+  const MAX_RADIUS = 5000 // 5km
+  const radius = 5000 // 常に5kmを使用
 
   const searchStrategies = [
     // Text Search API
     async () => {
       const url = new URL("https://maps.googleapis.com/maps/api/place/textsearch/json")
-      url.searchParams.append("query", `${encodeURIComponent(combinedKeywords)} near`)
+      url.searchParams.append("query", `${encodeURIComponent(keywords)} near`)
       url.searchParams.append("location", `${lat},${lng}`)
       url.searchParams.append("radius", radius.toString())
       url.searchParams.append("key", GOOGLE_MAPS_API_KEY)
@@ -88,19 +74,30 @@ export async function fetchNearbyPlaces({
       const url = new URL("https://maps.googleapis.com/maps/api/place/nearbysearch/json")
       url.searchParams.append("location", `${lat},${lng}`)
       url.searchParams.append("radius", radius.toString())
-      url.searchParams.append("keyword", encodeURIComponent(combinedKeywords))
+      url.searchParams.append("keyword", encodeURIComponent(keywords))
       url.searchParams.append("key", GOOGLE_MAPS_API_KEY)
       url.searchParams.append("language", "ja")
       url.searchParams.append("region", "jp")
       return await fetchPlaces(url)
     },
+    // Find Place API (for very specific searches)
+    async () => {
+      const url = new URL("https://maps.googleapis.com/maps/api/place/findplacefromtext/json")
+      url.searchParams.append("input", encodeURIComponent(keywords))
+      url.searchParams.append("inputtype", "textquery")
+      url.searchParams.append("locationbias", `circle:${radius}@${lat},${lng}`)
+      url.searchParams.append("fields", "place_id,name,geometry,photos,types")
+      url.searchParams.append("key", GOOGLE_MAPS_API_KEY)
+      url.searchParams.append("language", "ja")
+      return await fetchPlaces(url)
+    },
   ]
 
-  let placesResponse: PlacesResponse | null = null
+  let results: PlacesResponse | null = null
   for (const strategy of searchStrategies) {
     try {
-      placesResponse = await strategy()
-      if (placesResponse.status === "OK" && placesResponse.results.length > 0) {
+      results = await strategy()
+      if (results.status === "OK" && results.results.length > 0) {
         break
       }
     } catch (error) {
@@ -108,40 +105,28 @@ export async function fetchNearbyPlaces({
     }
   }
 
-  if (placesResponse && placesResponse.status === "OK" && placesResponse.results.length > 0) {
-    const allSpots = placesResponse.results.map((place) => ({
-      id: place.place_id,
-      name: place.name,
-      lat: place.geometry.location.lat,
-      lng: place.geometry.location.lng,
-      type: place.types[0],
-      categoryId: place.types[0],
-      photo: place.photos?.[0]?.photo_reference || getCategoryPlaceholder(place.types[0]),
-    }))
+  if (results && results.status === "OK" && results.results.length > 0) {
+    const filteredResults = results.results.filter((place) => {
+      const distance = calculateDistance(lat, lng, place.geometry.location.lat, place.geometry.location.lng)
+      return distance <= radius / 1000
+    })
 
-    // キャッシュの更新
-    cache[cacheKey] = {
-      timestamp: Date.now(),
-      data: allSpots,
+    if (filteredResults.length > 0) {
+      console.log(`Found ${filteredResults.length} places for category ${type}`)
+      return filteredResults.map((place) => ({
+        id: place.place_id,
+        name: place.name,
+        lat: place.geometry.location.lat,
+        lng: place.geometry.location.lng,
+        type: type,
+        categoryId: type,
+        photo: place.photos?.[0]?.photo_reference || getCategoryPlaceholder(type),
+      }))
     }
-
-    return groupSpotsByType(allSpots, types)
   }
 
-  console.log(`No results found with status: ${placesResponse?.status}`)
-  return results
-}
-
-function groupSpotsByType(spots: Spot[], types: string[]): Record<string, Spot[]> {
-  const groupedSpots: Record<string, Spot[]> = {}
-  types.forEach((type) => {
-    groupedSpots[type] = spots.filter(
-      (spot) =>
-        spot.type === type ||
-        (isCustomCategory(type) && spot.name.toLowerCase().includes(getCategoryKeywords(type).toLowerCase())),
-    )
-  })
-  return groupedSpots
+  console.log(`No results found with status: ${results?.status}`)
+  return []
 }
 
 function getCategoryPlaceholder(type: string): string {
@@ -157,5 +142,20 @@ function getCategoryPlaceholder(type: string): string {
   }
 
   return placeholders[type] || "/placeholder.svg?height=400&width=400"
+}
+
+function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371 // 地球の半径（キロメートル）
+  const dLat = toRad(lat2 - lat1)
+  const dLon = toRad(lon2 - lon1)
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2)
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+  return R * c
+}
+
+function toRad(degrees: number): number {
+  return degrees * (Math.PI / 180)
 }
 

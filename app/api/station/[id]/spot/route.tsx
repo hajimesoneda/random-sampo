@@ -50,13 +50,18 @@ export async function GET(request: Request, { params }: { params: { id: string }
     console.log("Fetching spots for categories:", allCategories)
 
     // カテゴリーごとのスポットを取得
-    const spotsByCategory = await fetchNearbyPlaces({
-      lat: station.lat,
-      lng: station.lng,
-      types: allCategories.map((category) => category.id),
+    const spotsPromises = allCategories.map(async (category) => {
+      const spots = await fetchNearbyPlaces({
+        lat: station.lat,
+        lng: station.lng,
+        type: category.label, // ここをidからlabelに変更
+        radius: 1000,
+      })
+      return { categoryId: category.id, spots }
     })
 
-    const validResults = Object.entries(spotsByCategory).filter(([_, spots]) => spots.length > 0)
+    const results = await Promise.all(spotsPromises)
+    const validResults = results.filter((result) => result.spots.length > 0)
 
     if (validResults.length === 0) {
       return NextResponse.json({ spots: [] })
@@ -66,7 +71,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
     const selectedSpots: Spot[] = []
 
     // 各カテゴリーからランダムに1つのスポットを選択
-    for (const [categoryId, spots] of validResults) {
+    for (const { categoryId, spots } of validResults) {
       const shuffledSpots = shuffleArray([...spots])
       const spot = shuffledSpots[0]
       if (spot) {

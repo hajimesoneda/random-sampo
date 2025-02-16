@@ -3,6 +3,7 @@ import { db } from "@/src/db"
 import { stations } from "@/src/db/schema"
 import { sql } from "drizzle-orm"
 import { fetchNearbyPlaces } from "@/lib/google-places"
+import { shuffleArray } from "@/utils/array-utils"
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
@@ -21,15 +22,24 @@ export async function GET(request: Request) {
     const randomStation = randomStations[0]
 
     // カテゴリーごとのスポットを取得
-    const spotsByCategory = await fetchNearbyPlaces({
-      lat: randomStation.lat,
-      lng: randomStation.lng,
-      types: categories,
+    const spotsPromises = categories.map(async (category: string) => {
+      const spots = await fetchNearbyPlaces({
+        lat: randomStation.lat,
+        lng: randomStation.lng,
+        type: category,
+        radius: 1000,
+      })
+      return { categoryId: category, spots }
     })
 
-    const selectedSpots = Object.entries(spotsByCategory)
-      .flatMap(([categoryId, spots]) => {
-        const spot = spots[0]
+    const results = await Promise.all(spotsPromises)
+    const validResults = results.filter((result) => result.spots.length > 0)
+
+    // カテゴリーごとに1つのスポットを選択
+    const selectedSpots = validResults
+      .map(({ categoryId, spots }) => {
+        const shuffledSpots = shuffleArray([...spots])
+        const spot = shuffledSpots[0]
         return spot ? { ...spot, type: categoryId } : null
       })
       .filter((spot): spot is NonNullable<typeof spot> => spot !== null)
