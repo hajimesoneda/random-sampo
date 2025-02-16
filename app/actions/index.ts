@@ -46,39 +46,44 @@ export async function saveVisitWithSession(info: VisitInfo) {
   }
 }
 
-export async function toggleFavoriteStation(userId: number, station: FavoriteStation) {
-  try {
-    const existingFavorite = await prisma.favorite.findFirst({
-      where: {
-        userId,
-        stationId: station.id,
-      },
-    })
+export async function toggleFavoriteStation(stationId: string, isFavorite: boolean): Promise<FavoriteStation[]> {
+  const session = await getServerSession(authOptions)
+  if (!session?.user?.id) {
+    throw new Error("Unauthorized")
+  }
+  const userId = Number.parseInt(session.user.id)
 
-    if (existingFavorite) {
-      await prisma.favorite.delete({
-        where: {
-          id: existingFavorite.id,
-        },
-      })
-    } else {
+  try {
+    if (isFavorite) {
       await prisma.favorite.create({
         data: {
           userId,
-          stationId: station.id,
-          stationName: station.name,
+          stationId,
+          stationName: "", // You might want to fetch the station name here
+        },
+      })
+    } else {
+      await prisma.favorite.deleteMany({
+        where: {
+          userId,
+          stationId,
         },
       })
     }
 
-    return getFavoriteStations(userId)
+    return getFavoriteStations()
   } catch (error) {
     console.error("Error toggling favorite station:", error)
     throw new Error("お気に入りの更新に失敗しました")
   }
 }
 
-export async function getFavoriteStations(userId: number): Promise<FavoriteStation[]> {
+export async function getFavoriteStations(): Promise<FavoriteStation[]> {
+  const session = await getServerSession(authOptions)
+  if (!session?.user?.id) {
+    throw new Error("Unauthorized")
+  }
+  const userId = Number.parseInt(session.user.id)
   try {
     const favorites = await prisma.favorite.findMany({
       where: { userId },
@@ -98,7 +103,12 @@ export async function getFavoriteStations(userId: number): Promise<FavoriteStati
   }
 }
 
-export async function getVisitedStations(userId: number): Promise<VisitInfo[]> {
+export async function getVisitedStations(): Promise<VisitInfo[]> {
+  const session = await getServerSession(authOptions)
+  if (!session?.user?.id) {
+    throw new Error("Unauthorized")
+  }
+  const userId = Number.parseInt(session.user.id)
   try {
     const visits = await prisma.visit.findMany({
       where: { userId },

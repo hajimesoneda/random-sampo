@@ -9,7 +9,7 @@ import { toggleFavoriteStation } from "@/app/actions/index"
 interface FavoriteStationsProps {
   favorites: FavoriteStation[]
   onUpdate: (favorites: FavoriteStation[]) => void
-  onSelectStation: (station: FavoriteStation) => void
+  onSelectStation: (stationId: string) => void
 }
 
 export function FavoriteStations({ favorites, onUpdate, onSelectStation }: FavoriteStationsProps) {
@@ -22,7 +22,7 @@ export function FavoriteStations({ favorites, onUpdate, onSelectStation }: Favor
       return
     }
     try {
-      const updatedFavorites = await toggleFavoriteStation(Number.parseInt(session.user.id), station)
+      const updatedFavorites = await toggleFavoriteStation(station.id, true)
       onUpdate(updatedFavorites)
     } catch (error) {
       console.error("Error toggling favorite:", error)
@@ -35,7 +35,7 @@ export function FavoriteStations({ favorites, onUpdate, onSelectStation }: Favor
         <p className="text-center text-muted-foreground">お気に入りの駅はありません</p>
       ) : (
         favorites.map((station) => (
-          <Card key={station.id} className="cursor-pointer" onClick={() => onSelectStation(station)}>
+          <Card key={station.id} className="cursor-pointer" onClick={() => onSelectStation(station.id)}>
             <CardContent className="p-4 flex justify-between items-center">
               <div>
                 <h3 className="text-lg font-semibold">{station.name}駅</h3>

@@ -154,8 +154,13 @@ export default function ClientHome({ session: initialSession, isGuest }: ClientH
 
   const loadFavorites = useCallback(async () => {
     if (status === "authenticated") {
-      const favorites = await getFavoriteStations()
-      setFavorites(favorites)
+      try {
+        const favorites = await getFavoriteStations()
+        setFavorites(favorites)
+      } catch (error) {
+        console.error("Error loading favorites:", error)
+        setError("お気に入りの読み込みに失敗しました")
+      }
     } else if (isGuest) {
       const favorites = getFavoritesFromLocalStorage()
       setFavorites(favorites)
@@ -181,10 +186,18 @@ export default function ClientHome({ session: initialSession, isGuest }: ClientH
   }, [isMounted, status, isGuest, pickStation, loadFavorites, selectedCategories, randomizedCategories])
 
   useEffect(() => {
-    if (isMounted && (status === "authenticated" || isGuest)) {
-      const visits = status === "authenticated" ? await getVisitedStations() : getVisitsFromLocalStorage()
-      setVisitedStations(visits)
+    const loadVisits = async () => {
+      if (isMounted && (status === "authenticated" || isGuest)) {
+        try {
+          const visits = status === "authenticated" ? await getVisitedStations() : getVisitsFromLocalStorage()
+          setVisitedStations(visits)
+        } catch (error) {
+          console.error("Error loading visits:", error)
+          setError("訪問履歴の読み込みに失敗しました")
+        }
+      }
     }
+    loadVisits()
   }, [isMounted, status, isGuest])
 
   const handleSettingsClick = () => setIsSettingsOpen(true)
@@ -197,19 +210,22 @@ export default function ClientHome({ session: initialSession, isGuest }: ClientH
   const handleToggleFavorite = async () => {
     if (!station) return
     const isFavorited = favorites.some((fav) => fav.id === station.id)
-    if (isFavorited) {
-      await toggleFavoriteStation(station.id, false)
-      setFavorites((prev) => prev.filter((fav) => fav.id !== station.id))
-    } else {
-      await toggleFavoriteStation(station.id, true)
-      setFavorites((prev) => [...prev, { id: station.id, name: station.name }])
+    try {
+      const updatedFavorites = await toggleFavoriteStation(station.id, !isFavorited)
+      setFavorites(updatedFavorites)
+    } catch (error) {
+      console.error("Error toggling favorite:", error)
+      setError("お気に入りの更新に失敗しました")
     }
   }
 
-  const handleSelectFavorite = async (stationId: string) => {
-    setActiveTabState("picker")
-    await pickStation(stationId)
-  }
+  const handleSelectFavorite = useCallback(
+    async (stationId: string) => {
+      setActiveTabState("picker")
+      await pickStation(stationId)
+    },
+    [pickStation],
+  )
 
   const handleCategoryChange = (categories: Category[]) => {
     setSelectedCategories(categories)
@@ -316,7 +332,7 @@ export default function ClientHome({ session: initialSession, isGuest }: ClientH
                   {station?.spots && station.spots.length > 0 ? (
                     station.spots.map((spot, index) => (
                       <div key={`${spot.id}-${index}`} className="relative">
-                        <SpotCard {...spot} onClick={() => setSelectedSpot(spot)} />
+                        <SpotCard {...spot} onClick={() => setSelectedSpot(spot)} index={index} />
                         <Badge className="absolute top-2 right-2 z-10">{getCategoryLabel(spot.type)}</Badge>
                       </div>
                     ))
