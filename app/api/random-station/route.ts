@@ -30,10 +30,11 @@ export async function GET(request: Request) {
 
     // カテゴリーごとのスポットを取得
     const spotsPromises = allCategories.map(async (categoryId: string) => {
+      // カテゴリーIDを文字列として確実に渡す
       const spots = await fetchNearbyPlaces({
         lat: randomStation.lat,
         lng: randomStation.lng,
-        type: categoryId,
+        type: categoryId.toString(), // 文字列化を確実に行う
         radius: 1000,
       })
       return { categoryId, spots }
