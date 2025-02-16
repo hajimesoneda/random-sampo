@@ -47,6 +47,8 @@ export async function fetchNearbyPlaces({
     }
 
     const data = await response.json()
+    console.log(`API Response for ${type}:`, JSON.stringify(data, null, 2))
+
     if (!data.results || !Array.isArray(data.results)) {
       throw new Error(`Invalid response from Places API: ${JSON.stringify(data)}`)
     }
@@ -60,7 +62,7 @@ export async function fetchNearbyPlaces({
       photo: place.photos?.[0]?.photo_reference || "",
     }))
   } catch (error) {
-    console.error("Error fetching places:", error)
+    console.error(`Error fetching places for ${type}:`, error)
     return []
   }
 }

@@ -11,6 +11,8 @@ export async function GET(request: Request) {
   const categoriesParam = searchParams.get("categories")
   const categories = categoriesParam ? JSON.parse(categoriesParam) : []
 
+  console.log("Requested categories:", categories)
+
   try {
     // Get random station with error handling
     const randomStations = await db.select().from(stations).orderBy(sql`RANDOM()`).limit(1)
@@ -21,6 +23,7 @@ export async function GET(request: Request) {
     }
 
     const randomStation = randomStations[0]
+    console.log("Selected random station:", randomStation)
 
     // カテゴリーごとのスポットを取得
     const spotsPromises = categories.map(async (categoryId: string) => {
@@ -34,6 +37,7 @@ export async function GET(request: Request) {
     })
 
     const results = await Promise.all(spotsPromises)
+    console.log("Fetched spots results:", JSON.stringify(results, null, 2))
 
     // カテゴリーごとに1つのスポットを選択
     const selectedSpots: Spot[] = []
@@ -54,8 +58,12 @@ export async function GET(request: Request) {
       }
     }
 
+    console.log("Selected spots:", JSON.stringify(selectedSpots, null, 2))
+
     // 最大4つまでのスポットをランダムに選択
     const finalSpots = shuffleArray(selectedSpots).slice(0, 4)
+
+    console.log("Final spots:", JSON.stringify(finalSpots, null, 2))
 
     return NextResponse.json({
       id: randomStation.id,

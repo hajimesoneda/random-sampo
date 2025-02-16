@@ -94,11 +94,13 @@ export function SettingsModal({ isOpen, onClose, onCategoryChange, initialCatego
           }
 
           const data = await response.json()
+          console.log("Updated categories:", data.categories)
           onCategoryChange(data.categories)
         } catch (error) {
           console.error("Error saving categories:", error)
         }
       } else {
+        console.log("Updating categories for guest user:", categories)
         onCategoryChange(categories)
       }
     }
