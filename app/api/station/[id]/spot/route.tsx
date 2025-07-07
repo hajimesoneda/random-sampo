@@ -3,8 +3,14 @@ import { fetchNearbyPlaces } from "@/lib/google-places"
 import prisma from "@/lib/prisma"
 import type { Category } from "@/types/category"
 import { isValidCategory } from "@/types/category"
-import type { Spot } from "@/types/station"
 import { shuffleArray } from "@/utils/array-utils"
+
+// 座標の重複を確認する関数
+function isUniqueLocation(spot: any, selectedSpots: any[]): boolean {
+  return !selectedSpots.some(
+    (selected) => Math.abs(selected.lat - spot.lat) < 0.0001 && Math.abs(selected.lng - spot.lng) < 0.0001,
+  )
+}
 
 export async function GET(request: Request, { params }: { params: { id: string } }) {
   const stationId = params.id
@@ -57,35 +63,45 @@ export async function GET(request: Request, { params }: { params: { id: string }
         type: category.id,
         radius: 1000,
       })
-      return { categoryId: category.id, spots }
+      return spots.map((spot) => ({ ...spot, type: category.id }))
     })
 
-    const results = await Promise.all(spotsPromises)
-    const validResults = results.filter((result) => result.spots.length > 0)
+    const spotsResults = await Promise.all(spotsPromises)
+    const allSpots = spotsResults.flat()
 
-    if (validResults.length === 0) {
+    if (allSpots.length === 0) {
       return NextResponse.json({ spots: [] })
     }
 
-    // カテゴリーごとに1つのスポットを選択
-    const selectedSpots: Spot[] = []
+    // 重複をチェックしながらスポットを選択
+    const selectedSpots: any[] = []
+    const shuffledSpots = shuffleArray(allSpots)
 
-    // 各カテゴリーからランダムに1つのスポットを選択
-    for (const { categoryId, spots } of validResults) {
-      const shuffledSpots = shuffleArray([...spots])
-      const spot = shuffledSpots[0]
-      if (spot) {
-        selectedSpots.push({
-          ...spot,
-          type: categoryId, // カテゴリーIDを設定
-        })
+    for (const spot of shuffledSpots) {
+      if (selectedSpots.length >= 4) break
+      if (isUniqueLocation(spot, selectedSpots)) {
+        selectedSpots.push(spot)
       }
     }
 
-    // 最終的な結果をシャッフル
-    const finalSpots = shuffleArray(selectedSpots)
+    // スポットが4つに満たない場合、ランダムなスポットを追加
+    while (selectedSpots.length < 4) {
+      const randomCategory = allCategories[Math.floor(Math.random() * allCategories.length)]
+      const randomSpot = await fetchNearbyPlaces({
+        lat: station.lat,
+        lng: station.lng,
+        type: randomCategory.id,
+        radius: 1000,
+      })
+      if (randomSpot.length > 0) {
+        const spot = randomSpot[0]
+        if (isUniqueLocation(spot, selectedSpots)) {
+          selectedSpots.push({ ...spot, type: randomCategory.id })
+        }
+      }
+    }
 
-    return NextResponse.json({ spots: finalSpots })
+    return NextResponse.json({ spots: selectedSpots })
   } catch (error) {
     console.error("Error fetching spots:", error)
     return NextResponse.json({ error: "スポットの取得中にエラーが発生しました。" }, { status: 500 })

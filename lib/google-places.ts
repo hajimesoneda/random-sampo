@@ -1,5 +1,6 @@
 import type { Spot } from "@/types/station"
 import { getCategoryType, getCategoryKeywords, isCustomCategory } from "./category-mapping"
+import { placesCache } from "./cache"
 
 const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY
 
@@ -28,6 +29,11 @@ interface PlacesResponse {
   error_message?: string
 }
 
+// キャッシュキーを生成する関数
+function generateCacheKey(lat: number, lng: number, type: string, radius: number): string {
+  return `places_${lat}_${lng}_${type}_${radius}`
+}
+
 export async function fetchNearbyPlaces({
   lat,
   lng,
@@ -39,80 +45,60 @@ export async function fetchNearbyPlaces({
   type: string
   radius: number
 }): Promise<Spot[]> {
+  const cacheKey = generateCacheKey(lat, lng, type, radius)
+  const cachedResult = placesCache.get(cacheKey)
+
+  if (cachedResult) {
+    console.log(`Using cached results for ${type}`)
+    return cachedResult
+  }
+
   console.log(`Fetching places for category: ${type}`)
   const apiType = getCategoryType(type)
   const keywords = getCategoryKeywords(type)
   const isCustom = isCustomCategory(type)
 
-  // カスタムカテゴリー用の検索戦略
-  const customSearchStrategies = [
-    // 戦略1: Text Search APIでキーワード検索
-    async () => {
-      const url = new URL("https://maps.googleapis.com/maps/api/place/textsearch/json")
-      url.searchParams.append("query", `${keywords} 近く ${lat},${lng}`)
-      url.searchParams.append("radius", radius.toString())
-      url.searchParams.append("key", GOOGLE_MAPS_API_KEY)
-      url.searchParams.append("language", "ja")
-      url.searchParams.append("region", "jp")
+  // 検索戦略の配列
+  const searchStrategies = isCustom
+    ? [
+        // カスタムカテゴリー用の戦略
+        async () => {
+          const url = new URL("https://maps.googleapis.com/maps/api/place/textsearch/json")
+          url.searchParams.append("query", `${keywords} 近く ${lat},${lng}`)
+          url.searchParams.append("radius", radius.toString())
+          url.searchParams.append("key", GOOGLE_MAPS_API_KEY)
+          url.searchParams.append("language", "ja")
+          url.searchParams.append("region", "jp")
 
-      console.log(`Trying Text Search for custom category "${type}" with URL: ${url.toString()}`)
-      const response = await fetch(url.toString())
-      if (!response.ok) {
-        throw new Error(`Text Search failed: ${response.statusText}`)
-      }
-      return response.json()
-    },
-    // 戦略2: Nearby Search APIでキーワードのみ使用
-    async () => {
-      const url = new URL("https://maps.googleapis.com/maps/api/place/nearbysearch/json")
-      url.searchParams.append("location", `${lat},${lng}`)
-      url.searchParams.append("radius", radius.toString())
-      url.searchParams.append("keyword", keywords)
-      url.searchParams.append("key", GOOGLE_MAPS_API_KEY)
-      url.searchParams.append("language", "ja")
-      url.searchParams.append("region", "jp")
-      url.searchParams.append("rankby", "prominence")
+          const response = await fetch(url.toString())
+          if (!response.ok) throw new Error(`Text Search failed: ${response.statusText}`)
+          return response.json()
+        },
+      ]
+    : [
+        // 標準カテゴリー用の戦略
+        async () => {
+          const url = new URL("https://maps.googleapis.com/maps/api/place/nearbysearch/json")
+          url.searchParams.append("location", `${lat},${lng}`)
+          url.searchParams.append("radius", radius.toString())
+          url.searchParams.append("keyword", keywords)
+          if (Array.isArray(apiType)) {
+            url.searchParams.append("type", apiType[0])
+          } else if (typeof apiType === "string") {
+            url.searchParams.append("type", apiType)
+          }
+          url.searchParams.append("key", GOOGLE_MAPS_API_KEY)
+          url.searchParams.append("language", "ja")
+          url.searchParams.append("region", "jp")
+          url.searchParams.append("rankby", "prominence")
 
-      console.log(`Trying Nearby Search for custom category with URL: ${url.toString()}`)
-      const response = await fetch(url.toString())
-      if (!response.ok) {
-        throw new Error(`Nearby Search failed: ${response.statusText}`)
-      }
-      return response.json()
-    },
-  ]
+          const response = await fetch(url.toString())
+          if (!response.ok) throw new Error(`Nearby Search failed: ${response.statusText}`)
+          return response.json()
+        },
+      ]
 
-  // 通常カテゴリー用の検索戦略
-  const standardSearchStrategies = [
-    // 戦略1: Nearby Search APIを使用（タイプとキーワードの組み合わせ）
-    async () => {
-      const url = new URL("https://maps.googleapis.com/maps/api/place/nearbysearch/json")
-      url.searchParams.append("location", `${lat},${lng}`)
-      url.searchParams.append("radius", radius.toString())
-      url.searchParams.append("keyword", keywords)
-      if (Array.isArray(apiType)) {
-        url.searchParams.append("type", apiType[0])
-      } else if (typeof apiType === "string") {
-        url.searchParams.append("type", apiType)
-      }
-      url.searchParams.append("key", GOOGLE_MAPS_API_KEY)
-      url.searchParams.append("language", "ja")
-      url.searchParams.append("region", "jp")
-      url.searchParams.append("rankby", "prominence")
-
-      console.log(`Trying Nearby Search with URL: ${url.toString()}`)
-      const response = await fetch(url.toString())
-      if (!response.ok) {
-        throw new Error(`Nearby Search failed: ${response.statusText}`)
-      }
-      return response.json()
-    },
-  ]
-
-  // カテゴリータイプに応じて適切な検索戦略を選択
-  const searchStrategies = isCustom ? customSearchStrategies : standardSearchStrategies
-
-  // 各戦略を順番に試す
+  // 各戦略を試行（エラー時は次の戦略を試行）
   for (const strategy of searchStrategies) {
     try {
       const data: PlacesResponse = await strategy()
@@ -125,8 +111,7 @@ export async function fetchNearbyPlaces({
         })
 
         if (filteredResults.length > 0) {
-          console.log(`Found ${filteredResults.length} places for category ${type}`)
-          return filteredResults.map((place) => ({
+          const results = filteredResults.map((place) => ({
             id: place.place_id,
             name: place.name,
             lat: place.geometry.location.lat,
@@ -135,6 +120,10 @@ export async function fetchNearbyPlaces({
             categoryId: type,
             photo: place.photos?.[0]?.photo_reference || getCategoryPlaceholder(type),
           }))
+
+          // 結果をキャッシュに保存
+          placesCache.set(cacheKey, results)
+          return results
         }
       }
 
@@ -144,8 +133,11 @@ export async function fetchNearbyPlaces({
     }
   }
 
+  // 結果が見つからない場合は空配列をキャッシュ
+  const emptyResult: Spot[] = []
+  placesCache.set(cacheKey, emptyResult)
   console.log(`No results found for category ${type} after trying all strategies`)
-  return []
+  return emptyResult
 }
 
 function getCategoryPlaceholder(type: string): string {

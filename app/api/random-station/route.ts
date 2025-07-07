@@ -5,13 +5,19 @@ import { sql } from "drizzle-orm"
 import { fetchNearbyPlaces } from "@/lib/google-places"
 import { shuffleArray } from "@/utils/array-utils"
 
+// 座標の重複を確認する関数
+function isUniqueLocation(spot: any, selectedSpots: any[]): boolean {
+  return !selectedSpots.some(
+    (selected) => Math.abs(selected.lat - spot.lat) < 0.0001 && Math.abs(selected.lng - spot.lng) < 0.0001,
+  )
+}
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const categoriesParam = searchParams.get("categories")
   const categories = categoriesParam ? JSON.parse(categoriesParam) : []
 
   try {
-    // Get random station with error handling
     const randomStations = await db.select().from(stations).orderBy(sql`RANDOM()`).limit(1)
 
     if (!randomStations || randomStations.length === 0) {
@@ -35,14 +41,38 @@ export async function GET(request: Request) {
     const results = await Promise.all(spotsPromises)
     const validResults = results.filter((result) => result.spots.length > 0)
 
-    // カテゴリーごとに1つのスポットを選択
-    const selectedSpots = validResults
-      .map(({ categoryId, spots }) => {
-        const shuffledSpots = shuffleArray([...spots])
-        const spot = shuffledSpots[0]
-        return spot ? { ...spot, type: categoryId } : null
+    // すべてのスポットを1つの配列にまとめる
+    const allSpots = validResults.flatMap(({ categoryId, spots }) =>
+      spots.map((spot) => ({ ...spot, type: categoryId })),
+    )
+
+    // スポットをシャッフルして、重複をチェックしながら最大4つを選択
+    const selectedSpots: any[] = []
+    const shuffledSpots = shuffleArray(allSpots)
+
+    for (const spot of shuffledSpots) {
+      if (selectedSpots.length >= 4) break
+      if (isUniqueLocation(spot, selectedSpots)) {
+        selectedSpots.push(spot)
+      }
+    }
+
+    // スポットが4つに満たない場合、ランダムなスポットを追加
+    while (selectedSpots.length < 4) {
+      const randomCategory = categories[Math.floor(Math.random() * categories.length)]
+      const randomSpot = await fetchNearbyPlaces({
+        lat: randomStation.lat,
+        lng: randomStation.lng,
+        type: randomCategory,
+        radius: 1000,
       })
-      .filter((spot): spot is NonNullable<typeof spot> => spot !== null)
+      if (randomSpot.length > 0) {
+        const spot = randomSpot[0]
+        if (isUniqueLocation(spot, selectedSpots)) {
+          selectedSpots.push({ ...spot, type: randomCategory })
+        }
+      }
+    }
 
     return NextResponse.json({
       id: randomStation.id,
